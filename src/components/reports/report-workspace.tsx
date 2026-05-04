@@ -169,6 +169,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
   const [labTestSearchResults, setLabTestSearchResults] = useState<LabCatalogTest[]>([]);
   const [billingAccess, setBillingAccess] = useState<BillingAccessHint | null>(null);
   const previewRef = useRef<HTMLIFrameElement | null>(null);
+  const detailsPanelRef = useRef<HTMLDivElement | null>(null);
   const loadReportsSeqRef = useRef(0);
   const loadDetailsSeqRef = useRef(0);
   const reportListCacheRef = useRef<Map<string, { at: number; rows: ReportListItem[] }>>(new Map());
@@ -529,8 +530,16 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     setAppliedDate("");
   }
 
+  function handleSelectReport(reportId: string) {
+    setSelectedId(reportId);
+  }
+
+  function scrollToFullReport() {
+    detailsPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${(canHrmRelease || canReceptionDispatch) && details ? "pb-20 lg:pb-0" : ""}`}>
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-3">
         <div className="w-full sm:w-auto">
@@ -602,7 +611,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
           ) : (
             <div className="divide-y divide-slate-100">
               {rows.map((row) => (
-                <button key={row.id} onClick={() => setSelectedId(row.id)}
+                <button key={row.id} onClick={() => handleSelectReport(row.id)}
                   className={`w-full px-3 py-2.5 text-left transition-colors ${row.id === selectedId ? "bg-blue-50" : "hover:bg-slate-50"}`}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium text-slate-800 truncate">{row.visit.patient.fullName}</p>
@@ -619,7 +628,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         </div>
 
         {/* Detail panel */}
-        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+        <div ref={detailsPanelRef} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           {!details ? (
             <p className="px-4 py-8 text-center text-xs text-slate-400">Select a report to view details.</p>
           ) : (
@@ -951,6 +960,55 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
           )}
         </div>
       </div>
+
+      {(canHrmRelease || canReceptionDispatch) && details ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-2 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={scrollToFullReport}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Open full report
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={printNow}
+              className="rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              Print
+            </button>
+            <button
+              type="button"
+              disabled={busy || !details.isReleased || !previewLoaded}
+              onClick={downloadReport}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Download
+            </button>
+            <button
+              type="button"
+              disabled={busy || !details.isReleased || !previewLoaded}
+              onClick={sendWhatsapp}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              WhatsApp
+            </button>
+            {!canReceptionDispatch ? (
+              <button
+                type="button"
+                disabled={busy || details.isReleased}
+                onClick={releaseReport}
+                className="rounded bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {details.isReleased ? "Released" : "Release"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
-} 
+}
