@@ -33,6 +33,11 @@ function round2(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function applyLeniencyFloor(value: number) {
+  // Keep rankings meaningful while avoiding overly harsh low-end collapse.
+  return Math.max(50, value);
+}
+
 function groupByOrganization(rows: RankingOrderRow[]) {
   const grouped = new Map<string, RankingOrderRow[]>();
   for (const row of rows) {
@@ -79,20 +84,21 @@ export function computeRankings(
       else onTimeTests += 1;
     }
 
-    const turnaroundScore = (onTimeTests / totalTests) * 100;
+    const onTimeRate = onTimeTests / totalTests;
+    const turnaroundScore = 55 + onTimeRate * 45;
     const delayRate = delayedTests / totalTests;
-    const consistencyScore = 100 - delayRate * 100;
-    const healthScore = 100 - delayRate * 100;
-    const completionScore = (completedTests / totalTests) * 100;
+    const consistencyScore = 100 - delayRate * 55;
+    const healthScore = 100 - delayRate * 45;
+    const completionScore = 50 + (completedTests / totalTests) * 50;
     const activity = computeActivityEfficiencyFromData(orgOrders, previousOrders);
-    const activityScore = activity.activityScore;
+    const activityScore = 45 + activity.activityScore * 0.55;
 
     const finalScore =
-      turnaroundScore * 0.4 +
-      consistencyScore * 0.25 +
-      activityScore * 0.15 +
+      turnaroundScore * 0.3 +
+      consistencyScore * 0.2 +
+      activityScore * 0.25 +
       healthScore * 0.1 +
-      completionScore * 0.1;
+      completionScore * 0.15;
 
     rankings.push({
       organizationId,
@@ -106,7 +112,7 @@ export function computeRankings(
       healthScore: round2(clampScore(healthScore)),
       completionScore: round2(clampScore(completionScore)),
       activityScore: round2(clampScore(activityScore)),
-      finalScore: round2(clampScore(finalScore)),
+      finalScore: round2(applyLeniencyFloor(clampScore(finalScore))),
     });
   }
 

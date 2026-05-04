@@ -25,7 +25,7 @@ export async function getCachedRankings(period: "weekly" | "monthly" = "weekly")
 
 export async function getPublicLabsByLocation(locationSlug: string) {
   const normalized = normalizeLocation(locationSlug);
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const items = rankings.items.filter((item) => item.city.toLowerCase() === normalized);
   if (items.length === 0) return [];
 
@@ -84,13 +84,13 @@ export async function getPublicLabProfile(locationSlug: string, slug: string) {
   });
   if (!lab) return null;
 
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const ranking = rankings.items.find((x) => x.organizationId === lab.id) ?? null;
   return { lab, ranking };
 }
 
 export async function getPublicLabLocations() {
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const grouped = new Map<
     string,
     { city: string; count: number; avgScore: number; topLabName: string | null; topScore: number }

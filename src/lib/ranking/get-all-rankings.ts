@@ -32,10 +32,17 @@ export type RankingsResult = {
 
 function getPeriodWindow(period: RankingPeriod) {
   const endDate = new Date();
-  const days = period === "weekly" ? 7 : 30;
-  const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+  if (period === "weekly") {
+    const days = 7;
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+    const previousEndDate = new Date(startDate);
+    const previousStartDate = new Date(previousEndDate.getTime() - days * 24 * 60 * 60 * 1000);
+    return { startDate, endDate, previousStartDate, previousEndDate };
+  }
+
+  const startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1, 0, 0, 0, 0);
+  const previousStartDate = new Date(endDate.getFullYear(), endDate.getMonth() - 1, 1, 0, 0, 0, 0);
   const previousEndDate = new Date(startDate);
-  const previousStartDate = new Date(previousEndDate.getTime() - days * 24 * 60 * 60 * 1000);
   return { startDate, endDate, previousStartDate, previousEndDate };
 }
 
