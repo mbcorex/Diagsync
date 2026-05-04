@@ -146,6 +146,11 @@ function isMcsTestName(testName: string) {
   return normalizeToken(testName).includes("m c s");
 }
 
+function isEcgOrder(order: TestOrder) {
+  const token = normalizeToken(`${order.test.name} ${order.test.code}`);
+  return token.includes("ecg") || token.includes("ekg") || token.includes("holter") || token.includes("treadmill");
+}
+
 type MicroscopyRowInput = {
   wbcPus: string;
   epithelial: string;
@@ -1731,6 +1736,9 @@ export function LabTaskBoard() {
 
   function isOrderReady(task: LabTask, order: TestOrder) {
     const draft = drafts[order.id] ?? createEmptyDraft();
+    if (isEcgOrder(order)) {
+      return true;
+    }
     const removedDefaults = new Set(draft.removedDefaultFieldKeys ?? []);
     const required = order.test.resultFields.filter((field) => field.isRequired && !removedDefaults.has(field.fieldKey));
     if (required.length === 0) {
@@ -2216,9 +2224,17 @@ export function LabTaskBoard() {
           !removedDefaults.has("sensitivity") &&
           isValueFilled(sharedSensitivity) &&
           !isValueFilled(cleanedValues.sensitivity);
-        return {
+        const withSharedSensitivity = {
           ...cleanedValues,
           ...(canApplySharedSensitivity ? { sensitivity: sharedSensitivity } : {}),
+        };
+        const valuesForSubmit = isEcgOrder(order)
+          ? Object.fromEntries(
+              Object.entries(withSharedSensitivity).filter(([, value]) => isValueFilled(value))
+            )
+          : withSharedSensitivity;
+        return {
+          ...valuesForSubmit,
           ...(signOff?.signatureImage && signOff?.signatureName
             ? {
                 [SIGNOFF_IMAGE_KEY]: signOff.signatureImage,
