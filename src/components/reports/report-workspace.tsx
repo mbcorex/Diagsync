@@ -162,6 +162,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
   const [previewNonce, setPreviewNonce] = useState(0);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showEditSection, setShowEditSection] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [printLetterheadMode, setPrintLetterheadMode] = useState<"with" | "without">("with");
   const [addLabTestName, setAddLabTestName] = useState("");
   const [labTestSearch, setLabTestSearch] = useState("");
@@ -532,6 +533,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
 
   function handleSelectReport(reportId: string) {
     setSelectedId(reportId);
+    setMobileSheetOpen(true);
   }
 
   function scrollToFullReport() {
@@ -628,11 +630,40 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         </div>
 
         {/* Detail panel */}
-        <div ref={detailsPanelRef} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+        <div
+          ref={detailsPanelRef}
+          className={`rounded-lg border border-slate-200 bg-white overflow-hidden ${
+            mobileSheetOpen
+              ? "fixed inset-0 z-40 rounded-none border-0"
+              : "hidden"
+          } lg:static lg:z-auto lg:block lg:rounded-lg lg:border`}
+        >
           {!details ? (
-            <p className="px-4 py-8 text-center text-xs text-slate-400">Select a report to view details.</p>
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 lg:hidden">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Report details</p>
+                <button
+                  type="button"
+                  onClick={() => setMobileSheetOpen(false)}
+                  className="rounded border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600"
+                >
+                  Close
+                </button>
+              </div>
+              <p className="px-4 py-8 text-center text-xs text-slate-400">Select a report to view details.</p>
+            </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="h-full overflow-y-auto divide-y divide-slate-100">
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 lg:hidden">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Report details</p>
+                <button
+                  type="button"
+                  onClick={() => setMobileSheetOpen(false)}
+                  className="rounded border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600"
+                >
+                  Close
+                </button>
+              </div>
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3">
                 <div>
