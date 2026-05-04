@@ -31,6 +31,7 @@ interface NavItem {
 
 const navByRole: Record<string, NavItem[]> = {
   SUPER_ADMIN: [
+    { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
     { label: "Lab Settings", href: "/dashboard/hrm/settings", icon: Settings2 },
@@ -46,6 +47,7 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
   ],
   HRM: [
+    { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
     { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },

@@ -37,12 +37,13 @@ type NavConfig = {
 const navByRole: Record<Role, NavConfig> = {
   SUPER_ADMIN: {
     primary: [
-      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
     ],
     more: [
+      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
       { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
       { label: "Lab Settings", href: "/dashboard/hrm/settings", icon: Settings2 },
       { label: "Consultations", href: "/dashboard/hrm/consultation", icon: Stethoscope },
@@ -58,12 +59,13 @@ const navByRole: Record<Role, NavConfig> = {
   },
   HRM: {
     primary: [
-      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
     ],
     more: [
+      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
       { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
       { label: "Consultations", href: "/dashboard/hrm/consultation", icon: Stethoscope },
       { label: "Review Queue", href: "/dashboard/md/review", icon: ClipboardList },

@@ -10,8 +10,8 @@ export function cn(...inputs: ClassValue[]) {
 export function getDashboardPath(role: Role): string {
   const map: Record<Role, string> = {
     MEGA_ADMIN: "/admin/dashboard",
-    SUPER_ADMIN: "/dashboard",
-    HRM: "/dashboard",
+    SUPER_ADMIN: "/dashboard/hrm",
+    HRM: "/dashboard/hrm",
     RECEPTIONIST: "/dashboard/receptionist",
     LAB_SCIENTIST: "/dashboard/lab-scientist",
     RADIOGRAPHER: "/dashboard/radiographer",
