@@ -80,8 +80,6 @@ const navByRole: Record<string, NavItem[]> = {
   INVENTORY_MANAGER: [
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
     { label: "Item Setup", href: "/dashboard/hrm/inventory/items", icon: Package },
-    { label: "Stock Entry", href: "/dashboard/hrm/inventory/stock", icon: ClipboardList },
-    { label: "Mappings", href: "/dashboard/hrm/inventory/mappings", icon: ClipboardList },
     { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
     { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],

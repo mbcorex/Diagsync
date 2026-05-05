@@ -49,7 +49,7 @@ type AnalyticsRow = {
 export function InventoryOperations({
   mode = "all",
 }: {
-  mode?: "all" | "items" | "stock" | "mappings" | "movements" | "analytics";
+  mode?: "all" | "setup" | "items" | "stock" | "mappings" | "movements" | "analytics";
 }) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [tests, setTests] = useState<TestRow[]>([]);
@@ -193,9 +193,9 @@ export function InventoryOperations({
       {error ? <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div> : null}
       {feedback ? <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{feedback}</div> : null}
 
-      {(mode === "all" || mode === "items" || mode === "stock" || mode === "mappings") ? (
+      {(mode === "all" || mode === "setup" || mode === "items" || mode === "stock" || mode === "mappings") ? (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        {mode === "all" || mode === "items" ? (
+        {mode === "all" || mode === "setup" || mode === "items" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Add Inventory Item</h3>
           <div className="space-y-1">
@@ -227,7 +227,7 @@ export function InventoryOperations({
         </section>
         ) : null}
 
-        {mode === "all" || mode === "stock" ? (
+        {mode === "all" || mode === "setup" || mode === "stock" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Add Stock</h3>
           <div className="space-y-1">
@@ -263,7 +263,7 @@ export function InventoryOperations({
         </section>
         ) : null}
 
-        {mode === "all" || mode === "mappings" ? (
+        {mode === "all" || mode === "setup" || mode === "mappings" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Map Consumption To Test</h3>
           <div className="space-y-1">
