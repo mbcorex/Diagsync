@@ -486,6 +486,47 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     window.open(previewUrl(details.id, printLetterheadMode, { showPrintButton: true, autoPrint: true }), "_blank", "noopener,noreferrer");
   }
 
+  async function fallbackDownloadPdfFromPreview(reportId: string) {
+    const frame = previewRef.current;
+    const doc = frame?.contentDocument;
+    const body = doc?.body;
+    if (!frame || !doc || !body) {
+      throw new Error("Preview not ready yet. Please wait 1-2 seconds and try again.");
+    }
+
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
+    const canvas = await html2canvas(body, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+      heightLeft -= pageHeight;
+    }
+
+    const baseName = details?.visit?.visitNumber ? `${details.visit.visitNumber}-report` : `${reportId}-report`;
+    pdf.save(`${baseName}.pdf`);
+  }
+
   async function downloadReport() {
     if (!details) return;
     setBusy(true); setError(""); setMessage("");
@@ -519,8 +560,13 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
       window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 2000);
       setMessage("PDF download started.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to download report right now. Please try again.";
-      setError(message);
+      try {
+        await fallbackDownloadPdfFromPreview(details.id);
+        setMessage("PDF download started (fallback mode).");
+      } catch {
+        const message = error instanceof Error ? error.message : "Unable to download report right now. Please try again.";
+        setError(message);
+      }
     } finally {
       setBusy(false);
     }
