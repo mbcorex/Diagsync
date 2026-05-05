@@ -57,9 +57,10 @@ export async function GET(
       if (error.message === "PDF_BROWSER_NOT_FOUND") return errorJson(500, "PDF engine unavailable on server");
       if (error.message.startsWith("PDF_BROWSER_LAUNCH_FAILED")) return errorJson(500, "PDF engine failed to start on server");
       if (error.message.startsWith("Protocol error")) return errorJson(500, "PDF rendering failed on server");
+      return errorJson(500, `PDF generation failed: ${error.message}`);
     }
     console.error("[REPORT_PDF_GET]", error);
-    return errorJson(500, "Internal server error");
+    return errorJson(500, "PDF generation failed on server");
   }
 }
 
