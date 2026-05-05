@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
 
 export default async function InventoryDashboardPage() {
   const session = await auth();
@@ -24,6 +25,7 @@ export default async function InventoryDashboardPage() {
           <h1 className="text-base font-semibold text-slate-800">Inventory Dashboard</h1>
           <p className="mt-0.5 text-xs text-slate-400">Stock levels, low-stock alerts, and upcoming expiries.</p>
         </div>
+        <InventoryOperations />
 
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table className="min-w-full text-sm">
