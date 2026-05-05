@@ -67,16 +67,7 @@ const withPWA = nextPwa({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: [
-      "@prisma/client",
-      "bcryptjs",
-      "@sparticuz/chromium",
-      "puppeteer-core",
-    ],
-  },
-  outputFileTracingIncludes: {
-    "/api/reports/[reportId]/pdf": ["./node_modules/@sparticuz/chromium/bin/**/*"],
-    "/api/reports/[reportId]/jpg": ["./node_modules/@sparticuz/chromium/bin/**/*"],
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
   },
 };
 

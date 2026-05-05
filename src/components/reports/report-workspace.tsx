@@ -537,42 +537,10 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         body: JSON.stringify({ action: "DOWNLOAD" }),
       }).catch(() => null);
 
-      const response = await fetch(pdfUrl(details.id, printLetterheadMode), {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        let serverError = "Server PDF generation failed.";
-        try {
-          const payload = await response.json();
-          if (payload?.error && typeof payload.error === "string") {
-            serverError = payload.error;
-          }
-        } catch {
-          // Ignore non-JSON error bodies.
-        }
-        throw new Error(serverError);
-      }
-
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      const disposition = response.headers.get("content-disposition") ?? "";
-      const matched = disposition.match(/filename=\"?([^\";]+)\"?/i);
-      const defaultName = details?.visit?.visitNumber
-        ? `${details.visit.visitNumber}-report.pdf`
-        : `${details.id}-report.pdf`;
-      anchor.href = objectUrl;
-      anchor.download = matched?.[1] || defaultName;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(objectUrl);
+      await fallbackDownloadPdfFromPreview(details.id);
       setMessage("PDF download started.");
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Unable to generate PDF right now.";
-      setError(reason);
+    } catch {
+      setError("Preview not ready yet. Please wait 1-2 seconds and try again.");
     } finally {
       setBusy(false);
     }
