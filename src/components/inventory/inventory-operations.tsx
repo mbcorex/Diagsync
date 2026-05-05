@@ -46,7 +46,11 @@ type AnalyticsRow = {
   flagged: boolean;
 };
 
-export function InventoryOperations() {
+export function InventoryOperations({
+  mode = "all",
+}: {
+  mode?: "all" | "items" | "stock" | "mappings" | "movements" | "analytics";
+}) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [tests, setTests] = useState<TestRow[]>([]);
   const [movements, setMovements] = useState<MovementRow[]>([]);
@@ -189,7 +193,9 @@ export function InventoryOperations() {
       {error ? <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div> : null}
       {feedback ? <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{feedback}</div> : null}
 
+      {(mode === "all" || mode === "items" || mode === "stock" || mode === "mappings") ? (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        {mode === "all" || mode === "items" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Add Inventory Item</h3>
           <div className="space-y-1">
@@ -219,7 +225,9 @@ export function InventoryOperations() {
           </div>
           <Button disabled={busy || !itemName.trim() || !itemUnit.trim()} onClick={createItem}>Save Item</Button>
         </section>
+        ) : null}
 
+        {mode === "all" || mode === "stock" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Add Stock</h3>
           <div className="space-y-1">
@@ -253,7 +261,9 @@ export function InventoryOperations() {
           </div>
           <Button disabled={busy || !stockItemId || !stockQty || !stockExpiry} onClick={addStock}>Add Stock</Button>
         </section>
+        ) : null}
 
+        {mode === "all" || mode === "mappings" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Map Consumption To Test</h3>
           <div className="space-y-1">
@@ -280,8 +290,11 @@ export function InventoryOperations() {
           </div>
           <Button disabled={busy || !mapItemId || !mapTestId || !mapQty} onClick={saveMapping}>Save Mapping</Button>
         </section>
+        ) : null}
       </div>
+      ) : null}
 
+      {mode === "all" || mode === "movements" ? (
       <section className="rounded-lg border border-slate-200 bg-white overflow-x-auto">
         <div className="border-b border-slate-100 px-4 py-2.5">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recent Movement Log</h3>
@@ -314,7 +327,9 @@ export function InventoryOperations() {
           </tbody>
         </table>
       </section>
+      ) : null}
 
+      {mode === "all" || mode === "analytics" ? (
       <section className="rounded-lg border border-slate-200 bg-white overflow-x-auto">
         <div className="border-b border-slate-100 px-4 py-2.5">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Discrepancy Analytics</h3>
@@ -345,6 +360,7 @@ export function InventoryOperations() {
           </tbody>
         </table>
       </section>
+      ) : null}
     </div>
   );
 }

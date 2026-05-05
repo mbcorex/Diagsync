@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { InventoryOperations } from "@/components/inventory/inventory-operations";
+import Link from "next/link";
 
 export default async function InventoryDashboardPage() {
   const session = await auth();
@@ -25,7 +25,13 @@ export default async function InventoryDashboardPage() {
           <h1 className="text-base font-semibold text-slate-800">Inventory Dashboard</h1>
           <p className="mt-0.5 text-xs text-slate-400">Stock levels, low-stock alerts, and upcoming expiries.</p>
         </div>
-        <InventoryOperations />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <Link href="/dashboard/hrm/inventory/items" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Item Setup</Link>
+          <Link href="/dashboard/hrm/inventory/stock" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Stock Entry</Link>
+          <Link href="/dashboard/hrm/inventory/mappings" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Consumption Mapping</Link>
+          <Link href="/dashboard/hrm/inventory/movements" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Movement Log</Link>
+          <Link href="/dashboard/hrm/inventory/analytics" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Discrepancy Analytics</Link>
+        </div>
 
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table className="min-w-full text-sm">

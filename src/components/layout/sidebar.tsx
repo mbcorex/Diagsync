@@ -47,6 +47,8 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Audit Log", href: "/dashboard/hrm/audit", icon: ClipboardList },
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],
   HRM: [
     { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
@@ -77,6 +79,11 @@ const navByRole: Record<string, NavItem[]> = {
   ],
   INVENTORY_MANAGER: [
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Item Setup", href: "/dashboard/hrm/inventory/items", icon: Package },
+    { label: "Stock Entry", href: "/dashboard/hrm/inventory/stock", icon: ClipboardList },
+    { label: "Mappings", href: "/dashboard/hrm/inventory/mappings", icon: ClipboardList },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],
   RADIOGRAPHER: [
     { label: "Dashboard", href: "/dashboard/radiographer", icon: LayoutDashboard },
@@ -92,6 +99,8 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],
 };
 
