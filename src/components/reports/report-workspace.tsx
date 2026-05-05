@@ -497,16 +497,30 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
       }).catch(() => null);
 
       const pdf = pdfUrl(details.id, printLetterheadMode);
+      const res = await fetch(pdf, { method: "GET", credentials: "include" });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!res.ok) {
+        const text = (await res.text()).trim();
+        throw new Error(text || `Download failed (${res.status})`);
+      }
+      if (!contentType.toLowerCase().includes("application/pdf")) {
+        const text = (await res.text()).trim();
+        throw new Error(text || "Server did not return a PDF file");
+      }
+      const blob = await res.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
-      anchor.href = pdf;
-      anchor.download = "";
+      anchor.href = objectUrl;
+      anchor.download = `${details.visit.visitNumber}-report.pdf`;
       anchor.rel = "noopener noreferrer";
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 2000);
       setMessage("PDF download started.");
-    } catch {
-      setError("Unable to download report right now. Please try again.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to download report right now. Please try again.";
+      setError(message);
     } finally {
       setBusy(false);
     }

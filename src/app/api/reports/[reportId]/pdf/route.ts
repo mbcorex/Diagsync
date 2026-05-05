@@ -10,13 +10,17 @@ function sanitizeForFileName(value: string) {
   return value.replace(/[^a-zA-Z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
+function errorJson(status: number, error: string) {
+  return NextResponse.json({ success: false, error }, { status });
+}
+
 export async function GET(
   req: Request,
   { params }: { params: { reportId: string } }
 ) {
   try {
     const session = await auth();
-    if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user) return errorJson(401, "Unauthorized");
     const user = session.user as any;
     const url = new URL(req.url);
     const includeLetterhead = url.searchParams.get("letterhead") !== "without";
@@ -43,18 +47,18 @@ export async function GET(
     });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === "BILLING_LOCKED") return new NextResponse("Billing access required", { status: 403 });
-      if (error.message === "FORBIDDEN_ROLE") return new NextResponse("Forbidden", { status: 403 });
-      if (error.message === "FORBIDDEN_UNRELEASED_REPORT") return new NextResponse("Forbidden", { status: 403 });
-      if (error.message === "REPORT_NOT_FOUND") return new NextResponse("Report not found", { status: 404 });
-      if (error.message === "REPORT_TYPE_MISMATCH") return new NextResponse("Invalid report state", { status: 409 });
-      if (error.message === "CROSS_DEPARTMENT_CONTENT") return new NextResponse("Invalid report content", { status: 409 });
-      if (error.message === "INVALID_VERSION_CHAIN") return new NextResponse("Invalid report version state", { status: 409 });
-      if (error.message === "PDF_BROWSER_NOT_FOUND") return new NextResponse("PDF engine unavailable on server", { status: 500 });
-      if (error.message.startsWith("Protocol error")) return new NextResponse("PDF rendering failed on server", { status: 500 });
+      if (error.message === "BILLING_LOCKED") return errorJson(403, "Billing access required");
+      if (error.message === "FORBIDDEN_ROLE") return errorJson(403, "Forbidden");
+      if (error.message === "FORBIDDEN_UNRELEASED_REPORT") return errorJson(403, "Forbidden");
+      if (error.message === "REPORT_NOT_FOUND") return errorJson(404, "Report not found");
+      if (error.message === "REPORT_TYPE_MISMATCH") return errorJson(409, "Invalid report state");
+      if (error.message === "CROSS_DEPARTMENT_CONTENT") return errorJson(409, "Invalid report content");
+      if (error.message === "INVALID_VERSION_CHAIN") return errorJson(409, "Invalid report version state");
+      if (error.message === "PDF_BROWSER_NOT_FOUND") return errorJson(500, "PDF engine unavailable on server");
+      if (error.message.startsWith("Protocol error")) return errorJson(500, "PDF rendering failed on server");
     }
     console.error("[REPORT_PDF_GET]", error);
-    return new NextResponse("Internal server error", { status: 500 });
+    return errorJson(500, "Internal server error");
   }
 }
 
