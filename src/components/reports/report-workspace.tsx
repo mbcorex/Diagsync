@@ -537,36 +537,10 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         body: JSON.stringify({ action: "DOWNLOAD" }),
       }).catch(() => null);
 
-      const pdf = pdfUrl(details.id, printLetterheadMode);
-      const res = await fetch(pdf, { method: "GET", credentials: "include" });
-      const contentType = res.headers.get("content-type") ?? "";
-      if (!res.ok) {
-        const text = (await res.text()).trim();
-        throw new Error(text || `Download failed (${res.status})`);
-      }
-      if (!contentType.toLowerCase().includes("application/pdf")) {
-        const text = (await res.text()).trim();
-        throw new Error(text || "Server did not return a PDF file");
-      }
-      const blob = await res.blob();
-      const objectUrl = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download = `${details.visit.visitNumber}-report.pdf`;
-      anchor.rel = "noopener noreferrer";
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 2000);
+      await fallbackDownloadPdfFromPreview(details.id);
       setMessage("PDF download started.");
-    } catch (error) {
-      try {
-        await fallbackDownloadPdfFromPreview(details.id);
-        setMessage("PDF download started (fallback mode).");
-      } catch {
-        const message = error instanceof Error ? error.message : "Unable to download report right now. Please try again.";
-        setError(message);
-      }
+    } catch {
+      setError("Preview not ready yet. Please wait 1-2 seconds and try again.");
     } finally {
       setBusy(false);
     }
