@@ -537,10 +537,37 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         body: JSON.stringify({ action: "DOWNLOAD" }),
       }).catch(() => null);
 
-      await fallbackDownloadPdfFromPreview(details.id);
+      const response = await fetch(pdfUrl(details.id, printLetterheadMode), {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("SERVER_PDF_FAILED");
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      const disposition = response.headers.get("content-disposition") ?? "";
+      const matched = disposition.match(/filename=\"?([^\";]+)\"?/i);
+      const defaultName = details?.visit?.visitNumber
+        ? `${details.visit.visitNumber}-report.pdf`
+        : `${details.id}-report.pdf`;
+      anchor.href = objectUrl;
+      anchor.download = matched?.[1] || defaultName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
       setMessage("PDF download started.");
     } catch {
-      setError("Preview not ready yet. Please wait 1-2 seconds and try again.");
+      try {
+        await fallbackDownloadPdfFromPreview(details.id);
+        setMessage("PDF download started.");
+      } catch {
+        setError("Unable to generate PDF right now. Please try again.");
+      }
     } finally {
       setBusy(false);
     }

@@ -884,7 +884,7 @@ export function renderReportHtml(args: RenderArgs) {
       line-height: 1.45;
       color: #1f2937;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; break-inside: auto; page-break-inside: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; break-inside: avoid; page-break-inside: avoid; }
     thead { display: table-header-group; }
     tfoot { display: table-footer-group; }
     tr { break-inside: avoid; page-break-inside: avoid; }
@@ -1055,6 +1055,10 @@ export function renderReportHtml(args: RenderArgs) {
       .signature-block {
         page-break-inside: auto;
         break-inside: auto;
+      }
+      table {
+        page-break-inside: avoid !important;
+        break-inside: avoid-page !important;
       }
       h3 {
         page-break-after: avoid;
