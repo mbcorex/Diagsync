@@ -75,8 +75,11 @@ export default async function middleware(req: NextRequest) {
   }
 
   for (const [route, allowedRoles] of Object.entries(roleRouteMap)) {
-    if (pathname.startsWith(route) && !allowedRoles.includes(userRole)) {
-      return NextResponse.redirect(new URL(getDashboardPath(userRole), nextUrl.origin));
+    if (pathname.startsWith(route)) {
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), nextUrl.origin));
+      }
+      return NextResponse.next();
     }
   }
 
