@@ -63,9 +63,13 @@ export async function POST(
       throw error;
     }
     if (parsed.data.submit) {
-      await submitLabTask(params.taskId, actor);
+      const submission = await submitLabTask(params.taskId, actor);
       endApiMetric(metric, { ok: true, status: 200, note: "submitted" });
-      return NextResponse.json({ success: true, message: "Results submitted for review" });
+      return NextResponse.json({
+        success: true,
+        message: "Results submitted for review",
+        warnings: submission.inventoryWarnings,
+      });
     }
 
     endApiMetric(metric, { ok: true, status: 200, note: "draft_saved" });

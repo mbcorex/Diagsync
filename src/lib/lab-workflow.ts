@@ -21,6 +21,7 @@ import {
   sortByPriorityAndTime,
 } from "./lab-workflow-core";
 import { computeAbnormalFlags } from "./reference-ranges";
+import { applyTestUsageForTaskInTx } from "./inventory";
 
 export type LabActor = {
   id: string;
@@ -566,7 +567,7 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
   const task = await assertTaskOwnership(taskId, actor);
 
   if (task.status === RoutingTaskStatus.COMPLETED) {
-    return;
+    return { inventoryWarnings: [] as Array<{ message: string }> };
   }
   if (!canSubmitTask(task.status)) {
     throw new Error("TASK_ALREADY_COMPLETED");
@@ -593,6 +594,7 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
   }
 
   const now = new Date();
+  let inventoryWarnings: Array<{ message: string }> = [];
   await prisma.$transaction(async (tx) => {
     await tx.labResult.updateMany({
       where: { taskId: task.id, organizationId: actor.organizationId },
@@ -618,6 +620,13 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
         completedAt: null,
       },
       data: { completedAt: now },
+    });
+
+    inventoryWarnings = await applyTestUsageForTaskInTx({
+      tx,
+      organizationId: actor.organizationId,
+      taskId: task.id,
+      performedById: actor.id,
     });
   });
 
@@ -647,4 +656,8 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
       error,
     });
   }
+
+  return {
+    inventoryWarnings,
+  };
 }

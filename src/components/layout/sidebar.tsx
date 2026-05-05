@@ -19,6 +19,7 @@ import {
   TestTube2,
   Settings2,
   CreditCard,
+  Package,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Role } from "@prisma/client";
@@ -45,6 +46,7 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Release Center", href: "/dashboard/hrm/release", icon: ClipboardList },
     { label: "Audit Log", href: "/dashboard/hrm/audit", icon: ClipboardList },
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
   ],
   HRM: [
     { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
@@ -73,6 +75,9 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "My Queue", href: "/dashboard/lab-scientist/queue", icon: ClipboardList },
     { label: "Results", href: "/dashboard/lab-scientist/results", icon: FlaskConical },
   ],
+  INVENTORY_MANAGER: [
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+  ],
   RADIOGRAPHER: [
     { label: "Dashboard", href: "/dashboard/radiographer", icon: LayoutDashboard },
     { label: "Imaging Queue", href: "/dashboard/radiographer/queue", icon: Scan },
@@ -86,6 +91,7 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Report Drafts", href: "/dashboard/md/reports", icon: ClipboardList },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
   ],
 };
 

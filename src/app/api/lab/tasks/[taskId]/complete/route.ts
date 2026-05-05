@@ -16,14 +16,18 @@ export async function PATCH(
     }
 
     const user = session.user as any;
-    await submitLabTask(params.taskId, {
+    const submission = await submitLabTask(params.taskId, {
       id: user.id,
       role: user.role,
       organizationId: user.organizationId,
       auditMeta: getAuditMetaFromRequest(req),
     });
 
-    return NextResponse.json({ success: true, message: "Task completed and submitted for review" });
+    return NextResponse.json({
+      success: true,
+      message: "Task completed and submitted for review",
+      warnings: submission.inventoryWarnings,
+    });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "FORBIDDEN_ROLE" || error.message === "FORBIDDEN_TASK") {

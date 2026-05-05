@@ -49,6 +49,11 @@ model Organization {
   patients                    Patient[]
   staff                       Staff[]
   subscriptionPaymentRequests SubscriptionPaymentRequest[]
+  inventoryItems              InventoryItem[]
+  inventoryStockEntries       InventoryStockEntry[]
+  inventoryConsumptionMappings InventoryConsumptionMapping[]
+  inventoryMovementLogs       InventoryMovementLog[]
+  inventoryBalances           InventoryBalance[]
 
   @@map("organizations")
 }
@@ -105,6 +110,9 @@ model Staff {
   assignedTestOrders                   TestOrder[]                  @relation("AssignedTestOrders")
   overriddenTestOrders                 TestOrder[]                  @relation("OverriddenTestOrders")
   visitPayments                        VisitPayment[]
+  inventoryItemsCreated                InventoryItem[]              @relation("InventoryItemCreatedBy")
+  inventoryStockEntriesAdded           InventoryStockEntry[]        @relation("InventoryStockEntryAddedBy")
+  inventoryMovementLogsPerformed       InventoryMovementLog[]       @relation("InventoryMovementPerformedBy")
 
   @@map("staff")
 }
@@ -216,6 +224,7 @@ model DiagnosticTest {
   organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   resultFields      ResultTemplateField[]
   testOrders        TestOrder[]
+  inventoryMappings InventoryConsumptionMapping[]
 
   @@unique([organizationId, code])
   @@index([organizationId, groupKey])
@@ -682,14 +691,123 @@ model SubscriptionPaymentRequest {
   @@map("subscription_payment_requests")
 }
 
+model InventoryItem {
+  id                String                      @id @default(cuid())
+  organizationId    String
+  name              String
+  category          InventoryCategory
+  unit              String
+  minimumStockLevel Decimal                     @db.Decimal(12, 3)
+  createdById       String
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy         Staff                       @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  stockEntries      InventoryStockEntry[]
+  mappings          InventoryConsumptionMapping[]
+  movementLogs      InventoryMovementLog[]
+  balance           InventoryBalance?
+
+  @@unique([organizationId, name])
+  @@index([organizationId, category, createdAt])
+  @@map("inventory_items")
+}
+
+model InventoryStockEntry {
+  id              String        @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  quantityAdded   Decimal       @db.Decimal(12, 3)
+  expiryDate      DateTime      @db.Date
+  batchNumber     String?
+  supplier        String?
+  addedById       String
+  createdAt       DateTime      @default(now())
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  addedBy         Staff         @relation("InventoryStockEntryAddedBy", fields: [addedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, inventoryItemId, createdAt])
+  @@index([organizationId, expiryDate])
+  @@map("inventory_stock_entries")
+}
+
+model InventoryConsumptionMapping {
+  id              String         @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  testId          String
+  quantityPerTest Decimal        @db.Decimal(12, 3)
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem  @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  test            DiagnosticTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, inventoryItemId, testId])
+  @@index([organizationId, testId])
+  @@index([organizationId, inventoryItemId])
+  @@map("inventory_consumption_mappings")
+}
+
+model InventoryMovementLog {
+  id              String                @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  quantityChange  Decimal               @db.Decimal(12, 3)
+  actionType      InventoryActionType
+  sourceType      InventorySourceType
+  sourceId        String?
+  performedById   String
+  createdAt       DateTime              @default(now())
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem         @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  performedBy     Staff                 @relation("InventoryMovementPerformedBy", fields: [performedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, inventoryItemId, createdAt])
+  @@index([organizationId, sourceType, sourceId, createdAt])
+  @@index([organizationId, actionType, createdAt])
+  @@map("inventory_movement_logs")
+}
+
+model InventoryBalance {
+  inventoryItemId String        @id
+  organizationId  String
+  currentQuantity Decimal       @default(0) @db.Decimal(12, 3)
+  updatedAt       DateTime      @updatedAt
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, currentQuantity])
+  @@map("inventory_balances")
+}
+
 enum Role {
   SUPER_ADMIN
+  INVENTORY_MANAGER
   RECEPTIONIST
   LAB_SCIENTIST
   RADIOGRAPHER
   MD
   HRM
   MEGA_ADMIN
+}
+
+enum InventoryCategory {
+  TEST_KIT
+  REAGENT
+  CONSUMABLE
+}
+
+enum InventoryActionType {
+  STOCK_IN
+  TEST_USAGE
+  MANUAL_ADJUSTMENT
+  REVERSAL
+}
+
+enum InventorySourceType {
+  TEST
+  ADMIN
+  SYSTEM
 }
 
 enum OrganizationPlan {

@@ -11,6 +11,7 @@ export function getDashboardPath(role: Role): string {
   const map: Record<Role, string> = {
     MEGA_ADMIN: "/admin/dashboard",
     SUPER_ADMIN: "/dashboard/hrm",
+    INVENTORY_MANAGER: "/dashboard/hrm/inventory",
     HRM: "/dashboard/hrm",
     RECEPTIONIST: "/dashboard/receptionist",
     LAB_SCIENTIST: "/dashboard/lab-scientist",
@@ -73,6 +74,7 @@ export function generateVisitNumber(prefix: string, count: number): string {
 export const ROLE_LABELS: Record<Role, string> = {
   MEGA_ADMIN: "Platform Admin",
   SUPER_ADMIN: "Super Admin",
+  INVENTORY_MANAGER: "Inventory Manager",
   HRM: "HRM / Operations",
   RECEPTIONIST: "Receptionist",
   LAB_SCIENTIST: "Lab Scientist",

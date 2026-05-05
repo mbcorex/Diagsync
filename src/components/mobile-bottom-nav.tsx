@@ -57,6 +57,18 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Notifications", href: "/dashboard/hrm/notifications", icon: Bell },
     ],
   },
+  INVENTORY_MANAGER: {
+    primary: [
+      { label: "Inventory", href: "/dashboard/hrm/inventory", icon: LayoutDashboard },
+      { label: "Reports", href: "/dashboard/hrm/inventory", icon: FileText },
+      { label: "Alerts", href: "/dashboard/hrm/inventory", icon: Bell },
+      { label: "Stock", href: "/dashboard/hrm/inventory", icon: Activity },
+    ],
+    more: [
+      { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
+      { label: "Notifications", href: "/dashboard/hrm/notifications", icon: Bell },
+    ],
+  },
   HRM: {
     primary: [
       { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
