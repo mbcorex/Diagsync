@@ -498,29 +498,29 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     if (!details) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      await fetch(`/api/reports/${details.id}/action`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "DOWNLOAD" }) });
+      await fetch(`/api/reports/${details.id}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "DOWNLOAD" }),
+      }).catch(() => null);
 
-      const tryDownload = async (url: string, fallbackName: string) => {
+      const canDownload = async (url: string) => {
         const res = await fetch(url, { method: "GET", credentials: "include" });
-        if (!res.ok) throw new Error(`DOWNLOAD_FAILED_${res.status}`);
-        const blob = await res.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = objectUrl;
-        link.download = fallbackName;
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(objectUrl);
+        return res.ok;
       };
 
       try {
-        await tryDownload(pdfUrl(details.id, printLetterheadMode), `report-${details.id}.pdf`);
-        setMessage("PDF downloaded.");
+        const pdf = pdfUrl(details.id, printLetterheadMode);
+        const ok = await canDownload(pdf);
+        if (!ok) throw new Error("PDF_UNAVAILABLE");
+        window.location.assign(pdf);
+        setMessage("PDF download started.");
       } catch {
-        await tryDownload(jpgUrl(details.id, printLetterheadMode), `report-${details.id}.jpg`);
-        setMessage("PDF failed, JPG downloaded instead.");
+        const jpg = jpgUrl(details.id, printLetterheadMode);
+        const ok = await canDownload(jpg);
+        if (!ok) throw new Error("JPG_UNAVAILABLE");
+        window.location.assign(jpg);
+        setMessage("PDF unavailable, JPG download started.");
       }
     } catch {
       setError("Unable to download report right now. Please try again.");
