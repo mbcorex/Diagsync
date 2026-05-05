@@ -216,14 +216,6 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     return `/api/reports/${reportId}/pdf${suffix ? `?${suffix}` : ""}`;
   }
 
-  function jpgUrl(reportId: string, letterheadMode: "with" | "without") {
-    const query = new URLSearchParams();
-    if (letterheadMode === "without") query.set("letterhead", "without");
-    if (previewNonce > 0) query.set("v", String(previewNonce));
-    const suffix = query.toString();
-    return `/api/reports/${reportId}/jpg${suffix ? `?${suffix}` : ""}`;
-  }
-
   async function loadReports(opts?: { signal?: AbortSignal; force?: boolean }) {
     const cacheKey = `${filterStatus}:${filterType}:${appliedSearch}:${appliedDate}`;
     if (!opts?.force) {
@@ -498,30 +490,21 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     if (!details) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      await fetch(`/api/reports/${details.id}/action`, {
+      void fetch(`/api/reports/${details.id}/action`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "DOWNLOAD" }),
       }).catch(() => null);
 
-      const canDownload = async (url: string) => {
-        const res = await fetch(url, { method: "GET", credentials: "include" });
-        return res.ok;
-      };
-
-      try {
-        const pdf = pdfUrl(details.id, printLetterheadMode);
-        const ok = await canDownload(pdf);
-        if (!ok) throw new Error("PDF_UNAVAILABLE");
-        window.location.assign(pdf);
-        setMessage("PDF download started.");
-      } catch {
-        const jpg = jpgUrl(details.id, printLetterheadMode);
-        const ok = await canDownload(jpg);
-        if (!ok) throw new Error("JPG_UNAVAILABLE");
-        window.location.assign(jpg);
-        setMessage("PDF unavailable, JPG download started.");
-      }
+      const pdf = pdfUrl(details.id, printLetterheadMode);
+      const anchor = document.createElement("a");
+      anchor.href = pdf;
+      anchor.download = "";
+      anchor.rel = "noopener noreferrer";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setMessage("PDF download started.");
     } catch {
       setError("Unable to download report right now. Please try again.");
     } finally {

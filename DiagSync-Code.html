@@ -2146,6 +2146,7 @@ async function main() {
     { code: "STR", name: "Stress View X-Ray" },
     { code: "USS-ABD", name: "Abdominal Ultrasound" },
     { code: "USS-PEL", name: "Pelvic Ultrasound" },
+    { code: "USS-ABP", name: "Abdominopelvic Ultrasound" },
     { code: "USS-OBS", name: "Obstetric Ultrasound" },
     { code: "USS-BRS", name: "Breast Ultrasound" },
     { code: "USS-THY", name: "Thyroid Ultrasound" },
@@ -2205,6 +2206,142 @@ async function main() {
     { code: "ANK-MOR", name: "Ankle X-Ray (Mortise View)" },
     { code: "FOO-OBL", name: "Foot X-Ray (Oblique)" },
     { code: "TOE-OBL", name: "Toes X-Ray (Oblique)" },
+    { code: "SHO-R-APL", name: "Right Shoulder X-Ray (AP &amp; LAT)" },
+    { code: "SHO-R-PA", name: "Right Shoulder X-Ray (PA)" },
+    { code: "SHO-R-LAT", name: "Right Shoulder X-Ray (Lateral)" },
+    { code: "SHO-R-AP", name: "Right Shoulder X-Ray (AP)" },
+    { code: "SHO-L-APL", name: "Left Shoulder X-Ray (AP &amp; LAT)" },
+    { code: "SHO-L-PA", name: "Left Shoulder X-Ray (PA)" },
+    { code: "SHO-L-LAT", name: "Left Shoulder X-Ray (Lateral)" },
+    { code: "SHO-L-AP", name: "Left Shoulder X-Ray (AP)" },
+    { code: "CLA-R-APL", name: "Right Clavicle X-Ray (AP &amp; LAT)" },
+    { code: "CLA-R-PA", name: "Right Clavicle X-Ray (PA)" },
+    { code: "CLA-R-LAT", name: "Right Clavicle X-Ray (Lateral)" },
+    { code: "CLA-R-AP", name: "Right Clavicle X-Ray (AP)" },
+    { code: "CLA-L-APL", name: "Left Clavicle X-Ray (AP &amp; LAT)" },
+    { code: "CLA-L-PA", name: "Left Clavicle X-Ray (PA)" },
+    { code: "CLA-L-LAT", name: "Left Clavicle X-Ray (Lateral)" },
+    { code: "CLA-L-AP", name: "Left Clavicle X-Ray (AP)" },
+    { code: "SCA-R-APL", name: "Right Scapula X-Ray (AP &amp; LAT)" },
+    { code: "SCA-R-PA", name: "Right Scapula X-Ray (PA)" },
+    { code: "SCA-R-LAT", name: "Right Scapula X-Ray (Lateral)" },
+    { code: "SCA-R-AP", name: "Right Scapula X-Ray (AP)" },
+    { code: "SCA-L-APL", name: "Left Scapula X-Ray (AP &amp; LAT)" },
+    { code: "SCA-L-PA", name: "Left Scapula X-Ray (PA)" },
+    { code: "SCA-L-LAT", name: "Left Scapula X-Ray (Lateral)" },
+    { code: "SCA-L-AP", name: "Left Scapula X-Ray (AP)" },
+    { code: "HUM-R-APL", name: "Right Humerus X-Ray (AP &amp; LAT)" },
+    { code: "HUM-R-PA", name: "Right Humerus X-Ray (PA)" },
+    { code: "HUM-R-LAT", name: "Right Humerus X-Ray (Lateral)" },
+    { code: "HUM-R-AP", name: "Right Humerus X-Ray (AP)" },
+    { code: "HUM-L-APL", name: "Left Humerus X-Ray (AP &amp; LAT)" },
+    { code: "HUM-L-PA", name: "Left Humerus X-Ray (PA)" },
+    { code: "HUM-L-LAT", name: "Left Humerus X-Ray (Lateral)" },
+    { code: "HUM-L-AP", name: "Left Humerus X-Ray (AP)" },
+    { code: "ELB-R-APL", name: "Right Elbow X-Ray (AP &amp; LAT)" },
+    { code: "ELB-R-PA", name: "Right Elbow X-Ray (PA)" },
+    { code: "ELB-R-LAT", name: "Right Elbow X-Ray (Lateral)" },
+    { code: "ELB-R-AP", name: "Right Elbow X-Ray (AP)" },
+    { code: "ELB-L-APL", name: "Left Elbow X-Ray (AP &amp; LAT)" },
+    { code: "ELB-L-PA", name: "Left Elbow X-Ray (PA)" },
+    { code: "ELB-L-LAT", name: "Left Elbow X-Ray (Lateral)" },
+    { code: "ELB-L-AP", name: "Left Elbow X-Ray (AP)" },
+    { code: "FAR-R-APL", name: "Right Forearm X-Ray (AP &amp; LAT)" },
+    { code: "FAR-R-PA", name: "Right Forearm X-Ray (PA)" },
+    { code: "FAR-R-LAT", name: "Right Forearm X-Ray (Lateral)" },
+    { code: "FAR-R-AP", name: "Right Forearm X-Ray (AP)" },
+    { code: "FAR-L-APL", name: "Left Forearm X-Ray (AP &amp; LAT)" },
+    { code: "FAR-L-PA", name: "Left Forearm X-Ray (PA)" },
+    { code: "FAR-L-LAT", name: "Left Forearm X-Ray (Lateral)" },
+    { code: "FAR-L-AP", name: "Left Forearm X-Ray (AP)" },
+    { code: "WRI-R-APL", name: "Right Wrist X-Ray (AP &amp; LAT)" },
+    { code: "WRI-R-PA", name: "Right Wrist X-Ray (PA)" },
+    { code: "WRI-R-LAT", name: "Right Wrist X-Ray (Lateral)" },
+    { code: "WRI-R-AP", name: "Right Wrist X-Ray (AP)" },
+    { code: "WRI-L-APL", name: "Left Wrist X-Ray (AP &amp; LAT)" },
+    { code: "WRI-L-PA", name: "Left Wrist X-Ray (PA)" },
+    { code: "WRI-L-LAT", name: "Left Wrist X-Ray (Lateral)" },
+    { code: "WRI-L-AP", name: "Left Wrist X-Ray (AP)" },
+    { code: "HAN-R-APL", name: "Right Hand X-Ray (AP &amp; LAT)" },
+    { code: "HAN-R-PA", name: "Right Hand X-Ray (PA)" },
+    { code: "HAN-R-LAT", name: "Right Hand X-Ray (Lateral)" },
+    { code: "HAN-R-AP", name: "Right Hand X-Ray (AP)" },
+    { code: "HAN-L-APL", name: "Left Hand X-Ray (AP &amp; LAT)" },
+    { code: "HAN-L-PA", name: "Left Hand X-Ray (PA)" },
+    { code: "HAN-L-LAT", name: "Left Hand X-Ray (Lateral)" },
+    { code: "HAN-L-AP", name: "Left Hand X-Ray (AP)" },
+    { code: "DIG-R-APL", name: "Right Fingers X-Ray (AP &amp; LAT)" },
+    { code: "DIG-R-PA", name: "Right Fingers X-Ray (PA)" },
+    { code: "DIG-R-LAT", name: "Right Fingers X-Ray (Lateral)" },
+    { code: "DIG-R-AP", name: "Right Fingers X-Ray (AP)" },
+    { code: "DIG-L-APL", name: "Left Fingers X-Ray (AP &amp; LAT)" },
+    { code: "DIG-L-PA", name: "Left Fingers X-Ray (PA)" },
+    { code: "DIG-L-LAT", name: "Left Fingers X-Ray (Lateral)" },
+    { code: "DIG-L-AP", name: "Left Fingers X-Ray (AP)" },
+    { code: "HIP-R-APL", name: "Right Hip X-Ray (AP &amp; LAT)" },
+    { code: "HIP-R-PA", name: "Right Hip X-Ray (PA)" },
+    { code: "HIP-R-LAT", name: "Right Hip X-Ray (Lateral)" },
+    { code: "HIP-R-AP", name: "Right Hip X-Ray (AP)" },
+    { code: "HIP-L-APL", name: "Left Hip X-Ray (AP &amp; LAT)" },
+    { code: "HIP-L-PA", name: "Left Hip X-Ray (PA)" },
+    { code: "HIP-L-LAT", name: "Left Hip X-Ray (Lateral)" },
+    { code: "HIP-L-AP", name: "Left Hip X-Ray (AP)" },
+    { code: "FEM-R-APL", name: "Right Femur X-Ray (AP &amp; LAT)" },
+    { code: "FEM-R-PA", name: "Right Femur X-Ray (PA)" },
+    { code: "FEM-R-LAT", name: "Right Femur X-Ray (Lateral)" },
+    { code: "FEM-R-AP", name: "Right Femur X-Ray (AP)" },
+    { code: "FEM-L-APL", name: "Left Femur X-Ray (AP &amp; LAT)" },
+    { code: "FEM-L-PA", name: "Left Femur X-Ray (PA)" },
+    { code: "FEM-L-LAT", name: "Left Femur X-Ray (Lateral)" },
+    { code: "FEM-L-AP", name: "Left Femur X-Ray (AP)" },
+    { code: "LEG-R-APL", name: "Right Leg X-Ray (AP &amp; LAT)" },
+    { code: "LEG-R-PA", name: "Right Leg X-Ray (PA)" },
+    { code: "LEG-R-LAT", name: "Right Leg X-Ray (Lateral)" },
+    { code: "LEG-R-AP", name: "Right Leg X-Ray (AP)" },
+    { code: "LEG-L-APL", name: "Left Leg X-Ray (AP &amp; LAT)" },
+    { code: "LEG-L-PA", name: "Left Leg X-Ray (PA)" },
+    { code: "LEG-L-LAT", name: "Left Leg X-Ray (Lateral)" },
+    { code: "LEG-L-AP", name: "Left Leg X-Ray (AP)" },
+    { code: "KNE-R-APL", name: "Right Knee X-Ray (AP &amp; LAT)" },
+    { code: "KNE-R-PA", name: "Right Knee X-Ray (PA)" },
+    { code: "KNE-R-LAT", name: "Right Knee X-Ray (Lateral)" },
+    { code: "KNE-R-AP", name: "Right Knee X-Ray (AP)" },
+    { code: "KNE-L-APL", name: "Left Knee X-Ray (AP &amp; LAT)" },
+    { code: "KNE-L-PA", name: "Left Knee X-Ray (PA)" },
+    { code: "KNE-L-LAT", name: "Left Knee X-Ray (Lateral)" },
+    { code: "KNE-L-AP", name: "Left Knee X-Ray (AP)" },
+    { code: "TIB-R-APL", name: "Right Tibia &amp; Fibula X-Ray (AP &amp; LAT)" },
+    { code: "TIB-R-PA", name: "Right Tibia &amp; Fibula X-Ray (PA)" },
+    { code: "TIB-R-LAT", name: "Right Tibia &amp; Fibula X-Ray (Lateral)" },
+    { code: "TIB-R-AP", name: "Right Tibia &amp; Fibula X-Ray (AP)" },
+    { code: "TIB-L-APL", name: "Left Tibia &amp; Fibula X-Ray (AP &amp; LAT)" },
+    { code: "TIB-L-PA", name: "Left Tibia &amp; Fibula X-Ray (PA)" },
+    { code: "TIB-L-LAT", name: "Left Tibia &amp; Fibula X-Ray (Lateral)" },
+    { code: "TIB-L-AP", name: "Left Tibia &amp; Fibula X-Ray (AP)" },
+    { code: "ANK-R-APL", name: "Right Ankle X-Ray (AP &amp; LAT)" },
+    { code: "ANK-R-PA", name: "Right Ankle X-Ray (PA)" },
+    { code: "ANK-R-LAT", name: "Right Ankle X-Ray (Lateral)" },
+    { code: "ANK-R-AP", name: "Right Ankle X-Ray (AP)" },
+    { code: "ANK-L-APL", name: "Left Ankle X-Ray (AP &amp; LAT)" },
+    { code: "ANK-L-PA", name: "Left Ankle X-Ray (PA)" },
+    { code: "ANK-L-LAT", name: "Left Ankle X-Ray (Lateral)" },
+    { code: "ANK-L-AP", name: "Left Ankle X-Ray (AP)" },
+    { code: "FOO-R-APL", name: "Right Foot X-Ray (AP &amp; LAT)" },
+    { code: "FOO-R-PA", name: "Right Foot X-Ray (PA)" },
+    { code: "FOO-R-LAT", name: "Right Foot X-Ray (Lateral)" },
+    { code: "FOO-R-AP", name: "Right Foot X-Ray (AP)" },
+    { code: "FOO-L-APL", name: "Left Foot X-Ray (AP &amp; LAT)" },
+    { code: "FOO-L-PA", name: "Left Foot X-Ray (PA)" },
+    { code: "FOO-L-LAT", name: "Left Foot X-Ray (Lateral)" },
+    { code: "FOO-L-AP", name: "Left Foot X-Ray (AP)" },
+    { code: "TOE-R-APL", name: "Right Toes X-Ray (AP &amp; LAT)" },
+    { code: "TOE-R-PA", name: "Right Toes X-Ray (PA)" },
+    { code: "TOE-R-LAT", name: "Right Toes X-Ray (Lateral)" },
+    { code: "TOE-R-AP", name: "Right Toes X-Ray (AP)" },
+    { code: "TOE-L-APL", name: "Left Toes X-Ray (AP &amp; LAT)" },
+    { code: "TOE-L-PA", name: "Left Toes X-Ray (PA)" },
+    { code: "TOE-L-LAT", name: "Left Toes X-Ray (Lateral)" },
+    { code: "TOE-L-AP", name: "Left Toes X-Ray (AP)" },
     { code: "ABD-DEC", name: "Abdomen X-Ray (Decubitus)" },
     { code: "USS-NT", name: "Neck Ultrasound" },
     { code: "USS-TVS", name: "Pelvic Ultrasound (Transvaginal Scan - TVS)" },
@@ -3587,11 +3724,11 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
   "ASO TITRE": [
-    { label: "ASO Titre", fieldKey: "aso_titre", fieldType: FieldType.NUMBER, unit: "IU/mL", normalMin: 0, normalMax: 200, sortOrder: 1 },
+    { label: "Result", fieldKey: "result", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "ANTI-STREPTOLYSIN O (ASO) TITRE": [
-    { label: "ASO Titre", fieldKey: "aso_titre", fieldType: FieldType.NUMBER, unit: "IU/mL", normalMin: 0, normalMax: 200, sortOrder: 1 },
+    { label: "Result", fieldKey: "result", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "ANTI-CCP ANTIBODY": [
@@ -3611,9 +3748,8 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "RHEUMATOID FACTOR": [
-    { label: "Rheumatoid Factor", fieldKey: "rf", fieldType: FieldType.NUMBER, unit: "kIU/L", normalMin: 0, normalMax: 20, sortOrder: 1 },
-    { label: "Qualitative", fieldKey: "rf_qual", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", isRequired: false, sortOrder: 2 },
-    { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
+    { label: "Result", fieldKey: "result", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", sortOrder: 1 },
+    { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "HEPATITIS A SCREENING": [
     { label: "HAV Result", fieldKey: "result", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", sortOrder: 1 },
@@ -4653,6 +4789,7 @@ const TAT_CATALOG: [string, number][] = [
   ["Doppler Ultrasound", 90],
   ["Abdominal Scan", 60],
   ["Pelvic Scan", 60],
+  ["Abdominopelvic Scan", 60],
   ["Obstetric/Fetal Ultrasound", 75],
   ["Breast Scan", 60],
   ["Occular Scan", 60],
@@ -4867,6 +5004,7 @@ const ALIASES: Record&lt;string, string[]&gt; = {
   "Chest X-Ray (AP)":                     ["CXR AP", "Chest AP", "CXR (AP)"],
   "Abdominal Ultrasound":                 ["Abdominal Scan", "USS Abdomen"],
   "Pelvic Ultrasound":                    ["Pelvic Scan", "USS Pelvis"],
+  "Abdominopelvic Ultrasound":            ["Abdominopelvic Scan", "USS Abdominopelvic"],
   "Obstetric Ultrasound":                 ["Obstetric Scan", "Antenatal Scan", "ANC Scan"],
   "Thyroid Stimulating Hormone (TSH)":    ["TSH", "Thyroid Stimulating Hormone"],
   "Anti-Mullerian Hormone (AMH)":         ["AMH"],
@@ -5231,8 +5369,9 @@ main()
     console.error("=".repeat(70));
     await prisma.$disconnect();
     process.exit(1);
-  });</pre></div>
-<div class='file-block'><div class='file-header'>public/fallback-TW5g0ds8VFUUSPHy_mQe7.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
+  });
+</pre></div>
+<div class='file-block'><div class='file-header'>public/fallback-l5wmYqHz3ccR_LRiJu4JZ.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
 <div class='file-block'><div class='file-header'>public/manifest.json</div><pre>{
   "name": "DiagSync",
   "short_name": "DiagSync",
@@ -5256,7 +5395,7 @@ main()
   ]
 }
 </pre></div>
-<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let s,e={};const a=(a,i)=&gt;(a=new URL(a+".js",i).href,e[a]||new Promise(e=&gt;{if("document"in self){const s=document.createElement("script");s.src=a,s.onload=e,document.head.appendChild(s)}else s=a,importScripts(a),e()}).then(()=&gt;{let s=e[a];if(!s)throw new Error(`Module ${a} didnâ€™t register its module`);return s}));self.define=(i,d)=&gt;{const n=s||("document"in self?document.currentScript.src:"")||location.href;if(e[n])return;let t={};const r=s=&gt;a(s,n),c={module:{uri:n},exports:t,require:r};e[n]=Promise.all(i.map(s=&gt;c[s]||r(s))).then(s=&gt;(d(...s),t))}}define(["./workbox-5268f9bb"],function(s){"use strict";importScripts("fallback-TW5g0ds8VFUUSPHy_mQe7.js"),self.skipWaiting(),s.clientsClaim(),s.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"4c80d2d3b2028f2ec8f8c6a95121d453"},{url:"/_next/static/TW5g0ds8VFUUSPHy_mQe7/_buildManifest.js",revision:"0ea7e7088aabf697ba3d8aa8c7b54a89"},{url:"/_next/static/TW5g0ds8VFUUSPHy_mQe7/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/1718-fb724b48d076f377.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/2117-6248ab8a803926e9.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/2736-36566c17bf778401.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/2972-d7f9b35a010ac3d8.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/5878-51910f4ce925886c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/5898-590ff9025282abe7.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/5945-0ae65c569b97db77.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/6137-de267f975f27b52e.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/6547-c80170d839b70909.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/7526-2941b8a7b9d63709.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/8778-52160fc8efd04c25.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/8989-261cee64e802debc.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/932-8a254be1e395d5ba.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/9630-f247ccbb854122ad.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-7ba42964db5e3a45.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-3cf35d48fe53ac73.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-212ab2fc58a31510.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-e91d3299c0c35b45.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/layout-aeededac514b090d.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/loading-178ebd82410c5d09.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/page-fd3da5233cbfaa1a.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-6a471337fc2e8745.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-2411329cccdebfe5.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(auth)/layout-4f8a790d1a7ca07f.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(auth)/login/page-78efb85392b16af4.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(auth)/register/page-6aac0b4d4b819f73.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9193ba2b6b87b806.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-459ebad7d5c91ccd.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-fc31649011504579.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-17612f8f0cadd6f7.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-f1af5b31185d0c9b.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-2507841d913ce5d4.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-3e80db1b6e49c8ce.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-27516127472847a1.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-f7cc313a6074ae9c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-002c92bc805dce04.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-a32d5a57026096ec.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-9f2dd55471e63945.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-a21e6f67b82ccc1f.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-fcdfe390fa2f0e4a.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-4b520c59e13bdd8b.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-0ccd7bbe090520dc.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-0b3f503a385e20e8.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-1ef54edc95aaf7f1.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-1a436e45cf8b3874.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-0babefc40c1a5ddb.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-0b12ce4d0c254af0.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-d0cfda1bab6425bc.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-c64873dec5828cea.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-c57f5cdb17a9538c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-a38a6dc7381d2441.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-2ad95b5727467f65.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-d5c4d99ee39c57ab.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-8eee505bcbd47155.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-050904615bce7056.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-f94d9e4034a6ae66.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-7046cdb40a39f4c4.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-b94b4c106f9472ae.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-15440b655ad66aac.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-12b8da881404bfeb.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-99bca0d10695b85c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-6a34d6c21551092d.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/error-75e2a57f15a66f59.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-fed48e1664087e51.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-3ace0827d6980f0c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/layout-1cb6c9ab6516e91b.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/loading-e24ce1bf35f0e497.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-16787f8d6c8fab21.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/_not-found/page-0bfe08bb49515010.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/error-c77673c4d9bf4c49.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/global-error-0e83b7331b1f188c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-5a28bca809eb2244.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-0b66d91e2ded0fa6.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-f49997b91e381fe4.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-bf5c5583e183170c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/loading-a577fac76d5713e0.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/labs/page-a474b01c9302785c.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/layout-ec1b5a22fea6bb85.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/not-found-09859766c16d4ff7.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/offline/page-dbacb3e18296fc76.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/page-b7e27963907821d4.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-1cb4aac4bb6d12fe.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/fd9d1056-8d69396482e34025.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/framework-a63c59c368572696.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/main-70ecea625e6bf0b9.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/main-app-2877bb5658641a8d.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/pages/_app-78ddf957b9a9b996.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/pages/_error-7ce03bcf1df914ce.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-e96e1091b6e3d5e0.js",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/_next/static/css/35715dd663e8118a.css",revision:"35715dd663e8118a"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"TW5g0ds8VFUUSPHy_mQe7"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),s.cleanupOutdatedCaches(),s.registerRoute("/",new s.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:s,response:e,event:a,state:i})=&gt;e&amp;&amp;"opaqueredirect"===e.type?new Response(e.body,{status:200,statusText:"OK",headers:e.headers}):e},{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"document"===s.destination,new s.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new s.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({url:s})=&gt;s.pathname.startsWith("/_next/static/"),new s.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"image"===s.destination,new s.CacheFirst({cacheName:"image-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"style"===s.destination||"script"===s.destination,new s.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({url:s})=&gt;s.pathname.startsWith("/api/"),new s.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET")});
+<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let a,s={};const c=(c,e)=&gt;(c=new URL(c+".js",e).href,s[c]||new Promise(s=&gt;{if("document"in self){const a=document.createElement("script");a.src=c,a.onload=s,document.head.appendChild(a)}else a=c,importScripts(c),s()}).then(()=&gt;{let a=s[c];if(!a)throw new Error(`Module ${c} didnâ€™t register its module`);return a}));self.define=(e,i)=&gt;{const n=a||("document"in self?document.currentScript.src:"")||location.href;if(s[n])return;let t={};const r=a=&gt;c(a,n),d={module:{uri:n},exports:t,require:r};s[n]=Promise.all(e.map(a=&gt;d[a]||r(a))).then(a=&gt;(i(...a),t))}}define(["./workbox-5268f9bb"],function(a){"use strict";importScripts("fallback-l5wmYqHz3ccR_LRiJu4JZ.js"),self.skipWaiting(),a.clientsClaim(),a.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"ea684ce2a0860d233c586e067594c8a0"},{url:"/_next/static/chunks/1718-e8702eb797e8ad25.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2117-6248ab8a803926e9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2736-40c6735e5b5f79aa.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2972-d7f9b35a010ac3d8.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5878-51910f4ce925886c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5898-590ff9025282abe7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5945-ee127f564fa38ad5.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/6137-de267f975f27b52e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/6547-c80170d839b70909.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/7526-2941b8a7b9d63709.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/8778-62e2afddeb0c4226.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/8989-261cee64e802debc.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/932-0d50caa7640cbb0a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/9630-f247ccbb854122ad.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-f021fb515a8eb6c0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-bb11b2337f29701f.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-5a68cd3b09ac21cb.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-668a1bc97524f227.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/layout-284cd07cfa630c6f.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/loading-1f6926bdd9f65265.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/page-5e9d59ae587e50ed.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-6a471337fc2e8745.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-23a8eb009252027a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/layout-0fc42cf16ff58300.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/login/page-78efb85392b16af4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/register/page-6aac0b4d4b819f73.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9193ba2b6b87b806.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-ca5c4eab53c7935c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-fbe5350f60830fb4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-17612f8f0cadd6f7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-56ffa8ccf4715171.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-15dc7dace88b1bbd.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-3e80db1b6e49c8ce.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-27516127472847a1.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-f7cc313a6074ae9c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-1f429f5232c69ba3.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-3b00ea583afb90d1.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-caf911676acd34ba.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-c1192798340ba741.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-e8646611ac672e9e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-3060e4a35edeb0ed.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-0b274ef97bc30229.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-1f97e6bef260dbe7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-5ced0ca62c71a344.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-aa07619ed8c64d6a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-0babefc40c1a5ddb.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-aa78473e8caa7d7c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-d0cfda1bab6425bc.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-c64873dec5828cea.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-43dcc0a4d82afbd2.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-a38a6dc7381d2441.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-82b74c67c01c4879.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-d5c4d99ee39c57ab.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-0ab8989016f7e123.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-e0d385312b770344.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-f94d9e4034a6ae66.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-7046cdb40a39f4c4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-d601a95b8053c855.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-43a83f5c32d60d53.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-0045a18147565089.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-99bca0d10695b85c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-6a34d6c21551092d.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/error-75e2a57f15a66f59.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-e509c3e317119c2e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-3e75e01429d2122b.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/layout-5417d7595157f6e4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/loading-d96e8654031dcabe.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-51f549225b0a465c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/_not-found/page-08c9ea462b338369.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/error-c77673c4d9bf4c49.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/global-error-0e83b7331b1f188c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-ae64c4333d1a52f9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-fb8892d5bbbb9a72.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-7fbfc6be4d57c769.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-7e77318302925f7e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/layout-ca8adb1667a87ea0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/loading-18d2d861b42cb807.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/page-da37b848389840be.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/layout-ec1b5a22fea6bb85.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/not-found-2ac06a0373343d3c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/offline/page-a69f890b01f155ac.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/page-e33c48c0df50e31a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-79ec74f90cdb2240.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/fd9d1056-8d69396482e34025.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/framework-a63c59c368572696.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/main-70ecea625e6bf0b9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/main-app-2877bb5658641a8d.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/pages/_app-78ddf957b9a9b996.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/pages/_error-7ce03bcf1df914ce.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-e96e1091b6e3d5e0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/css/aa6e3a9786413129.css",revision:"aa6e3a9786413129"},{url:"/_next/static/l5wmYqHz3ccR_LRiJu4JZ/_buildManifest.js",revision:"0ea7e7088aabf697ba3d8aa8c7b54a89"},{url:"/_next/static/l5wmYqHz3ccR_LRiJu4JZ/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),a.cleanupOutdatedCaches(),a.registerRoute("/",new a.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:a,response:s,event:c,state:e})=&gt;s&amp;&amp;"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s},{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"document"===a.destination,new a.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new a.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/_next/static/"),new a.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"image"===a.destination,new a.CacheFirst({cacheName:"image-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"style"===a.destination||"script"===a.destination,new a.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/api/"),new a.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET")});
 </pre></div>
 <div class='file-block'><div class='file-header'>public/workbox-5268f9bb.js</div><pre>define(["exports"],function(t){"use strict";try{self["workbox:core:6.5.4"]&amp;&amp;_()}catch(t){}const e=(t,...e)=&gt;{let s=t;return e.length&gt;0&amp;&amp;(s+=` :: ${JSON.stringify(e)}`),s};class s extends Error{constructor(t,s){super(e(t,s)),this.name=t,this.details=s}}try{self["workbox:routing:6.5.4"]&amp;&amp;_()}catch(t){}const n=t=&gt;t&amp;&amp;"object"==typeof t?t:{handle:t};class r{constructor(t,e,s="GET"){this.handler=n(e),this.match=t,this.method=s}setCatchHandler(t){this.catchHandler=n(t)}}class i extends r{constructor(t,e,s){super(({url:e})=&gt;{const s=t.exec(e.href);if(s&amp;&amp;(e.origin===location.origin||0===s.index))return s.slice(1)},e,s)}}class a{constructor(){this.t=new Map,this.i=new Map}get routes(){return this.t}addFetchListener(){self.addEventListener("fetch",t=&gt;{const{request:e}=t,s=this.handleRequest({request:e,event:t});s&amp;&amp;t.respondWith(s)})}addCacheListener(){self.addEventListener("message",t=&gt;{if(t.data&amp;&amp;"CACHE_URLS"===t.data.type){const{payload:e}=t.data,s=Promise.all(e.urlsToCache.map(e=&gt;{"string"==typeof e&amp;&amp;(e=[e]);const s=new Request(...e);return this.handleRequest({request:s,event:t})}));t.waitUntil(s),t.ports&amp;&amp;t.ports[0]&amp;&amp;s.then(()=&gt;t.ports[0].postMessage(!0))}})}handleRequest({request:t,event:e}){const s=new URL(t.url,location.href);if(!s.protocol.startsWith("http"))return;const n=s.origin===location.origin,{params:r,route:i}=this.findMatchingRoute({event:e,request:t,sameOrigin:n,url:s});let a=i&amp;&amp;i.handler;const o=t.method;if(!a&amp;&amp;this.i.has(o)&amp;&amp;(a=this.i.get(o)),!a)return;let c;try{c=a.handle({url:s,request:t,event:e,params:r})}catch(t){c=Promise.reject(t)}const h=i&amp;&amp;i.catchHandler;return c instanceof Promise&amp;&amp;(this.o||h)&amp;&amp;(c=c.catch(async n=&gt;{if(h)try{return await h.handle({url:s,request:t,event:e,params:r})}catch(t){t instanceof Error&amp;&amp;(n=t)}if(this.o)return this.o.handle({url:s,request:t,event:e});throw n})),c}findMatchingRoute({url:t,sameOrigin:e,request:s,event:n}){const r=this.t.get(s.method)||[];for(const i of r){let r;const a=i.match({url:t,sameOrigin:e,request:s,event:n});if(a)return r=a,(Array.isArray(r)&amp;&amp;0===r.length||a.constructor===Object&amp;&amp;0===Object.keys(a).length||"boolean"==typeof a)&amp;&amp;(r=void 0),{route:i,params:r}}return{}}setDefaultHandler(t,e="GET"){this.i.set(e,n(t))}setCatchHandler(t){this.o=n(t)}registerRoute(t){this.t.has(t.method)||this.t.set(t.method,[]),this.t.get(t.method).push(t)}unregisterRoute(t){if(!this.t.has(t.method))throw new s("unregister-route-but-not-found-with-method",{method:t.method});const e=this.t.get(t.method).indexOf(t);if(!(e&gt;-1))throw new s("unregister-route-route-not-registered");this.t.get(t.method).splice(e,1)}}let o;const c=()=&gt;(o||(o=new a,o.addFetchListener(),o.addCacheListener()),o);function h(t,e,n){let a;if("string"==typeof t){const s=new URL(t,location.href);a=new r(({url:t})=&gt;t.href===s.href,e,n)}else if(t instanceof RegExp)a=new i(t,e,n);else if("function"==typeof t)a=new r(t,e,n);else{if(!(t instanceof r))throw new s("unsupported-route-type",{moduleName:"workbox-routing",funcName:"registerRoute",paramName:"capture"});a=t}return c().registerRoute(a),a}try{self["workbox:strategies:6.5.4"]&amp;&amp;_()}catch(t){}const u={cacheWillUpdate:async({response:t})=&gt;200===t.status||0===t.status?t:null},l={googleAnalytics:"googleAnalytics",precache:"precache-v2",prefix:"workbox",runtime:"runtime",suffix:"undefined"!=typeof registration?registration.scope:""},f=t=&gt;[l.prefix,t,l.suffix].filter(t=&gt;t&amp;&amp;t.length&gt;0).join("-"),w=t=&gt;t||f(l.precache),d=t=&gt;t||f(l.runtime);function p(t,e){const s=new URL(t);for(const t of e)s.searchParams.delete(t);return s.href}class y{constructor(){this.promise=new Promise((t,e)=&gt;{this.resolve=t,this.reject=e})}}const m=new Set;function g(t){return new Promise(e=&gt;setTimeout(e,t))}function R(t){return"string"==typeof t?new Request(t):t}class v{constructor(t,e){this.h={},Object.assign(this,e),this.event=e.event,this.u=t,this.l=new y,this.p=[],this.m=[...t.plugins],this.R=new Map;for(const t of this.m)this.R.set(t,{});this.event.waitUntil(this.l.promise)}async fetch(t){const{event:e}=this;let n=R(t);if("navigate"===n.mode&amp;&amp;e instanceof FetchEvent&amp;&amp;e.preloadResponse){const t=await e.preloadResponse;if(t)return t}const r=this.hasCallback("fetchDidFail")?n.clone():null;try{for(const t of this.iterateCallbacks("requestWillFetch"))n=await t({request:n.clone(),event:e})}catch(t){if(t instanceof Error)throw new s("plugin-error-request-will-fetch",{thrownErrorMessage:t.message})}const i=n.clone();try{let t;t=await fetch(n,"navigate"===n.mode?void 0:this.u.fetchOptions);for(const s of this.iterateCallbacks("fetchDidSucceed"))t=await s({event:e,request:i,response:t});return t}catch(t){throw r&amp;&amp;await this.runCallbacks("fetchDidFail",{error:t,event:e,originalRequest:r.clone(),request:i.clone()}),t}}async fetchAndCachePut(t){const e=await this.fetch(t),s=e.clone();return this.waitUntil(this.cachePut(t,s)),e}async cacheMatch(t){const e=R(t);let s;const{cacheName:n,matchOptions:r}=this.u,i=await this.getCacheKey(e,"read"),a=Object.assign(Object.assign({},r),{cacheName:n});s=await caches.match(i,a);for(const t of this.iterateCallbacks("cachedResponseWillBeUsed"))s=await t({cacheName:n,matchOptions:r,cachedResponse:s,request:i,event:this.event})||void 0;return s}async cachePut(t,e){const n=R(t);await g(0);const r=await this.getCacheKey(n,"write");if(!e)throw new s("cache-put-with-no-response",{url:(i=r.url,new URL(String(i),location.href).href.replace(new RegExp(`^${location.origin}`),""))});var i;const a=await this.v(e);if(!a)return!1;const{cacheName:o,matchOptions:c}=this.u,h=await self.caches.open(o),u=this.hasCallback("cacheDidUpdate"),l=u?await async function(t,e,s,n){const r=p(e.url,s);if(e.url===r)return t.match(e,n);const i=Object.assign(Object.assign({},n),{ignoreSearch:!0}),a=await t.keys(e,i);for(const e of a)if(r===p(e.url,s))return t.match(e,n)}(h,r.clone(),["__WB_REVISION__"],c):null;try{await h.put(r,u?a.clone():a)}catch(t){if(t instanceof Error)throw"QuotaExceededError"===t.name&amp;&amp;await async function(){for(const t of m)await t()}(),t}for(const t of this.iterateCallbacks("cacheDidUpdate"))await t({cacheName:o,oldResponse:l,newResponse:a.clone(),request:r,event:this.event});return!0}async getCacheKey(t,e){const s=`${t.url} | ${e}`;if(!this.h[s]){let n=t;for(const t of this.iterateCallbacks("cacheKeyWillBeUsed"))n=R(await t({mode:e,request:n,event:this.event,params:this.params}));this.h[s]=n}return this.h[s]}hasCallback(t){for(const e of this.u.plugins)if(t in e)return!0;return!1}async runCallbacks(t,e){for(const s of this.iterateCallbacks(t))await s(e)}*iterateCallbacks(t){for(const e of this.u.plugins)if("function"==typeof e[t]){const s=this.R.get(e),n=n=&gt;{const r=Object.assign(Object.assign({},n),{state:s});return e[t](r)};yield n}}waitUntil(t){return this.p.push(t),t}async doneWaiting(){let t;for(;t=this.p.shift();)await t}destroy(){this.l.resolve(null)}async v(t){let e=t,s=!1;for(const t of this.iterateCallbacks("cacheWillUpdate"))if(e=await t({request:this.request,response:e,event:this.event})||void 0,s=!0,!e)break;return s||e&amp;&amp;200!==e.status&amp;&amp;(e=void 0),e}}class b{constructor(t={}){this.cacheName=d(t.cacheName),this.plugins=t.plugins||[],this.fetchOptions=t.fetchOptions,this.matchOptions=t.matchOptions}handle(t){const[e]=this.handleAll(t);return e}handleAll(t){t instanceof FetchEvent&amp;&amp;(t={event:t,request:t.request});const e=t.event,s="string"==typeof t.request?new Request(t.request):t.request,n="params"in t?t.params:void 0,r=new v(this,{event:e,request:s,params:n}),i=this.q(r,s,e);return[i,this.D(i,r,s,e)]}async q(t,e,n){let r;await t.runCallbacks("handlerWillStart",{event:n,request:e});try{if(r=await this.U(e,t),!r||"error"===r.type)throw new s("no-response",{url:e.url})}catch(s){if(s instanceof Error)for(const i of t.iterateCallbacks("handlerDidError"))if(r=await i({error:s,event:n,request:e}),r)break;if(!r)throw s}for(const s of t.iterateCallbacks("handlerWillRespond"))r=await s({event:n,request:e,response:r});return r}async D(t,e,s,n){let r,i;try{r=await t}catch(i){}try{await e.runCallbacks("handlerDidRespond",{event:n,request:s,response:r}),await e.doneWaiting()}catch(t){t instanceof Error&amp;&amp;(i=t)}if(await e.runCallbacks("handlerDidComplete",{event:n,request:s,response:r,error:i}),e.destroy(),i)throw i}}function q(t){t.then(()=&gt;{})}function D(){return D=Object.assign?Object.assign.bind():function(t){for(var e=1;e&lt;arguments.length;e++){var s=arguments[e];for(var n in s)({}).hasOwnProperty.call(s,n)&amp;&amp;(t[n]=s[n])}return t},D.apply(null,arguments)}let U,x;const E=new WeakMap,I=new WeakMap,L=new WeakMap,C=new WeakMap,N=new WeakMap;let k={get(t,e,s){if(t instanceof IDBTransaction){if("done"===e)return I.get(t);if("objectStoreNames"===e)return t.objectStoreNames||L.get(t);if("store"===e)return s.objectStoreNames[1]?void 0:s.objectStore(s.objectStoreNames[0])}return T(t[e])},set:(t,e,s)=&gt;(t[e]=s,!0),has:(t,e)=&gt;t instanceof IDBTransaction&amp;&amp;("done"===e||"store"===e)||e in t};function O(t){return t!==IDBDatabase.prototype.transaction||"objectStoreNames"in IDBTransaction.prototype?(x||(x=[IDBCursor.prototype.advance,IDBCursor.prototype.continue,IDBCursor.prototype.continuePrimaryKey])).includes(t)?function(...e){return t.apply(P(this),e),T(E.get(this))}:function(...e){return T(t.apply(P(this),e))}:function(e,...s){const n=t.call(P(this),e,...s);return L.set(n,e.sort?e.sort():[e]),T(n)}}function B(t){return"function"==typeof t?O(t):(t instanceof IDBTransaction&amp;&amp;function(t){if(I.has(t))return;const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("complete",r),t.removeEventListener("error",i),t.removeEventListener("abort",i)},r=()=&gt;{e(),n()},i=()=&gt;{s(t.error||new DOMException("AbortError","AbortError")),n()};t.addEventListener("complete",r),t.addEventListener("error",i),t.addEventListener("abort",i)});I.set(t,e)}(t),e=t,(U||(U=[IDBDatabase,IDBObjectStore,IDBIndex,IDBCursor,IDBTransaction])).some(t=&gt;e instanceof t)?new Proxy(t,k):t);var e}function T(t){if(t instanceof IDBRequest)return function(t){const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("success",r),t.removeEventListener("error",i)},r=()=&gt;{e(T(t.result)),n()},i=()=&gt;{s(t.error),n()};t.addEventListener("success",r),t.addEventListener("error",i)});return e.then(e=&gt;{e instanceof IDBCursor&amp;&amp;E.set(e,t)}).catch(()=&gt;{}),N.set(e,t),e}(t);if(C.has(t))return C.get(t);const e=B(t);return e!==t&amp;&amp;(C.set(t,e),N.set(e,t)),e}const P=t=&gt;N.get(t);const M=["get","getKey","getAll","getAllKeys","count"],W=["put","add","delete","clear"],j=new Map;function S(t,e){if(!(t instanceof IDBDatabase)||e in t||"string"!=typeof e)return;if(j.get(e))return j.get(e);const s=e.replace(/FromIndex$/,""),n=e!==s,r=W.includes(s);if(!(s in(n?IDBIndex:IDBObjectStore).prototype)||!r&amp;&amp;!M.includes(s))return;const i=async function(t,...e){const i=this.transaction(t,r?"readwrite":"readonly");let a=i.store;return n&amp;&amp;(a=a.index(e.shift())),(await Promise.all([a[s](...e),r&amp;&amp;i.done]))[0]};return j.set(e,i),i}k=(t=&gt;D({},t,{get:(e,s,n)=&gt;S(e,s)||t.get(e,s,n),has:(e,s)=&gt;!!S(e,s)||t.has(e,s)}))(k);try{self["workbox:expiration:6.5.4"]&amp;&amp;_()}catch(t){}const K="cache-entries",A=t=&gt;{const e=new URL(t,location.href);return e.hash="",e.href};class F{constructor(t){this._=null,this.I=t}L(t){const e=t.createObjectStore(K,{keyPath:"id"});e.createIndex("cacheName","cacheName",{unique:!1}),e.createIndex("timestamp","timestamp",{unique:!1})}C(t){this.L(t),this.I&amp;&amp;function(t,{blocked:e}={}){const s=indexedDB.deleteDatabase(t);e&amp;&amp;s.addEventListener("blocked",t=&gt;e(t.oldVersion,t)),T(s).then(()=&gt;{})}(this.I)}async setTimestamp(t,e){const s={url:t=A(t),timestamp:e,cacheName:this.I,id:this.N(t)},n=(await this.getDb()).transaction(K,"readwrite",{durability:"relaxed"});await n.store.put(s),await n.done}async getTimestamp(t){const e=await this.getDb(),s=await e.get(K,this.N(t));return null==s?void 0:s.timestamp}async expireEntries(t,e){const s=await this.getDb();let n=await s.transaction(K).store.index("timestamp").openCursor(null,"prev");const r=[];let i=0;for(;n;){const s=n.value;s.cacheName===this.I&amp;&amp;(t&amp;&amp;s.timestamp&lt;t||e&amp;&amp;i&gt;=e?r.push(n.value):i++),n=await n.continue()}const a=[];for(const t of r)await s.delete(K,t.id),a.push(t.url);return a}N(t){return this.I+"|"+A(t)}async getDb(){return this._||(this._=await function(t,e,{blocked:s,upgrade:n,blocking:r,terminated:i}={}){const a=indexedDB.open(t,e),o=T(a);return n&amp;&amp;a.addEventListener("upgradeneeded",t=&gt;{n(T(a.result),t.oldVersion,t.newVersion,T(a.transaction),t)}),s&amp;&amp;a.addEventListener("blocked",t=&gt;s(t.oldVersion,t.newVersion,t)),o.then(t=&gt;{i&amp;&amp;t.addEventListener("close",()=&gt;i()),r&amp;&amp;t.addEventListener("versionchange",t=&gt;r(t.oldVersion,t.newVersion,t))}).catch(()=&gt;{}),o}("workbox-expiration",1,{upgrade:this.C.bind(this)})),this._}}class ${constructor(t,e={}){this.k=!1,this.O=!1,this.B=e.maxEntries,this.T=e.maxAgeSeconds,this.P=e.matchOptions,this.I=t,this.M=new F(t)}async expireEntries(){if(this.k)return void(this.O=!0);this.k=!0;const t=this.T?Date.now()-1e3*this.T:0,e=await this.M.expireEntries(t,this.B),s=await self.caches.open(this.I);for(const t of e)await s.delete(t,this.P);this.k=!1,this.O&amp;&amp;(this.O=!1,q(this.expireEntries()))}async updateTimestamp(t){await this.M.setTimestamp(t,Date.now())}async isURLExpired(t){if(this.T){const e=await this.M.getTimestamp(t),s=Date.now()-1e3*this.T;return void 0===e||e&lt;s}return!1}async delete(){this.O=!1,await this.M.expireEntries(1/0)}}function H(t,e){const s=e();return t.waitUntil(s),s}try{self["workbox:precaching:6.5.4"]&amp;&amp;_()}catch(t){}function G(t){if(!t)throw new s("add-to-cache-list-unexpected-type",{entry:t});if("string"==typeof t){const e=new URL(t,location.href);return{cacheKey:e.href,url:e.href}}const{revision:e,url:n}=t;if(!n)throw new s("add-to-cache-list-unexpected-type",{entry:t});if(!e){const t=new URL(n,location.href);return{cacheKey:t.href,url:t.href}}const r=new URL(n,location.href),i=new URL(n,location.href);return r.searchParams.set("__WB_REVISION__",e),{cacheKey:r.href,url:i.href}}class V{constructor(){this.updatedURLs=[],this.notUpdatedURLs=[],this.handlerWillStart=async({request:t,state:e})=&gt;{e&amp;&amp;(e.originalRequest=t)},this.cachedResponseWillBeUsed=async({event:t,state:e,cachedResponse:s})=&gt;{if("install"===t.type&amp;&amp;e&amp;&amp;e.originalRequest&amp;&amp;e.originalRequest instanceof Request){const t=e.originalRequest.url;s?this.notUpdatedURLs.push(t):this.updatedURLs.push(t)}return s}}}class J{constructor({precacheController:t}){this.cacheKeyWillBeUsed=async({request:t,params:e})=&gt;{const s=(null==e?void 0:e.cacheKey)||this.W.getCacheKeyForURL(t.url);return s?new Request(s,{headers:t.headers}):t},this.W=t}}let Q,z;async function X(t,e){let n=null;if(t.url){n=new URL(t.url).origin}if(n!==self.location.origin)throw new s("cross-origin-copy-response",{origin:n});const r=t.clone(),i={headers:new Headers(r.headers),status:r.status,statusText:r.statusText},a=e?e(i):i,o=function(){if(void 0===Q){const t=new Response("");if("body"in t)try{new Response(t.body),Q=!0}catch(t){Q=!1}Q=!1}return Q}()?r.body:await r.blob();return new Response(o,a)}class Y extends b{constructor(t={}){t.cacheName=w(t.cacheName),super(t),this.j=!1!==t.fallbackToNetwork,this.plugins.push(Y.copyRedirectedCacheableResponsesPlugin)}async U(t,e){const s=await e.cacheMatch(t);return s||(e.event&amp;&amp;"install"===e.event.type?await this.S(t,e):await this.K(t,e))}async K(t,e){let n;const r=e.params||{};if(!this.j)throw new s("missing-precache-entry",{cacheName:this.cacheName,url:t.url});{const s=r.integrity,i=t.integrity,a=!i||i===s;n=await e.fetch(new Request(t,{integrity:"no-cors"!==t.mode?i||s:void 0})),s&amp;&amp;a&amp;&amp;"no-cors"!==t.mode&amp;&amp;(this.A(),await e.cachePut(t,n.clone()))}return n}async S(t,e){this.A();const n=await e.fetch(t);if(!await e.cachePut(t,n.clone()))throw new s("bad-precaching-response",{url:t.url,status:n.status});return n}A(){let t=null,e=0;for(const[s,n]of this.plugins.entries())n!==Y.copyRedirectedCacheableResponsesPlugin&amp;&amp;(n===Y.defaultPrecacheCacheabilityPlugin&amp;&amp;(t=s),n.cacheWillUpdate&amp;&amp;e++);0===e?this.plugins.push(Y.defaultPrecacheCacheabilityPlugin):e&gt;1&amp;&amp;null!==t&amp;&amp;this.plugins.splice(t,1)}}Y.defaultPrecacheCacheabilityPlugin={cacheWillUpdate:async({response:t})=&gt;!t||t.status&gt;=400?null:t},Y.copyRedirectedCacheableResponsesPlugin={cacheWillUpdate:async({response:t})=&gt;t.redirected?await X(t):t};class Z{constructor({cacheName:t,plugins:e=[],fallbackToNetwork:s=!0}={}){this.F=new Map,this.$=new Map,this.H=new Map,this.u=new Y({cacheName:w(t),plugins:[...e,new J({precacheController:this})],fallbackToNetwork:s}),this.install=this.install.bind(this),this.activate=this.activate.bind(this)}get strategy(){return this.u}precache(t){this.addToCacheList(t),this.G||(self.addEventListener("install",this.install),self.addEventListener("activate",this.activate),this.G=!0)}addToCacheList(t){const e=[];for(const n of t){"string"==typeof n?e.push(n):n&amp;&amp;void 0===n.revision&amp;&amp;e.push(n.url);const{cacheKey:t,url:r}=G(n),i="string"!=typeof n&amp;&amp;n.revision?"reload":"default";if(this.F.has(r)&amp;&amp;this.F.get(r)!==t)throw new s("add-to-cache-list-conflicting-entries",{firstEntry:this.F.get(r),secondEntry:t});if("string"!=typeof n&amp;&amp;n.integrity){if(this.H.has(t)&amp;&amp;this.H.get(t)!==n.integrity)throw new s("add-to-cache-list-conflicting-integrities",{url:r});this.H.set(t,n.integrity)}if(this.F.set(r,t),this.$.set(r,i),e.length&gt;0){const t=`Workbox is precaching URLs without revision info: ${e.join(", ")}\nThis is generally NOT safe. Learn more at https://bit.ly/wb-precache`;console.warn(t)}}}install(t){return H(t,async()=&gt;{const e=new V;this.strategy.plugins.push(e);for(const[e,s]of this.F){const n=this.H.get(s),r=this.$.get(e),i=new Request(e,{integrity:n,cache:r,credentials:"same-origin"});await Promise.all(this.strategy.handleAll({params:{cacheKey:s},request:i,event:t}))}const{updatedURLs:s,notUpdatedURLs:n}=e;return{updatedURLs:s,notUpdatedURLs:n}})}activate(t){return H(t,async()=&gt;{const t=await self.caches.open(this.strategy.cacheName),e=await t.keys(),s=new Set(this.F.values()),n=[];for(const r of e)s.has(r.url)||(await t.delete(r),n.push(r.url));return{deletedURLs:n}})}getURLsToCacheKeys(){return this.F}getCachedURLs(){return[...this.F.keys()]}getCacheKeyForURL(t){const e=new URL(t,location.href);return this.F.get(e.href)}getIntegrityForCacheKey(t){return this.H.get(t)}async matchPrecache(t){const e=t instanceof Request?t.url:t,s=this.getCacheKeyForURL(e);if(s){return(await self.caches.open(this.strategy.cacheName)).match(s)}}createHandlerBoundToURL(t){const e=this.getCacheKeyForURL(t);if(!e)throw new s("non-precached-url",{url:t});return s=&gt;(s.request=new Request(t),s.params=Object.assign({cacheKey:e},s.params),this.strategy.handle(s))}}const tt=()=&gt;(z||(z=new Z),z);class et extends r{constructor(t,e){super(({request:s})=&gt;{const n=t.getURLsToCacheKeys();for(const r of function*(t,{ignoreURLParametersMatching:e=[/^utm_/,/^fbclid$/],directoryIndex:s="index.html",cleanURLs:n=!0,urlManipulation:r}={}){const i=new URL(t,location.href);i.hash="",yield i.href;const a=function(t,e=[]){for(const s of[...t.searchParams.keys()])e.some(t=&gt;t.test(s))&amp;&amp;t.searchParams.delete(s);return t}(i,e);if(yield a.href,s&amp;&amp;a.pathname.endsWith("/")){const t=new URL(a.href);t.pathname+=s,yield t.href}if(n){const t=new URL(a.href);t.pathname+=".html",yield t.href}if(r){const t=r({url:i});for(const e of t)yield e.href}}(s.url,e)){const e=n.get(r);if(e){return{cacheKey:e,integrity:t.getIntegrityForCacheKey(e)}}}},t.strategy)}}t.CacheFirst=class extends b{async U(t,e){let n,r=await e.cacheMatch(t);if(!r)try{r=await e.fetchAndCachePut(t)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.ExpirationPlugin=class{constructor(t={}){this.cachedResponseWillBeUsed=async({event:t,request:e,cacheName:s,cachedResponse:n})=&gt;{if(!n)return null;const r=this.V(n),i=this.J(s);q(i.expireEntries());const a=i.updateTimestamp(e.url);if(t)try{t.waitUntil(a)}catch(t){}return r?n:null},this.cacheDidUpdate=async({cacheName:t,request:e})=&gt;{const s=this.J(t);await s.updateTimestamp(e.url),await s.expireEntries()},this.X=t,this.T=t.maxAgeSeconds,this.Y=new Map,t.purgeOnQuotaError&amp;&amp;function(t){m.add(t)}(()=&gt;this.deleteCacheAndMetadata())}J(t){if(t===d())throw new s("expire-custom-caches-only");let e=this.Y.get(t);return e||(e=new $(t,this.X),this.Y.set(t,e)),e}V(t){if(!this.T)return!0;const e=this.Z(t);if(null===e)return!0;return e&gt;=Date.now()-1e3*this.T}Z(t){if(!t.headers.has("date"))return null;const e=t.headers.get("date"),s=new Date(e).getTime();return isNaN(s)?null:s}async deleteCacheAndMetadata(){for(const[t,e]of this.Y)await self.caches.delete(t),await e.delete();this.Y=new Map}},t.NetworkFirst=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u),this.tt=t.networkTimeoutSeconds||0}async U(t,e){const n=[],r=[];let i;if(this.tt){const{id:s,promise:a}=this.et({request:t,logs:n,handler:e});i=s,r.push(a)}const a=this.st({timeoutId:i,request:t,logs:n,handler:e});r.push(a);const o=await e.waitUntil((async()=&gt;await e.waitUntil(Promise.race(r))||await a)());if(!o)throw new s("no-response",{url:t.url});return o}et({request:t,logs:e,handler:s}){let n;return{promise:new Promise(e=&gt;{n=setTimeout(async()=&gt;{e(await s.cacheMatch(t))},1e3*this.tt)}),id:n}}async st({timeoutId:t,request:e,logs:s,handler:n}){let r,i;try{i=await n.fetchAndCachePut(e)}catch(t){t instanceof Error&amp;&amp;(r=t)}return t&amp;&amp;clearTimeout(t),!r&amp;&amp;i||(i=await n.cacheMatch(e)),i}},t.NetworkOnly=class extends b{constructor(t={}){super(t),this.tt=t.networkTimeoutSeconds||0}async U(t,e){let n,r;try{const s=[e.fetch(t)];if(this.tt){const t=g(1e3*this.tt);s.push(t)}if(r=await Promise.race(s),!r)throw new Error(`Timed out the network response after ${this.tt} seconds.`)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.StaleWhileRevalidate=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u)}async U(t,e){const n=e.fetchAndCachePut(t).catch(()=&gt;{});e.waitUntil(n);let r,i=await e.cacheMatch(t);if(i);else try{i=await n}catch(t){t instanceof Error&amp;&amp;(r=t)}if(!i)throw new s("no-response",{url:t.url,error:r});return i}},t.cleanupOutdatedCaches=function(){self.addEventListener("activate",t=&gt;{const e=w();t.waitUntil((async(t,e="-precache-")=&gt;{const s=(await self.caches.keys()).filter(s=&gt;s.includes(e)&amp;&amp;s.includes(self.registration.scope)&amp;&amp;s!==t);return await Promise.all(s.map(t=&gt;self.caches.delete(t))),s})(e).then(t=&gt;{}))})},t.clientsClaim=function(){self.addEventListener("activate",()=&gt;self.clients.claim())},t.precacheAndRoute=function(t,e){!function(t){tt().precache(t)}(t),function(t){const e=tt();h(new et(e,t))}(e)},t.registerRoute=h});
 </pre></div>
@@ -14094,8 +14233,72 @@ export default function GlobalError({
     --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), rgb(10 10 10) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
+
+  .dark [data-labs-root] .text-slate-900,
+  .dark [data-labs-root] .text-slate-800,
+  .dark [data-labs-root] .text-slate-700,
+  .dark [data-labs-root] .text-slate-600,
+  .dark [data-labs-root] .text-slate-500,
+  .dark [data-labs-root] .text-slate-400,
+  .dark [data-labs-root] .text-slate-300 {
+    color: inherit !important;
+  }
+
+  .dark [data-labs-root] .text-slate-900 {
+    color: rgb(15 23 42) !important;
+  }
+
+  .dark [data-labs-root] .text-slate-800 {
+    color: rgb(30 41 59) !important;
+  }
+
+  .dark [data-labs-root] .text-slate-700 {
+    color: rgb(51 65 85) !important;
+  }
+
+  .dark [data-labs-root] .text-slate-600 {
+    color: rgb(71 85 105) !important;
+  }
+
+  .dark [data-labs-root] .text-slate-500,
+  .dark [data-labs-root] .text-slate-400,
+  .dark [data-labs-root] .text-slate-300 {
+    color: rgb(100 116 139) !important;
+  }
+
+  .dark [data-labs-root] .bg-white {
+    background-color: rgb(255 255 255) !important;
+  }
+
+  .dark [data-labs-root] .bg-white\/90 {
+    background-color: rgb(255 255 255 / 0.9) !important;
+  }
+
+  .dark [data-labs-root] .bg-slate-50 {
+    background-color: rgb(248 250 252) !important;
+  }
+
+  .dark [data-labs-root] .bg-slate-100 {
+    background-color: rgb(241 245 249) !important;
+  }
+
+  .dark [data-labs-root] .border-slate-200,
+  .dark [data-labs-root] .border-slate-300,
+  .dark [data-labs-root] .border-sky-100 {
+    border-color: rgb(226 232 240) !important;
+  }
 }
 
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/labs/layout.tsx</div><pre>import type { ReactNode } from "react";
+
+export default function LabsPublicLayout({ children }: { children: ReactNode }) {
+  return (
+    &lt;div data-labs-root className="[color-scheme:light]" style={{ colorScheme: "light" }}&gt;
+      {children}
+    &lt;/div&gt;
+  );
+}
 </pre></div>
 <div class='file-block'><div class='file-header'>src/app/labs/loading.tsx</div><pre>export default function LabsIndexLoading() {
   return (
@@ -14116,34 +14319,60 @@ export default function GlobalError({
 <div class='file-block'><div class='file-header'>src/app/labs/page.tsx</div><pre>import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublicLabLocations } from "@/lib/public-labs";
+import { LabsSiteFooter, LabsSiteHeader } from "@/components/public/labs-site-chrome";
+import { LabsDiscoveryClient } from "@/components/public/labs-discovery-client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600;
 
-export const metadata: Metadata = {
-  title: "Best Diagnostic Labs by City | DiagSync",
-  description:
-    "Discover top-ranked medical diagnostic laboratories by city, based on turnaround speed, consistency, activity, and completion performance.",
-};
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://diagsync.vercel.app";
+
+export async function generateMetadata(): Promise&lt;Metadata&gt; {
+  const title = "Diagnostic Laboratories in Nigeria | DiagSync";
+  const description =
+    "Explore diagnostic labs in Nigeria. Find medical laboratory options by city, compare services, and discover trusted healthcare testing providers.";
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${siteUrl}/labs`,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `${siteUrl}/labs`,
+      images: [{ url: `${siteUrl}/diagsync-logo.png` }],
+    },
+  };
+}
 
 export default async function LabsIndexPage() {
   const locations = await getPublicLabLocations();
   const featured = locations[0] ?? null;
+  const quickCities = locations.slice(0, 8);
 
   return (
     &lt;main className="min-h-screen bg-[radial-gradient(circle_at_top,_#dbeafe_0%,_#f8fafc_35%,_#ffffff_100%)]"&gt;
+      &lt;LabsSiteHeader /&gt;
       &lt;section className="mx-auto max-w-7xl px-4 py-14 sm:px-6"&gt;
+        &lt;nav aria-label="Breadcrumb" className="mb-6 text-sm text-slate-500"&gt;
+          &lt;Link href="/" className="hover:text-slate-800"&gt;
+            Home
+          &lt;/Link&gt;{" "}
+          &lt;span className="mx-2"&gt;â†’&lt;/span&gt;
+          &lt;span className="font-semibold text-slate-700"&gt;Labs&lt;/span&gt;
+        &lt;/nav&gt;
+
         &lt;div className="rounded-3xl border border-sky-100 bg-white/90 p-10 shadow-[0_20px_60px_-30px_rgba(2,132,199,0.45)] backdrop-blur"&gt;
-          &lt;div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700"&gt;
-            &lt;span className="rounded-full bg-sky-50 px-3 py-1"&gt;DiagSync Premium Directory&lt;/span&gt;
-            &lt;span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700"&gt;Verified Ranking Signals&lt;/span&gt;
-          &lt;/div&gt;
-          &lt;h1 className="mt-5 text-4xl font-black leading-tight text-slate-900 sm:text-5xl"&gt;
-            Discover Trusted Diagnostic Labs
+          &lt;p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700"&gt;Verified on DiagSync&lt;/p&gt;
+          &lt;h1 className="mt-5 text-4xl font-black leading-tight text-slate-900 sm:text-6xl"&gt;
+            Find Diagnostic Laboratories Near You
           &lt;/h1&gt;
           &lt;p className="mt-4 max-w-3xl text-base leading-7 text-slate-600"&gt;
-            Explore city-by-city laboratory rankings with stronger public profiles, performance badges, and trust
-            indicators powered by DiagSync operational intelligence.
+            Discover diagnostic laboratories in Nigeria through a trusted medical labs directory designed for patients,
+            healthcare providers, and laboratory owners.
           &lt;/p&gt;
           &lt;div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-3"&gt;
             &lt;div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"&gt;
@@ -14151,74 +14380,117 @@ export default async function LabsIndexPage() {
               &lt;p className="mt-1 text-2xl font-bold text-slate-900"&gt;{locations.length}&lt;/p&gt;
             &lt;/div&gt;
             &lt;div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"&gt;
-              &lt;p className="text-xs uppercase tracking-wide text-slate-500"&gt;Refresh Rate&lt;/p&gt;
-              &lt;p className="mt-1 text-2xl font-bold text-slate-900"&gt;10 min&lt;/p&gt;
+              &lt;p className="text-xs uppercase tracking-wide text-slate-500"&gt;Trust Signal&lt;/p&gt;
+              &lt;p className="mt-1 text-2xl font-bold text-slate-900"&gt;Verified Listings&lt;/p&gt;
             &lt;/div&gt;
             &lt;div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"&gt;
-              &lt;p className="text-xs uppercase tracking-wide text-slate-500"&gt;Ranking Scope&lt;/p&gt;
-              &lt;p className="mt-1 text-2xl font-bold text-slate-900"&gt;Nationwide&lt;/p&gt;
+              &lt;p className="text-xs uppercase tracking-wide text-slate-500"&gt;Coverage&lt;/p&gt;
+              &lt;p className="mt-1 text-2xl font-bold text-slate-900"&gt;Nigeria&lt;/p&gt;
             &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"&gt;
+          &lt;p className="text-sm font-semibold text-slate-800"&gt;Quick city links&lt;/p&gt;
+          &lt;div className="mt-3 flex flex-wrap gap-2"&gt;
+            {quickCities.map((city) =&gt; (
+              &lt;Link
+                key={city.slug}
+                href={`/labs/${city.slug}`}
+                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              &gt;
+                {city.city}
+              &lt;/Link&gt;
+            ))}
           &lt;/div&gt;
         &lt;/div&gt;
 
         {featured ? (
           &lt;article className="mt-8 rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-sky-50 p-6 shadow-sm"&gt;
-            &lt;p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700"&gt;Featured Top Lab City&lt;/p&gt;
+            &lt;p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700"&gt;Featured Lab City&lt;/p&gt;
             &lt;div className="mt-3 flex flex-wrap items-center justify-between gap-4"&gt;
               &lt;div&gt;
                 &lt;h2 className="text-2xl font-bold text-slate-900"&gt;{featured.city}&lt;/h2&gt;
                 &lt;p className="mt-1 text-sm text-slate-600"&gt;
-                  {featured.topLabName ?? "Top lab"} leading with score {featured.topScore.toFixed(2)}
+                  {featured.topLabName ?? "Top local lab"} leads with a performance score of {featured.topScore.toFixed(2)}.
                 &lt;/p&gt;
               &lt;/div&gt;
               &lt;Link
                 href={`/labs/${featured.slug}`}
                 className="inline-flex rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
               &gt;
-                View Top Labs
+                View labs in {featured.city}
               &lt;/Link&gt;
             &lt;/div&gt;
           &lt;/article&gt;
         ) : null}
 
-        &lt;div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"&gt;
-          {locations.length === 0 ? (
-            &lt;div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"&gt;
-              No published lab rankings available yet.
+        &lt;LabsDiscoveryClient locations={locations} /&gt;
+
+        &lt;section className="mt-10 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm"&gt;
+          &lt;h2 className="text-2xl font-black text-slate-900"&gt;Used By Laboratories&lt;/h2&gt;
+          &lt;div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3"&gt;
+            &lt;div className="rounded-xl border border-slate-200 bg-slate-50 p-4"&gt;
+              &lt;p className="text-sm font-semibold text-slate-900"&gt;Fast lab workflow&lt;/p&gt;
+              &lt;p className="mt-2 text-sm leading-6 text-slate-600"&gt;
+                Teams use DiagSync to streamline requests, sample handling, and result release across daily operations.
+              &lt;/p&gt;
             &lt;/div&gt;
-          ) : (
-            locations.map((location) =&gt; (
-              &lt;article
-                key={location.slug}
-                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              &gt;
-                &lt;div className="flex items-start justify-between gap-3"&gt;
-                  &lt;h2 className="text-xl font-bold text-slate-900"&gt;{location.city}&lt;/h2&gt;
-                  &lt;span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"&gt;
-                    Avg {location.avgScore.toFixed(2)}
-                  &lt;/span&gt;
-                &lt;/div&gt;
-                &lt;p className="mt-2 text-sm leading-6 text-slate-600"&gt;
-                  {location.count} ranked {location.count === 1 ? "lab" : "labs"} in this city.
-                &lt;/p&gt;
-                &lt;div className="mt-3 flex flex-wrap gap-2 text-[11px]"&gt;
-                  &lt;span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700"&gt;Operationally Ranked&lt;/span&gt;
-                  &lt;span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600"&gt;Top Score {location.topScore.toFixed(2)}&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;p className="mt-3 text-xs text-slate-500"&gt;Top lab: {location.topLabName ?? "N/A"}&lt;/p&gt;
-                &lt;div className="mt-5"&gt;
-                  &lt;Link
-                    href={`/labs/${location.slug}`}
-                    className="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 transition group-hover:bg-slate-50"
-                  &gt;
-                    Explore {location.city}
-                  &lt;/Link&gt;
-                &lt;/div&gt;
-              &lt;/article&gt;
-            ))
-          )}
-        &lt;/div&gt;
+            &lt;div className="rounded-xl border border-slate-200 bg-slate-50 p-4"&gt;
+              &lt;p className="text-sm font-semibold text-slate-900"&gt;Digital results and reporting&lt;/p&gt;
+              &lt;p className="mt-2 text-sm leading-6 text-slate-600"&gt;
+                Medical laboratories can standardize reporting and improve turnaround visibility for clinicians.
+              &lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className="rounded-xl border border-slate-200 bg-slate-50 p-4"&gt;
+              &lt;p className="text-sm font-semibold text-slate-900"&gt;Built for trust&lt;/p&gt;
+              &lt;p className="mt-2 text-sm leading-6 text-slate-600"&gt;
+                Public pages include verified identity signals so patients can choose credible diagnostic providers.
+              &lt;/p&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="mt-6 flex flex-wrap gap-3"&gt;
+            &lt;Link href="/register" className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"&gt;
+              List your lab
+            &lt;/Link&gt;
+            &lt;Link href="/register" className="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"&gt;
+              Claim your lab
+            &lt;/Link&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+
+        &lt;section className="mt-8 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm"&gt;
+          &lt;h2 className="text-2xl font-black text-slate-900"&gt;Diagnostic Laboratories In Nigeria: Why This Directory Matters&lt;/h2&gt;
+          &lt;div className="mt-4 space-y-4 text-sm leading-7 text-slate-600"&gt;
+            &lt;p&gt;
+              Diagnostic laboratories in Nigeria play a central role in modern healthcare testing. From routine blood
+              panels to specialized pathology support, labs help clinicians make accurate decisions quickly. Patients
+              also depend on accessible medical laboratories when managing chronic conditions, completing pre-surgery
+              checks, or monitoring treatment outcomes. A reliable public directory helps people compare options in one
+              place, especially when speed, proximity, and trust all matter at once.
+            &lt;/p&gt;
+            &lt;p&gt;
+              DiagSync was built as a practical medical labs directory with local relevance. Instead of presenting only
+              basic contact cards, we structure each listing around useful public profile information: location,
+              service visibility, and performance context. This makes it easier to find diagnostic laboratories in
+              Nigeria by city, understand which facilities are active, and identify providers that communicate clearly
+              with patients and referring professionals.
+            &lt;/p&gt;
+            &lt;p&gt;
+              For laboratory operators, this platform also creates a stronger digital footprint. Many patients search
+              for "medical laboratory near me" or "diagnostic labs in [city]" before booking tests. A complete,
+              trusted listing can improve discoverability and confidence at the same time. Labs that claim profiles can
+              present richer details, maintain accurate location data, and stand out with stronger credibility signals.
+            &lt;/p&gt;
+            &lt;p&gt;
+              As healthcare testing demand grows across Nigeria, directories must do more than list names. They should
+              support informed choices and highlight organizations committed to quality operations. DiagSync helps make
+              that possible by connecting discovery with real laboratory workflows and trusted identity signals.
+            &lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
       &lt;/section&gt;
+      &lt;LabsSiteFooter /&gt;
     &lt;/main&gt;
   );
 }
@@ -20029,6 +20301,11 @@ function isMcsTestName(testName: string) {
   return normalizeToken(testName).includes("m c s");
 }
 
+function isEcgOrder(order: TestOrder) {
+  const token = normalizeToken(`${order.test.name} ${order.test.code}`);
+  return token.includes("ecg") || token.includes("ekg") || token.includes("holter") || token.includes("treadmill");
+}
+
 type MicroscopyRowInput = {
   wbcPus: string;
   epithelial: string;
@@ -21614,6 +21891,9 @@ export function LabTaskBoard() {
 
   function isOrderReady(task: LabTask, order: TestOrder) {
     const draft = drafts[order.id] ?? createEmptyDraft();
+    if (isEcgOrder(order)) {
+      return true;
+    }
     const removedDefaults = new Set(draft.removedDefaultFieldKeys ?? []);
     const required = order.test.resultFields.filter((field) =&gt; field.isRequired &amp;&amp; !removedDefaults.has(field.fieldKey));
     if (required.length === 0) {
@@ -22099,9 +22379,17 @@ export function LabTaskBoard() {
           !removedDefaults.has("sensitivity") &amp;&amp;
           isValueFilled(sharedSensitivity) &amp;&amp;
           !isValueFilled(cleanedValues.sensitivity);
-        return {
+        const withSharedSensitivity = {
           ...cleanedValues,
           ...(canApplySharedSensitivity ? { sensitivity: sharedSensitivity } : {}),
+        };
+        const valuesForSubmit = isEcgOrder(order)
+          ? Object.fromEntries(
+              Object.entries(withSharedSensitivity).filter(([, value]) =&gt; isValueFilled(value))
+            )
+          : withSharedSensitivity;
+        return {
+          ...valuesForSubmit,
           ...(signOff?.signatureImage &amp;&amp; signOff?.signatureName
             ? {
                 [SIGNOFF_IMAGE_KEY]: signOff.signatureImage,
@@ -22801,6 +23089,7 @@ interface NavItem {
 
 const navByRole: Record&lt;string, NavItem[]&gt; = {
   SUPER_ADMIN: [
+    { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
     { label: "Lab Settings", href: "/dashboard/hrm/settings", icon: Settings2 },
@@ -22816,6 +23105,7 @@ const navByRole: Record&lt;string, NavItem[]&gt; = {
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
   ],
   HRM: [
+    { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
     { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
@@ -23976,12 +24266,13 @@ type NavConfig = {
 const navByRole: Record&lt;Role, NavConfig&gt; = {
   SUPER_ADMIN: {
     primary: [
-      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
     ],
     more: [
+      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
       { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
       { label: "Lab Settings", href: "/dashboard/hrm/settings", icon: Settings2 },
       { label: "Consultations", href: "/dashboard/hrm/consultation", icon: Stethoscope },
@@ -23997,12 +24288,13 @@ const navByRole: Record&lt;Role, NavConfig&gt; = {
   },
   HRM: {
     primary: [
-      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
     ],
     more: [
+      { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
       { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
       { label: "Consultations", href: "/dashboard/hrm/consultation", icon: Stethoscope },
       { label: "Review Queue", href: "/dashboard/md/review", icon: ClipboardList },
@@ -24850,6 +25142,165 @@ export function PatientInsights({ insights }: Props) {
 }
 
 </pre></div>
+<div class='file-block'><div class='file-header'>src/components/public/labs-discovery-client.tsx</div><pre>"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+
+type LocationCard = {
+  city: string;
+  slug: string;
+  count: number;
+  avgScore: number;
+  topLabName: string | null;
+  topScore: number;
+};
+
+export function LabsDiscoveryClient({ locations }: { locations: LocationCard[] }) {
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() =&gt; {
+    const q = query.trim().toLowerCase();
+    if (!q) return locations;
+    return locations.filter((l) =&gt; l.city.toLowerCase().includes(q));
+  }, [locations, query]);
+
+  const cityNarrative = (city: string, topLabName: string | null, avgScore: number) =&gt;
+    `${city} diagnostics spotlight led by ${topLabName ?? "top local labs"} with an average performance score of ${avgScore.toFixed(2)}.`;
+
+  return (
+    &lt;&gt;
+      &lt;div className="mt-8 mx-auto max-w-3xl"&gt;
+        &lt;div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"&gt;
+          &lt;input
+            aria-label="Search city"
+            value={query}
+            onChange={(e) =&gt; setQuery(e.target.value)}
+            placeholder="Search by city, e.g. Onitsha, Lagos, Abuja"
+            className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+          /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"&gt;
+        {filtered.length === 0 ? (
+          &lt;div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"&gt;
+            No cities match â€œ{query}â€.
+          &lt;/div&gt;
+        ) : (
+          filtered.map((location) =&gt; (
+            &lt;Link
+              key={location.slug}
+              href={`/labs/${location.slug}`}
+              className="group block rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-white to-sky-50 p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+            &gt;
+              &lt;div className="flex items-start justify-between gap-3"&gt;
+                &lt;h2 className="text-xl font-bold text-slate-900"&gt;{location.city}&lt;/h2&gt;
+                &lt;span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"&gt;
+                  Avg {location.avgScore.toFixed(2)}
+                &lt;/span&gt;
+              &lt;/div&gt;
+              &lt;p className="mt-2 text-sm leading-6 text-slate-600"&gt;
+                {location.count} ranked {location.count === 1 ? "lab" : "labs"} in this city.
+              &lt;/p&gt;
+              &lt;p className="mt-2 text-sm leading-6 text-slate-500"&gt;{cityNarrative(location.city, location.topLabName, location.avgScore)}&lt;/p&gt;
+              &lt;div className="mt-3 flex flex-wrap gap-2 text-[11px]"&gt;
+                &lt;span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700"&gt;Operationally Ranked&lt;/span&gt;
+                &lt;span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600"&gt;Top Score {location.topScore.toFixed(2)}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;p className="mt-3 text-xs text-slate-500"&gt;Top lab: {location.topLabName ?? "N/A"}&lt;/p&gt;
+              &lt;div className="mt-5 inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 transition group-hover:bg-slate-50"&gt;
+                Explore {location.city}
+              &lt;/div&gt;
+            &lt;/Link&gt;
+          ))
+        )}
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}
+
+</pre></div>
+<div class='file-block'><div class='file-header'>src/components/public/labs-site-chrome.tsx</div><pre>import Link from "next/link";
+import Image from "next/image";
+
+export function LabsSiteHeader() {
+  return (
+    &lt;header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur"&gt;
+      &lt;div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6"&gt;
+        &lt;Link href="/labs" className="flex items-center gap-2"&gt;
+          &lt;Image
+            src="/diagsync-logo.png"
+            alt="Diagsync"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded object-cover"
+          /&gt;
+          &lt;span className="text-sm font-bold tracking-wide text-slate-900"&gt;DiagSync Public Labs&lt;/span&gt;
+        &lt;/Link&gt;
+        &lt;nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex"&gt;
+          &lt;Link href="/labs" className="hover:text-slate-900"&gt;
+            Directory
+          &lt;/Link&gt;
+          &lt;span className="text-slate-300"&gt;|&lt;/span&gt;
+          &lt;Link href="/insights/reports" className="hover:text-slate-900"&gt;
+            Insights
+          &lt;/Link&gt;
+          &lt;span className="text-slate-300"&gt;|&lt;/span&gt;
+          &lt;Link href="/login" className="hover:text-slate-900"&gt;
+            Lab Login
+          &lt;/Link&gt;
+        &lt;/nav&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
+  );
+}
+
+export function LabsSiteFooter() {
+  return (
+    &lt;footer className="mt-14 border-t border-slate-200 bg-slate-950 text-slate-200"&gt;
+      &lt;div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 md:grid-cols-3"&gt;
+        &lt;div&gt;
+          &lt;h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-300"&gt;About DiagSync&lt;/h3&gt;
+          &lt;p className="mt-3 text-sm leading-7 text-slate-400"&gt;
+            DiagSync is a healthcare operations platform and public medical laboratory directory built to help patients
+            and providers discover reliable diagnostic services.
+          &lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-300"&gt;Contact&lt;/h3&gt;
+          &lt;ul className="mt-3 space-y-2 text-sm text-slate-400"&gt;
+            &lt;li&gt;
+              &lt;Link href="/labs" className="hover:text-white"&gt;
+                Labs Directory
+              &lt;/Link&gt;
+            &lt;/li&gt;
+            &lt;li&gt;
+              &lt;Link href="/register" className="hover:text-white"&gt;
+                List or Claim Your Lab
+              &lt;/Link&gt;
+            &lt;/li&gt;
+            &lt;li&gt;
+              &lt;Link href="/login" className="hover:text-white"&gt;
+                Lab Portal Login
+              &lt;/Link&gt;
+            &lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-300"&gt;Platform&lt;/h3&gt;
+          &lt;p className="mt-3 text-sm leading-7 text-slate-400"&gt;
+            Used by real laboratories to manage patients, tests, and reports efficiently. Public profile details are
+            updated as verified data improves.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-500 sm:px-6"&gt;
+        Copyright {new Date().getFullYear()} DiagSync. Medical Labs Directory.
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  );
+}</pre></div>
 <div class='file-block'><div class='file-header'>src/components/radiology/radiology-queue-table.tsx</div><pre>"use client";
 
 import { formatDateTime } from "@/lib/utils";
@@ -28457,6 +28908,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
   const [previewNonce, setPreviewNonce] = useState(0);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showEditSection, setShowEditSection] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [printLetterheadMode, setPrintLetterheadMode] = useState&lt;"with" | "without"&gt;("with");
   const [addLabTestName, setAddLabTestName] = useState("");
   const [labTestSearch, setLabTestSearch] = useState("");
@@ -28464,6 +28916,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
   const [labTestSearchResults, setLabTestSearchResults] = useState&lt;LabCatalogTest[]&gt;([]);
   const [billingAccess, setBillingAccess] = useState&lt;BillingAccessHint | null&gt;(null);
   const previewRef = useRef&lt;HTMLIFrameElement | null&gt;(null);
+  const detailsPanelRef = useRef&lt;HTMLDivElement | null&gt;(null);
   const loadReportsSeqRef = useRef(0);
   const loadDetailsSeqRef = useRef(0);
   const reportListCacheRef = useRef&lt;Map&lt;string, { at: number; rows: ReportListItem[] }&gt;&gt;(new Map());
@@ -28507,6 +28960,14 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     if (previewNonce &gt; 0) query.set("v", String(previewNonce));
     const suffix = query.toString();
     return `/api/reports/${reportId}/pdf${suffix ? `?${suffix}` : ""}`;
+  }
+
+  function jpgUrl(reportId: string, letterheadMode: "with" | "without") {
+    const query = new URLSearchParams();
+    if (letterheadMode === "without") query.set("letterhead", "without");
+    if (previewNonce &gt; 0) query.set("v", String(previewNonce));
+    const suffix = query.toString();
+    return `/api/reports/${reportId}/jpg${suffix ? `?${suffix}` : ""}`;
   }
 
   async function loadReports(opts?: { signal?: AbortSignal; force?: boolean }) {
@@ -28781,13 +29242,37 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
 
   async function downloadReport() {
     if (!details) return;
-    setError(""); setMessage("");
-    await fetch(`/api/reports/${details.id}/action`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "DOWNLOAD" }) });
-    const link = document.createElement("a");
-    link.href = pdfUrl(details.id, printLetterheadMode);
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link); link.click(); link.remove();
-    setMessage("PDF download started.");
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await fetch(`/api/reports/${details.id}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "DOWNLOAD" }),
+      }).catch(() =&gt; null);
+
+      const canDownload = async (url: string) =&gt; {
+        const res = await fetch(url, { method: "GET", credentials: "include" });
+        return res.ok;
+      };
+
+      try {
+        const pdf = pdfUrl(details.id, printLetterheadMode);
+        const ok = await canDownload(pdf);
+        if (!ok) throw new Error("PDF_UNAVAILABLE");
+        window.location.assign(pdf);
+        setMessage("PDF download started.");
+      } catch {
+        const jpg = jpgUrl(details.id, printLetterheadMode);
+        const ok = await canDownload(jpg);
+        if (!ok) throw new Error("JPG_UNAVAILABLE");
+        window.location.assign(jpg);
+        setMessage("PDF unavailable, JPG download started.");
+      }
+    } catch {
+      setError("Unable to download report right now. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function sendWhatsapp() {
@@ -28824,8 +29309,17 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     setAppliedDate("");
   }
 
+  function handleSelectReport(reportId: string) {
+    setSelectedId(reportId);
+    setMobileSheetOpen(true);
+  }
+
+  function scrollToFullReport() {
+    detailsPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
-    &lt;div className="space-y-4"&gt;
+    &lt;div className={`space-y-4 ${(canHrmRelease || canReceptionDispatch) &amp;&amp; details ? "pb-20 lg:pb-0" : ""}`}&gt;
       {/* Filters */}
       &lt;div className="flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-3"&gt;
         &lt;div className="w-full sm:w-auto"&gt;
@@ -28897,7 +29391,7 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
           ) : (
             &lt;div className="divide-y divide-slate-100"&gt;
               {rows.map((row) =&gt; (
-                &lt;button key={row.id} onClick={() =&gt; setSelectedId(row.id)}
+                &lt;button key={row.id} onClick={() =&gt; handleSelectReport(row.id)}
                   className={`w-full px-3 py-2.5 text-left transition-colors ${row.id === selectedId ? "bg-blue-50" : "hover:bg-slate-50"}`}&gt;
                   &lt;div className="flex items-center justify-between gap-2"&gt;
                     &lt;p className="text-xs font-medium text-slate-800 truncate"&gt;{row.visit.patient.fullName}&lt;/p&gt;
@@ -28914,11 +29408,40 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
         &lt;/div&gt;
 
         {/* Detail panel */}
-        &lt;div className="rounded-lg border border-slate-200 bg-white overflow-hidden"&gt;
+        &lt;div
+          ref={detailsPanelRef}
+          className={`rounded-lg border border-slate-200 bg-white overflow-hidden ${
+            mobileSheetOpen
+              ? "fixed inset-0 z-40 rounded-none border-0"
+              : "hidden"
+          } lg:static lg:z-auto lg:block lg:rounded-lg lg:border`}
+        &gt;
           {!details ? (
-            &lt;p className="px-4 py-8 text-center text-xs text-slate-400"&gt;Select a report to view details.&lt;/p&gt;
+            &lt;div className="flex h-full flex-col"&gt;
+              &lt;div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 lg:hidden"&gt;
+                &lt;p className="text-xs font-semibold uppercase tracking-wide text-slate-500"&gt;Report details&lt;/p&gt;
+                &lt;button
+                  type="button"
+                  onClick={() =&gt; setMobileSheetOpen(false)}
+                  className="rounded border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600"
+                &gt;
+                  Close
+                &lt;/button&gt;
+              &lt;/div&gt;
+              &lt;p className="px-4 py-8 text-center text-xs text-slate-400"&gt;Select a report to view details.&lt;/p&gt;
+            &lt;/div&gt;
           ) : (
-            &lt;div className="divide-y divide-slate-100"&gt;
+            &lt;div className="h-full overflow-y-auto divide-y divide-slate-100"&gt;
+              &lt;div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 lg:hidden"&gt;
+                &lt;p className="text-xs font-semibold uppercase tracking-wide text-slate-500"&gt;Report details&lt;/p&gt;
+                &lt;button
+                  type="button"
+                  onClick={() =&gt; setMobileSheetOpen(false)}
+                  className="rounded border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600"
+                &gt;
+                  Close
+                &lt;/button&gt;
+              &lt;/div&gt;
               {/* Header */}
               &lt;div className="flex items-center justify-between px-4 py-3"&gt;
                 &lt;div&gt;
@@ -29246,9 +29769,58 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
           )}
         &lt;/div&gt;
       &lt;/div&gt;
+
+      {(canHrmRelease || canReceptionDispatch) &amp;&amp; details ? (
+        &lt;div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-2 backdrop-blur lg:hidden"&gt;
+          &lt;div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2"&gt;
+            &lt;button
+              type="button"
+              disabled={busy}
+              onClick={scrollToFullReport}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            &gt;
+              Open full report
+            &lt;/button&gt;
+            &lt;button
+              type="button"
+              disabled={busy}
+              onClick={printNow}
+              className="rounded bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            &gt;
+              Print
+            &lt;/button&gt;
+            &lt;button
+              type="button"
+              disabled={busy || !details.isReleased || !previewLoaded}
+              onClick={downloadReport}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            &gt;
+              Download
+            &lt;/button&gt;
+            &lt;button
+              type="button"
+              disabled={busy || !details.isReleased || !previewLoaded}
+              onClick={sendWhatsapp}
+              className="rounded border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            &gt;
+              WhatsApp
+            &lt;/button&gt;
+            {!canReceptionDispatch ? (
+              &lt;button
+                type="button"
+                disabled={busy || details.isReleased}
+                onClick={releaseReport}
+                className="rounded bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              &gt;
+                {details.isReleased ? "Released" : "Release"}
+              &lt;/button&gt;
+            ) : null}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      ) : null}
     &lt;/div&gt;
   );
-} 
+}
 </pre></div>
 <div class='file-block'><div class='file-header'>src/components/results/result-insight-box.tsx</div><pre>type Props = {
   messages: string[];
@@ -30492,6 +31064,7 @@ export async function setOrganizationStatus(organizationId: string, status: Orga
 </pre></div>
 <div class='file-block'><div class='file-header'>src/lib/ai/gemini.ts</div><pre>type GeminiLabData = {
   description?: string;
+  services?: string[];
   website?: string;
   phone?: string;
   address?: string;
@@ -30618,9 +31191,11 @@ export async function refineLabDataWithGemini(input: {
 
   const prompt = [
     "Return ONLY valid JSON. No text before or after.",
-    "You are validating profile data for an official diagnostic laboratory.",
+    "You are validating profile data for an official diagnostic laboratory listing page.",
     "Only return high-confidence fields that match the exact lab identity.",
-    "JSON keys: description, website, phone, address, logoUrl, images, source",
+    "Write a natural, professional and human-like description (max 420 chars). Avoid hype.",
+    "Return 3 to 6 concise services as plain strings if clearly supported by source text.",
+    "JSON keys: description, services, website, phone, address, logoUrl, images, source",
     `labName: ${input.labName}`,
     `city: ${input.city ?? ""}`,
     `state: ${input.state ?? ""}`,
@@ -30684,6 +31259,23 @@ function isValidHttpUrl(value: string | null | undefined) {
 function cleanDescription(value: string | null | undefined) {
   if (!value) return "";
   return value.trim().slice(0, 500);
+}
+
+function cleanPhone(value: string | null | undefined) {
+  if (!value) return null;
+  const compact = value.replace(/\s+/g, " ").trim();
+  if (compact.length &gt; 40) return null;
+  const hasDigits = compact.replace(/\D/g, "").length &gt;= 7;
+  return hasDigits ? compact : null;
+}
+
+function cleanAddress(value: string | null | undefined) {
+  if (!value) return null;
+  const compact = value.replace(/\s+/g, " ").trim();
+  if (compact.length &lt; 10) return null;
+  if (compact.length &gt; 180) return null;
+  if (/home about services gallery contact book now/i.test(compact)) return null;
+  return compact;
 }
 
 function cleanImages(images: string[] | undefined) {
@@ -30821,8 +31413,8 @@ export async function enrichOrganizationWithAi(organizationId: string, opts?: { 
     website: isValidHttpUrl(fetched.data.website) ? fetched.data.website!.trim() : null,
     logoUrl: isValidHttpUrl(fetched.data.logoUrl) ? fetched.data.logoUrl!.trim() : null,
     images: cleanImages(fetched.data.images),
-    phone: typeof fetched.data.phone === "string" ? fetched.data.phone.trim() : org.phone,
-    address: typeof fetched.data.address === "string" ? fetched.data.address.trim() : org.address,
+    phone: cleanPhone(typeof fetched.data.phone === "string" ? fetched.data.phone : null) ?? org.phone,
+    address: cleanAddress(typeof fetched.data.address === "string" ? fetched.data.address : null) ?? org.address,
     source: typeof fetched.data.source === "string" ? fetched.data.source.trim().slice(0, 200) : "serper-search-rules",
   };
 
@@ -30878,10 +31470,15 @@ export async function enrichOrganizationWithAi(organizationId: string, opts?: { 
 };
 
 const BLOCKED_DOMAINS = [
-  "unizik.edu.ng",
-  "anambrastate.gov.ng",
   "wikipedia.org",
   "facebook.com/groups",
+  "linkedin.com",
+  "pinterest.com",
+  "x.com",
+  "twitter.com",
+  "instagram.com",
+  "youtube.com",
+  "tiktok.com",
 ];
 
 const GOOD_SIGNALS = ["diagnostic", "laboratory", "medical", "clinic"];
@@ -30916,6 +31513,8 @@ function normalizeUrl(input?: string | null) {
 function isBlockedDomain(url: string) {
   try {
     const host = new URL(url).hostname.toLowerCase();
+    if (host.endsWith(".edu") || host.includes(".edu.")) return true;
+    if (host.endsWith(".gov") || host.includes(".gov.")) return true;
     return BLOCKED_DOMAINS.some((domain) =&gt; host === domain || host.endsWith(`.${domain}`));
   } catch {
     return true;
@@ -30970,7 +31569,7 @@ function scoreDomain(url: string, labName: string) {
     if (!isSocial) score += 2;
     if (hasStrongName) score += 5;
     if (hasNameToken) score += 4;
-    if (isGov) score -= 3;
+    if (isGov) score -= 10;
     if (isAcademic) score -= 4;
     if (isDirectoryPath) score -= 5;
     if (isProfilePath) score -= 6;
@@ -31275,12 +31874,14 @@ function pickLogo(images: string[]) {
 }
 
 function filterMainImages(images: string[]) {
-  const banned = /sprite|icon|avatar|favicon|googleusercontent|doubleclick|analytics|pixel|logo|brandmark|wordmark/i;
+  const banned = /sprite|icon|avatar|favicon|googleusercontent|doubleclick|analytics|pixel|logo|brandmark|wordmark|thumb|placeholder/i;
   const seen = new Set&lt;string&gt;();
   const out: string[] = [];
   for (const img of images) {
     const url = img.split(" ")[0];
     if (!url) continue;
+    if (/[?&amp;](w|width|h|height)=([0-9]{1,2}|1[0-9]{2})\b/i.test(url)) continue;
+    if (/(^|\/)(32x32|48x48|64x64|96x96|120x120|150x150|180x180|192x192|256x256)(\/|\.|$)/i.test(url)) continue;
     if (banned.test(img)) continue;
     if (seen.has(url)) continue;
     seen.add(url);
@@ -37207,7 +37808,7 @@ export async function getCachedRankings(period: "weekly" | "monthly" = "weekly")
 
 export async function getPublicLabsByLocation(locationSlug: string) {
   const normalized = normalizeLocation(locationSlug);
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const items = rankings.items.filter((item) =&gt; item.city.toLowerCase() === normalized);
   if (items.length === 0) return [];
 
@@ -37266,13 +37867,13 @@ export async function getPublicLabProfile(locationSlug: string, slug: string) {
   });
   if (!lab) return null;
 
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const ranking = rankings.items.find((x) =&gt; x.organizationId === lab.id) ?? null;
   return { lab, ranking };
 }
 
 export async function getPublicLabLocations() {
-  const rankings = await getCachedRankings("weekly");
+  const rankings = await getCachedRankings("monthly");
   const grouped = new Map&lt;
     string,
     { city: string; count: number; avgScore: number; topLabName: string | null; topScore: number }
@@ -38375,6 +38976,11 @@ function round2(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function applyLeniencyFloor(value: number) {
+  // Keep rankings meaningful while avoiding overly harsh low-end collapse.
+  return Math.max(50, value);
+}
+
 function groupByOrganization(rows: RankingOrderRow[]) {
   const grouped = new Map&lt;string, RankingOrderRow[]&gt;();
   for (const row of rows) {
@@ -38421,20 +39027,21 @@ export function computeRankings(
       else onTimeTests += 1;
     }
 
-    const turnaroundScore = (onTimeTests / totalTests) * 100;
+    const onTimeRate = onTimeTests / totalTests;
+    const turnaroundScore = 55 + onTimeRate * 45;
     const delayRate = delayedTests / totalTests;
-    const consistencyScore = 100 - delayRate * 100;
-    const healthScore = 100 - delayRate * 100;
-    const completionScore = (completedTests / totalTests) * 100;
+    const consistencyScore = 100 - delayRate * 55;
+    const healthScore = 100 - delayRate * 45;
+    const completionScore = 50 + (completedTests / totalTests) * 50;
     const activity = computeActivityEfficiencyFromData(orgOrders, previousOrders);
-    const activityScore = activity.activityScore;
+    const activityScore = 45 + activity.activityScore * 0.55;
 
     const finalScore =
-      turnaroundScore * 0.4 +
-      consistencyScore * 0.25 +
-      activityScore * 0.15 +
+      turnaroundScore * 0.3 +
+      consistencyScore * 0.2 +
+      activityScore * 0.25 +
       healthScore * 0.1 +
-      completionScore * 0.1;
+      completionScore * 0.15;
 
     rankings.push({
       organizationId,
@@ -38448,7 +39055,7 @@ export function computeRankings(
       healthScore: round2(clampScore(healthScore)),
       completionScore: round2(clampScore(completionScore)),
       activityScore: round2(clampScore(activityScore)),
-      finalScore: round2(clampScore(finalScore)),
+      finalScore: round2(applyLeniencyFloor(clampScore(finalScore))),
     });
   }
 
@@ -38489,10 +39096,17 @@ export type RankingsResult = {
 
 function getPeriodWindow(period: RankingPeriod) {
   const endDate = new Date();
-  const days = period === "weekly" ? 7 : 30;
-  const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+  if (period === "weekly") {
+    const days = 7;
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+    const previousEndDate = new Date(startDate);
+    const previousStartDate = new Date(previousEndDate.getTime() - days * 24 * 60 * 60 * 1000);
+    return { startDate, endDate, previousStartDate, previousEndDate };
+  }
+
+  const startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1, 0, 0, 0, 0);
+  const previousStartDate = new Date(endDate.getFullYear(), endDate.getMonth() - 1, 1, 0, 0, 0, 0);
   const previousEndDate = new Date(startDate);
-  const previousStartDate = new Date(previousEndDate.getTime() - days * 24 * 60 * 60 * 1000);
   return { startDate, endDate, previousStartDate, previousEndDate };
 }
 
@@ -38910,6 +39524,43 @@ export async function renderHtmlToPdfBuffer(html: string) {
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
     });
     return Buffer.from(pdf);
+  } finally {
+    await browser.close();
+  }
+}
+
+export async function renderHtmlToJpegBuffer(html: string) {
+  const onVercel = Boolean(process.env.VERCEL);
+  if (onVercel) {
+    chromium.setGraphicsMode = false;
+  }
+  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  if (!executablePath) {
+    throw new Error("PDF_BROWSER_NOT_FOUND");
+  }
+
+  const launchArgs = onVercel
+    ? [...chromium.args, "--font-render-hinting=none"]
+    : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
+
+  const browser = await puppeteer.launch({
+    executablePath,
+    headless: onVercel ? chromium.headless : true,
+    args: launchArgs,
+    defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
+    ignoreHTTPSErrors: true,
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.emulateMediaType("screen");
+    const jpg = await page.screenshot({
+      type: "jpeg",
+      quality: 92,
+      fullPage: true,
+    });
+    return Buffer.from(jpg);
   } finally {
     await browser.close();
   }
@@ -40856,9 +41507,9 @@ export async function renderReportForPreview(
   await assertReportCoreAccess(actor);
   const report = await getReportDetails(actor, reportId);
   const activeVersion = report.versions.find((version) =&gt; version.isActive) ?? report.versions[0] ?? null;
-  if (!activeVersion) throw new Error("INVALID_VERSION_CHAIN");
-  assertContentMatchesDepartment(activeVersion.content, report.department);
-  const versionContent = (activeVersion.content ?? {}) as Record&lt;string, unknown&gt;;
+  const effectiveContent = activeVersion?.content ?? report.reportContent ?? {};
+  assertContentMatchesDepartment(effectiveContent, report.department);
+  const versionContent = (effectiveContent ?? {}) as Record&lt;string, unknown&gt;;
   const existingPatient =
     versionContent.patient &amp;&amp; typeof versionContent.patient === "object"
       ? (versionContent.patient as Record&lt;string, unknown&gt;)
@@ -40889,8 +41540,8 @@ export async function renderReportForPreview(
     },
     department: report.department,
     content: renderContent as any,
-    comments: activeVersion.comments ?? report.comments,
-    prescription: activeVersion.prescription ?? report.prescription,
+    comments: activeVersion?.comments ?? report.comments,
+    prescription: activeVersion?.prescription ?? report.prescription,
     mdName: null,
     watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
     includeLetterhead: (options?.includeLetterhead ?? true) &amp;&amp; allowLetterhead,
@@ -41858,8 +42509,8 @@ export function cn(...inputs: ClassValue[]) {
 export function getDashboardPath(role: Role): string {
   const map: Record&lt;Role, string&gt; = {
     MEGA_ADMIN: "/admin/dashboard",
-    SUPER_ADMIN: "/dashboard",
-    HRM: "/dashboard",
+    SUPER_ADMIN: "/dashboard/hrm",
+    HRM: "/dashboard/hrm",
     RECEPTIONIST: "/dashboard/receptionist",
     LAB_SCIENTIST: "/dashboard/lab-scientist",
     RADIOGRAPHER: "/dashboard/radiographer",
@@ -42193,6 +42844,7 @@ export default async function middleware(req: NextRequest) {
 
   const isPublicRoute =
     publicRoutes.has(pathname) ||
+    pathname.startsWith("/labs") ||
     pathname === "/manifest.json" ||
     pathname === "/sw.js" ||
     pathname.startsWith("/workbox-") ||
