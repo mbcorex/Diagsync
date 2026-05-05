@@ -656,11 +656,15 @@ export function renderReportHtml(args: RenderArgs) {
   const hasLetterhead = Boolean(args.includeLetterhead !== false && args.organization.letterheadUrl);
   const pageHeightPx = 1123;
   const pageWidthPx = 794;
-  const contentTopPx = hasLetterhead ? 252 : 148;
-  const contentBottomPx = hasLetterhead ? 156 : 92;
-  const printMarginTopPx = hasLetterhead ? 252 : 92;
-  const printMarginBottomPx = hasLetterhead ? 156 : 96;
-  const printMarginSidePx = 44;
+  // ReeneLetterhead.jpg measured at 2481x3508:
+  // - header divider around y=540 (~15.4%)
+  // - footer divider around y=3186 (~90.8%)
+  // Scaled to A4 preview height (1123px) with breathing room for cleaner layout.
+  const contentTopPx = hasLetterhead ? 188 : 148;
+  const contentBottomPx = hasLetterhead ? 124 : 92;
+  const printMarginTopPx = hasLetterhead ? 188 : 92;
+  const printMarginBottomPx = hasLetterhead ? 124 : 96;
+  const printMarginSidePx = 40;
   const patient = args.content.patient ?? {};
   const ageLabel = formatPatientAge(
     { age: patient.age, dateOfBirth: patient.dateOfBirth },
