@@ -12,6 +12,7 @@ const AUTH_SECRET =
 
 const roleRouteMap: Record<string, Role[]> = {
   "/insights": ["MD", "HRM", "SUPER_ADMIN"],
+  "/dashboard/hrm/inventory": ["INVENTORY_MANAGER", "SUPER_ADMIN", "MD"],
   "/dashboard/receptionist": ["RECEPTIONIST", "SUPER_ADMIN"],
   "/dashboard/lab-scientist": ["LAB_SCIENTIST", "SUPER_ADMIN"],
   "/dashboard/radiographer": ["RADIOGRAPHER", "SUPER_ADMIN"],
