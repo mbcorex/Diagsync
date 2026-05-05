@@ -1,5 +1,6 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
+import { existsSync } from "node:fs";
 
 function findLocalChromeExecutable() {
   const candidates = [
@@ -14,7 +15,14 @@ function findLocalChromeExecutable() {
     "/usr/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ].filter((value): value is string => Boolean(value));
-  return candidates[0];
+  for (const candidate of candidates) {
+    try {
+      if (existsSync(candidate)) return candidate;
+    } catch {
+      // Ignore invalid paths and continue searching.
+    }
+  }
+  return undefined;
 }
 
 export async function renderHtmlToPdfBuffer(html: string) {
@@ -23,7 +31,18 @@ export async function renderHtmlToPdfBuffer(html: string) {
     // Better rendering stability in serverless environments.
     chromium.setGraphicsMode = false;
   }
-  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  let executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+
+  if (!executablePath && !onVercel) {
+    try {
+      const bundledPath = await chromium.executablePath();
+      if (bundledPath && existsSync(bundledPath)) {
+        executablePath = bundledPath;
+      }
+    } catch {
+      // Ignore fallback resolution failures.
+    }
+  }
 
   if (!executablePath) {
     throw new Error("PDF_BROWSER_NOT_FOUND");
@@ -33,13 +52,19 @@ export async function renderHtmlToPdfBuffer(html: string) {
     ? [...chromium.args, "--font-render-hinting=none"]
     : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    headless: onVercel ? chromium.headless : true,
-    args: launchArgs,
-    defaultViewport: chromium.defaultViewport ?? { width: 794, height: 1123 },
-    ignoreHTTPSErrors: true,
-  });
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>>;
+  try {
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: onVercel ? chromium.headless : true,
+      args: launchArgs,
+      defaultViewport: chromium.defaultViewport ?? { width: 794, height: 1123 },
+      ignoreHTTPSErrors: true,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown";
+    throw new Error(`PDF_BROWSER_LAUNCH_FAILED:${reason}`);
+  }
 
   try {
     const page = await browser.newPage();
@@ -62,7 +87,17 @@ export async function renderHtmlToJpegBuffer(html: string) {
   if (onVercel) {
     chromium.setGraphicsMode = false;
   }
-  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  let executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  if (!executablePath && !onVercel) {
+    try {
+      const bundledPath = await chromium.executablePath();
+      if (bundledPath && existsSync(bundledPath)) {
+        executablePath = bundledPath;
+      }
+    } catch {
+      // Ignore fallback resolution failures.
+    }
+  }
   if (!executablePath) {
     throw new Error("PDF_BROWSER_NOT_FOUND");
   }
@@ -71,13 +106,19 @@ export async function renderHtmlToJpegBuffer(html: string) {
     ? [...chromium.args, "--font-render-hinting=none"]
     : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    headless: onVercel ? chromium.headless : true,
-    args: launchArgs,
-    defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
-    ignoreHTTPSErrors: true,
-  });
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>>;
+  try {
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: onVercel ? chromium.headless : true,
+      args: launchArgs,
+      defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
+      ignoreHTTPSErrors: true,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown";
+    throw new Error(`PDF_BROWSER_LAUNCH_FAILED:${reason}`);
+  }
 
   try {
     const page = await browser.newPage();
