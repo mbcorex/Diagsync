@@ -216,6 +216,14 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     return `/api/reports/${reportId}/pdf${suffix ? `?${suffix}` : ""}`;
   }
 
+  function jpgUrl(reportId: string, letterheadMode: "with" | "without") {
+    const query = new URLSearchParams();
+    if (letterheadMode === "without") query.set("letterhead", "without");
+    if (previewNonce > 0) query.set("v", String(previewNonce));
+    const suffix = query.toString();
+    return `/api/reports/${reportId}/jpg${suffix ? `?${suffix}` : ""}`;
+  }
+
   async function loadReports(opts?: { signal?: AbortSignal; force?: boolean }) {
     const cacheKey = `${filterStatus}:${filterType}:${appliedSearch}:${appliedDate}`;
     if (!opts?.force) {
@@ -488,13 +496,37 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
 
   async function downloadReport() {
     if (!details) return;
-    setError(""); setMessage("");
-    await fetch(`/api/reports/${details.id}/action`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "DOWNLOAD" }) });
-    const link = document.createElement("a");
-    link.href = pdfUrl(details.id, printLetterheadMode);
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link); link.click(); link.remove();
-    setMessage("PDF download started.");
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await fetch(`/api/reports/${details.id}/action`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "DOWNLOAD" }) });
+
+      const tryDownload = async (url: string, fallbackName: string) => {
+        const res = await fetch(url, { method: "GET", credentials: "include" });
+        if (!res.ok) throw new Error(`DOWNLOAD_FAILED_${res.status}`);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = fallbackName;
+        link.rel = "noopener noreferrer";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+      };
+
+      try {
+        await tryDownload(pdfUrl(details.id, printLetterheadMode), `report-${details.id}.pdf`);
+        setMessage("PDF downloaded.");
+      } catch {
+        await tryDownload(jpgUrl(details.id, printLetterheadMode), `report-${details.id}.jpg`);
+        setMessage("PDF failed, JPG downloaded instead.");
+      }
+    } catch {
+      setError("Unable to download report right now. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function sendWhatsapp() {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { renderHtmlToPdfBuffer } from "@/lib/report-pdf";
+import { renderHtmlToJpegBuffer } from "@/lib/report-pdf";
 import { renderReportForPreview } from "@/lib/report-workflow";
 
 export const dynamic = "force-dynamic";
@@ -27,16 +27,15 @@ export async function GET(
       { includeLetterhead, showPrintButton: false, autoPrint: false, baseUrl: url.origin }
     );
 
-    const pdfBuffer = await renderHtmlToPdfBuffer(rendered.html);
-    const reportType =
-      rendered.report.department === "LABORATORY" ? "lab" : "radiology";
+    const jpgBuffer = await renderHtmlToJpegBuffer(rendered.html);
+    const reportType = rendered.report.department === "LABORATORY" ? "lab" : "radiology";
     const patient = sanitizeForFileName(rendered.report.visit.patient.fullName.toLowerCase());
     const visit = sanitizeForFileName(rendered.report.visit.visitNumber.toLowerCase());
-    const fileName = `${patient}-${visit}-${reportType}-report.pdf`;
+    const fileName = `${patient}-${visit}-${reportType}-report.jpg`;
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(jpgBuffer, {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "image/jpeg",
         "Cache-Control": "no-store",
         "Content-Disposition": `attachment; filename="${fileName}"`,
       },
@@ -50,10 +49,10 @@ export async function GET(
       if (error.message === "REPORT_TYPE_MISMATCH") return new NextResponse("Invalid report state", { status: 409 });
       if (error.message === "CROSS_DEPARTMENT_CONTENT") return new NextResponse("Invalid report content", { status: 409 });
       if (error.message === "INVALID_VERSION_CHAIN") return new NextResponse("Invalid report version state", { status: 409 });
-      if (error.message === "PDF_BROWSER_NOT_FOUND") return new NextResponse("PDF engine unavailable on server", { status: 500 });
-      if (error.message.startsWith("Protocol error")) return new NextResponse("PDF rendering failed on server", { status: 500 });
+      if (error.message === "PDF_BROWSER_NOT_FOUND") return new NextResponse("Image engine unavailable on server", { status: 500 });
+      if (error.message.startsWith("Protocol error")) return new NextResponse("Image rendering failed on server", { status: 500 });
     }
-    console.error("[REPORT_PDF_GET]", error);
+    console.error("[REPORT_JPG_GET]", error);
     return new NextResponse("Internal server error", { status: 500 });
   }
 }

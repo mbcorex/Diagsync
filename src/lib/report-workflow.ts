@@ -690,9 +690,9 @@ export async function renderReportForPreview(
   await assertReportCoreAccess(actor);
   const report = await getReportDetails(actor, reportId);
   const activeVersion = report.versions.find((version) => version.isActive) ?? report.versions[0] ?? null;
-  if (!activeVersion) throw new Error("INVALID_VERSION_CHAIN");
-  assertContentMatchesDepartment(activeVersion.content, report.department);
-  const versionContent = (activeVersion.content ?? {}) as Record<string, unknown>;
+  const effectiveContent = activeVersion?.content ?? report.reportContent ?? {};
+  assertContentMatchesDepartment(effectiveContent, report.department);
+  const versionContent = (effectiveContent ?? {}) as Record<string, unknown>;
   const existingPatient =
     versionContent.patient && typeof versionContent.patient === "object"
       ? (versionContent.patient as Record<string, unknown>)
@@ -723,8 +723,8 @@ export async function renderReportForPreview(
     },
     department: report.department,
     content: renderContent as any,
-    comments: activeVersion.comments ?? report.comments,
-    prescription: activeVersion.prescription ?? report.prescription,
+    comments: activeVersion?.comments ?? report.comments,
+    prescription: activeVersion?.prescription ?? report.prescription,
     mdName: null,
     watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
     includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,

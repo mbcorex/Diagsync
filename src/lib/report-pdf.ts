@@ -56,3 +56,40 @@ export async function renderHtmlToPdfBuffer(html: string) {
     await browser.close();
   }
 }
+
+export async function renderHtmlToJpegBuffer(html: string) {
+  const onVercel = Boolean(process.env.VERCEL);
+  if (onVercel) {
+    chromium.setGraphicsMode = false;
+  }
+  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  if (!executablePath) {
+    throw new Error("PDF_BROWSER_NOT_FOUND");
+  }
+
+  const launchArgs = onVercel
+    ? [...chromium.args, "--font-render-hinting=none"]
+    : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
+
+  const browser = await puppeteer.launch({
+    executablePath,
+    headless: onVercel ? chromium.headless : true,
+    args: launchArgs,
+    defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
+    ignoreHTTPSErrors: true,
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.emulateMediaType("screen");
+    const jpg = await page.screenshot({
+      type: "jpeg",
+      quality: 92,
+      fullPage: true,
+    });
+    return Buffer.from(jpg);
+  } finally {
+    await browser.close();
+  }
+}
