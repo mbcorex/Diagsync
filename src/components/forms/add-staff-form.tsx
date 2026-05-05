@@ -45,6 +45,16 @@ export function AddStaffForm() {
 
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } =
     useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { defaultShift: Shift.MORNING } });
+  
+  function autoDepartmentForRole(role: Role): Department | null {
+    if (role === "RECEPTIONIST") return Department.RECEPTION;
+    if (role === "LAB_SCIENTIST") return Department.LABORATORY;
+    if (role === "RADIOGRAPHER") return Department.RADIOLOGY;
+    if (role === "MD") return Department.MEDICAL_REVIEW;
+    if (role === "HRM" || role === "SUPER_ADMIN") return Department.HR_OPERATIONS;
+    if (role === "INVENTORY_MANAGER") return Department.INVENTORY;
+    return null;
+  }
 
   useEffect(() => {
     void (async () => {
@@ -126,7 +136,16 @@ export function AddStaffForm() {
 
           <div>
             <label className={labelCls}>Role *</label>
-            <Select onValueChange={(v) => setValue("role", v as Role)}>
+            <Select
+              onValueChange={(v) => {
+                const nextRole = v as Role;
+                setValue("role", nextRole);
+                const mappedDepartment = autoDepartmentForRole(nextRole);
+                if (mappedDepartment) {
+                  setValue("department", mappedDepartment, { shouldValidate: true });
+                }
+              }}
+            >
               <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select role" /></SelectTrigger>
               <SelectContent>
                 {ROLES_FOR_FORM.map(([value, label]) => {

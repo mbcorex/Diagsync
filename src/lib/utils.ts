@@ -89,4 +89,5 @@ export const DEPARTMENT_LABELS: Record<string, string> = {
   RADIOLOGY: "Radiology",
   MEDICAL_REVIEW: "Medical Review",
   HR_OPERATIONS: "HR & Operations",
+  INVENTORY: "Inventory",
 };

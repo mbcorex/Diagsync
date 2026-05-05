@@ -837,6 +837,7 @@ enum Department {
   RADIOLOGY
   MEDICAL_REVIEW
   HR_OPERATIONS
+  INVENTORY
 }
 
 enum StaffStatus {

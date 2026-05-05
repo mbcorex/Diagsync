@@ -10,6 +10,9 @@ CREATE TYPE "InventorySourceType" AS ENUM ('TEST', 'ADMIN', 'SYSTEM');
 -- AlterEnum
 ALTER TYPE "Role" ADD VALUE 'INVENTORY_MANAGER';
 
+-- AlterEnum
+ALTER TYPE "Department" ADD VALUE 'INVENTORY';
+
 
 -- CreateTable
 CREATE TABLE "inventory_items" (
