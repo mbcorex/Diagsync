@@ -489,8 +489,8 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
   async function fallbackDownloadPdfFromPreview(reportId: string) {
     const frame = previewRef.current;
     const doc = frame?.contentDocument;
-    const body = doc?.body;
-    if (!frame || !doc || !body) {
+    const pageRoot = doc?.querySelector("main.page") as HTMLElement | null;
+    if (!frame || !doc || !pageRoot) {
       throw new Error("Preview not ready yet. Please wait 1-2 seconds and try again.");
     }
 
@@ -498,29 +498,51 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
       import("html2canvas"),
       import("jspdf"),
     ]);
-    const canvas = await html2canvas(body, {
+    const canvas = await html2canvas(pageRoot, {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
+      onclone: (clonedDoc) => {
+        const clonedPage = clonedDoc.querySelector("main.page") as HTMLElement | null;
+        const clonedBody = clonedDoc.body as HTMLBodyElement | null;
+        if (clonedBody) {
+          clonedBody.style.margin = "0";
+          clonedBody.style.background = "#ffffff";
+        }
+        if (clonedPage) {
+          clonedPage.style.width = "794px";
+          clonedPage.style.maxWidth = "794px";
+          clonedPage.style.margin = "0";
+          clonedPage.style.background = "#ffffff";
+        }
+        const actions = clonedDoc.querySelector(".preview-actions") as HTMLElement | null;
+        if (actions) actions.style.display = "none";
+      },
     });
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
     const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
+    const pagePixelHeight = Math.max(1, Math.round((1123 / 794) * canvas.width));
+    let offsetY = 0;
+    let pageIndex = 0;
 
-    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-    heightLeft -= pageHeight;
+    while (offsetY < canvas.height - 1) {
+      const sliceHeight = Math.min(pagePixelHeight, canvas.height - offsetY);
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeight;
+      const ctx = pageCanvas.getContext("2d");
+      if (!ctx) throw new Error("Failed to prepare PDF page canvas");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      ctx.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
 
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-      heightLeft -= pageHeight;
+      const pageData = pageCanvas.toDataURL("image/jpeg", 0.95);
+      const mmHeight = (sliceHeight * 210) / canvas.width;
+      if (pageIndex > 0) pdf.addPage();
+      pdf.addImage(pageData, "JPEG", 0, 0, 210, mmHeight, undefined, "FAST");
+
+      offsetY += sliceHeight;
+      pageIndex += 1;
     }
 
     const baseName = details?.visit?.visitNumber ? `${details.visit.visitNumber}-report` : `${reportId}-report`;
