@@ -543,7 +543,16 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
       });
 
       if (!response.ok) {
-        throw new Error("SERVER_PDF_FAILED");
+        let serverError = "Server PDF generation failed.";
+        try {
+          const payload = await response.json();
+          if (payload?.error && typeof payload.error === "string") {
+            serverError = payload.error;
+          }
+        } catch {
+          // Ignore non-JSON error bodies.
+        }
+        throw new Error(serverError);
       }
 
       const blob = await response.blob();
@@ -561,13 +570,9 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
       setMessage("PDF download started.");
-    } catch {
-      try {
-        await fallbackDownloadPdfFromPreview(details.id);
-        setMessage("PDF download started.");
-      } catch {
-        setError("Unable to generate PDF right now. Please try again.");
-      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unable to generate PDF right now.";
+      setError(reason);
     } finally {
       setBusy(false);
     }
