@@ -559,49 +559,44 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
 }
 
+// Improved splitRadiologyNarrative - better bullet detection
 function splitRadiologyNarrative(raw: string) {
   const trimmed = raw.trim();
   if (!trimmed) return [];
 
-  const normalized = trimmed
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/[•●▪]/g, "\n")
-    .replace(/\t+/g, " ")
-    .replace(/[ ]{2,}/g, " ")
-    .trim();
-
-  const labelRegex =
-    /(Technique|Liver|Gallbladder|Pancreas|Spleen|Kidneys?|Bowel|Uterus|Myometrium|Endometrium|Adnexae|Right ovary|Left ovary|POD|Urinary bladder|Bladder|Prostate|Cervix|Impression)\s*:/gi;
-  const labelMatches = Array.from(normalized.matchAll(labelRegex));
-  if (labelMatches.length > 1) {
-    const points: string[] = [];
-    const firstLabelStart = labelMatches[0]?.index ?? 0;
-    const intro = normalized.slice(0, firstLabelStart).trim().replace(/\s+/g, " ");
-    if (intro) points.push(intro);
-    for (let i = 0; i < labelMatches.length; i += 1) {
-      const start = labelMatches[i].index ?? 0;
-      const end = i + 1 < labelMatches.length ? labelMatches[i + 1].index ?? normalized.length : normalized.length;
-      const chunk = normalized.slice(start, end).trim().replace(/\s+/g, " ");
-      if (chunk) points.push(chunk);
-    }
-    if (points.length > 0) return points;
+  // First, check if this uses line breaks as separators (most common for bullet lists)
+  const linePoints = trimmed
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+  
+  if (linePoints.length > 1) {
+    // Strip bullet markers if present
+    return linePoints.map(line => 
+      line.replace(/^[\s]*[-*•‣▪▶→›❯]+\s*/, "").replace(/^[\s]*[0-9]+[.)]\s*/, "").trim()
+    );
   }
 
-  const linePoints = normalized
-    .split(/\n|;/)
-    .map((line) => line.trim().replace(/\s+/g, " "))
-    .filter(Boolean);
-  if (linePoints.length > 1) return linePoints;
+  // Check for bullet markers on single line with semicolons
+  if (trimmed.includes(";") && trimmed.split(";").length > 1) {
+    return trimmed.split(";").map(s => s.trim());
+  }
 
-  const sentencePoints = normalized
-    .split(/(?<=[.?!])\s+(?=[A-Z])/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => (/[.?!]$/.test(line) ? line : `${line}.`));
-  if (sentencePoints.length > 1) return sentencePoints;
+  // Check for colon-separated items like "Liver: ... Gallbladder: ..."
+  // Split at sentence boundaries (period, colon, question mark, exclamation followed by space and capital letter)
+  const colonSplit = trimmed.split(/(?<=[.:!?])\s+(?=[A-ZÄÖÜÀ-ÿ])/);
+  if (colonSplit.length > 1) {
+    return colonSplit.map(s => s.trim());
+  }
 
-  return [normalized];
+  // Check for numbered list like "1. ... 2. ..."
+  const numberedMatch = trimmed.match(/\d+\.\s+/);
+  if (numberedMatch && trimmed.split(/\d+\.\s+/).length > 2) {
+    return trimmed.split(/\d+\.\s+/).filter(Boolean).map(s => s.trim());
+  }
+
+  // Single point
+  return [trimmed];
 }
 
 function splitEmbeddedImpression(findingsInput: string, impressionInput: string) {
@@ -622,12 +617,30 @@ function splitEmbeddedImpression(findingsInput: string, impressionInput: string)
   };
 }
 
+// Improved renderNarrativeBlock - better bullet rendering as HTML lists
 function renderNarrativeBlock(rawText: string, opts?: { preferList?: boolean }) {
   const points = splitRadiologyNarrative(rawText);
   if (points.length === 0) return `<p class="rad-paragraph">-</p>`;
+  
+  // Check if this looks like a bullet list (multiple lines or items)
+  const looksLikeBulletList = points.length > 1;
+  
+  // For bullet-style lists, render as UL
+  if (looksLikeBulletList && (opts?.preferList ?? false)) {
+    return `<ul class="rad-list">${points.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  }
+  
+  // For multi-point lists without explicit markers, render as UL when preferred
   if ((opts?.preferList ?? false) && points.length > 1) {
     return `<ul class="rad-list">${points.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
   }
+  
+  // Single point or short text - render as paragraphs
+  if (points.length === 1) {
+    return `<p class="rad-paragraph">${escapeHtml(points[0])}</p>`;
+  }
+  
+  // Multiple points that don't fit bullet style - render as separate paragraphs
   return points.map((item) => `<p class="rad-paragraph">${escapeHtml(item)}</p>`).join("");
 }
 

@@ -23,6 +23,7 @@ import {
   RADIOLOGY_PER_TEST_KEY,
   type RadiologyPerTestSection,
 } from "@/lib/radiology-report-sections";
+import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -749,7 +750,7 @@ export function RadiologyTaskBoard() {
                       </td>
                       <td className="px-4 py-2.5 text-slate-500">
                         {task.radiologyReport?.findings?.trim() ? "Drafted" : "Pending"}{" "}
-                        Â· {task.testOrders.map((order) => order.test.name).join(", ")}
+                        · {task.testOrders.map((order) => order.test.name).join(", ")}
                       </td>
                       <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">{formatDateTime(task.createdAt)}</td>
                       <td className="px-4 py-2.5">
@@ -770,7 +771,7 @@ export function RadiologyTaskBoard() {
                           {task.status !== "COMPLETED" && task.status !== "PENDING" && !task.canEdit ? (
                             <span className="text-[11px] text-amber-500">Assigned to another radiographer</span>
                           ) : null}
-                          {task.status === "COMPLETED" && <span className="text-green-600 font-medium">âœ“ Submitted</span>}
+                          {task.status === "COMPLETED" && <span className="text-green-600 font-medium">✓ Submitted</span>}
                         </div>
                       </td>
                     </tr>
@@ -783,16 +784,27 @@ export function RadiologyTaskBoard() {
                               {task.testOrders.map((order) => (
                                 <div key={`${task.id}-${order.id}`} className="rounded border border-slate-200 bg-white p-3 space-y-2">
                                   <p className="text-xs font-semibold text-slate-700">{order.test.name} <span className="font-mono text-slate-400">{order.test.code}</span></p>
-                                  <div>
-                                    <label className="block text-[11px] font-medium text-slate-500 mb-1">Findings *</label>
-                                    <textarea rows={3} value={drafts[task.id]?.testReports?.[order.id]?.findings ?? ""} onChange={(e) => setTestReportField(task.id, order.id, "findings", e.target.value)}
-                                      className="w-full rounded border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                                  </div>
-                                  <div>
-                                    <label className="block text-[11px] font-medium text-slate-500 mb-1">Impression *</label>
-                                    <textarea rows={3} value={drafts[task.id]?.testReports?.[order.id]?.impression ?? ""} onChange={(e) => setTestReportField(task.id, order.id, "impression", e.target.value)}
-                                      className="w-full rounded border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                                  </div>
+                                  
+                                  {/* Bullet List Editor for Findings */}
+                                  <BulletListEditor
+                                    label="Findings *"
+                                    value={drafts[task.id]?.testReports?.[order.id]?.findings ?? ""}
+                                    onChange={(value) => setTestReportField(task.id, order.id, "findings", value)}
+                                    placeholder="Type each finding on a new line. Press Enter for new bullet."
+                                    rows={2}
+                                    disabled={!task.canEdit}
+                                  />
+                                  
+                                  {/* Bullet List Editor for Impression */}
+                                  <BulletListEditor
+                                    label="Impression *"
+                                    value={drafts[task.id]?.testReports?.[order.id]?.impression ?? ""}
+                                    onChange={(value) => setTestReportField(task.id, order.id, "impression", value)}
+                                    placeholder="Type each impression on a new line. Press Enter for new bullet."
+                                    rows={2}
+                                    disabled={!task.canEdit}
+                                  />
+                                  
                                   <div>
                                     <label className="block text-[11px] font-medium text-slate-500 mb-1">Notes (optional)</label>
                                     <input value={drafts[task.id]?.testReports?.[order.id]?.notes ?? ""} onChange={(e) => setTestReportField(task.id, order.id, "notes", e.target.value)}

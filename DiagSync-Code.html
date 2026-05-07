@@ -202,6 +202,11 @@ model Organization {
   patients                    Patient[]
   staff                       Staff[]
   subscriptionPaymentRequests SubscriptionPaymentRequest[]
+  inventoryItems              InventoryItem[]
+  inventoryStockEntries       InventoryStockEntry[]
+  inventoryConsumptionMappings InventoryConsumptionMapping[]
+  inventoryMovementLogs       InventoryMovementLog[]
+  inventoryBalances           InventoryBalance[]
 
   @@map("organizations")
 }
@@ -258,6 +263,9 @@ model Staff {
   assignedTestOrders                   TestOrder[]                  @relation("AssignedTestOrders")
   overriddenTestOrders                 TestOrder[]                  @relation("OverriddenTestOrders")
   visitPayments                        VisitPayment[]
+  inventoryItemsCreated                InventoryItem[]              @relation("InventoryItemCreatedBy")
+  inventoryStockEntriesAdded           InventoryStockEntry[]        @relation("InventoryStockEntryAddedBy")
+  inventoryMovementLogsPerformed       InventoryMovementLog[]       @relation("InventoryMovementPerformedBy")
 
   @@map("staff")
 }
@@ -369,6 +377,7 @@ model DiagnosticTest {
   organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   resultFields      ResultTemplateField[]
   testOrders        TestOrder[]
+  inventoryMappings InventoryConsumptionMapping[]
 
   @@unique([organizationId, code])
   @@index([organizationId, groupKey])
@@ -835,14 +844,123 @@ model SubscriptionPaymentRequest {
   @@map("subscription_payment_requests")
 }
 
+model InventoryItem {
+  id                String                      @id @default(cuid())
+  organizationId    String
+  name              String
+  category          InventoryCategory
+  unit              String
+  minimumStockLevel Decimal                     @db.Decimal(12, 3)
+  createdById       String
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy         Staff                       @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  stockEntries      InventoryStockEntry[]
+  mappings          InventoryConsumptionMapping[]
+  movementLogs      InventoryMovementLog[]
+  balance           InventoryBalance?
+
+  @@unique([organizationId, name])
+  @@index([organizationId, category, createdAt])
+  @@map("inventory_items")
+}
+
+model InventoryStockEntry {
+  id              String        @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  quantityAdded   Decimal       @db.Decimal(12, 3)
+  expiryDate      DateTime      @db.Date
+  batchNumber     String?
+  supplier        String?
+  addedById       String
+  createdAt       DateTime      @default(now())
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  addedBy         Staff         @relation("InventoryStockEntryAddedBy", fields: [addedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, inventoryItemId, createdAt])
+  @@index([organizationId, expiryDate])
+  @@map("inventory_stock_entries")
+}
+
+model InventoryConsumptionMapping {
+  id              String         @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  testId          String
+  quantityPerTest Decimal        @db.Decimal(12, 3)
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem  @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  test            DiagnosticTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, inventoryItemId, testId])
+  @@index([organizationId, testId])
+  @@index([organizationId, inventoryItemId])
+  @@map("inventory_consumption_mappings")
+}
+
+model InventoryMovementLog {
+  id              String                @id @default(cuid())
+  organizationId  String
+  inventoryItemId String
+  quantityChange  Decimal               @db.Decimal(12, 3)
+  actionType      InventoryActionType
+  sourceType      InventorySourceType
+  sourceId        String?
+  performedById   String
+  createdAt       DateTime              @default(now())
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem         @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  performedBy     Staff                 @relation("InventoryMovementPerformedBy", fields: [performedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, inventoryItemId, createdAt])
+  @@index([organizationId, sourceType, sourceId, createdAt])
+  @@index([organizationId, actionType, createdAt])
+  @@map("inventory_movement_logs")
+}
+
+model InventoryBalance {
+  inventoryItemId String        @id
+  organizationId  String
+  currentQuantity Decimal       @default(0) @db.Decimal(12, 3)
+  updatedAt       DateTime      @updatedAt
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, currentQuantity])
+  @@map("inventory_balances")
+}
+
 enum Role {
   SUPER_ADMIN
+  INVENTORY_MANAGER
   RECEPTIONIST
   LAB_SCIENTIST
   RADIOGRAPHER
   MD
   HRM
   MEGA_ADMIN
+}
+
+enum InventoryCategory {
+  TEST_KIT
+  REAGENT
+  CONSUMABLE
+}
+
+enum InventoryActionType {
+  STOCK_IN
+  TEST_USAGE
+  MANUAL_ADJUSTMENT
+  REVERSAL
+}
+
+enum InventorySourceType {
+  TEST
+  ADMIN
+  SYSTEM
 }
 
 enum OrganizationPlan {
@@ -872,6 +990,7 @@ enum Department {
   RADIOLOGY
   MEDICAL_REVIEW
   HR_OPERATIONS
+  INVENTORY
 }
 
 enum StaffStatus {
@@ -5371,7 +5490,7 @@ main()
     process.exit(1);
   });
 </pre></div>
-<div class='file-block'><div class='file-header'>public/fallback-l5wmYqHz3ccR_LRiJu4JZ.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
+<div class='file-block'><div class='file-header'>public/fallback-8NtOCtsaId3oqk7ka1osN.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
 <div class='file-block'><div class='file-header'>public/manifest.json</div><pre>{
   "name": "DiagSync",
   "short_name": "DiagSync",
@@ -5395,7 +5514,7 @@ main()
   ]
 }
 </pre></div>
-<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let a,s={};const c=(c,e)=&gt;(c=new URL(c+".js",e).href,s[c]||new Promise(s=&gt;{if("document"in self){const a=document.createElement("script");a.src=c,a.onload=s,document.head.appendChild(a)}else a=c,importScripts(c),s()}).then(()=&gt;{let a=s[c];if(!a)throw new Error(`Module ${c} didnâ€™t register its module`);return a}));self.define=(e,i)=&gt;{const n=a||("document"in self?document.currentScript.src:"")||location.href;if(s[n])return;let t={};const r=a=&gt;c(a,n),d={module:{uri:n},exports:t,require:r};s[n]=Promise.all(e.map(a=&gt;d[a]||r(a))).then(a=&gt;(i(...a),t))}}define(["./workbox-5268f9bb"],function(a){"use strict";importScripts("fallback-l5wmYqHz3ccR_LRiJu4JZ.js"),self.skipWaiting(),a.clientsClaim(),a.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"ea684ce2a0860d233c586e067594c8a0"},{url:"/_next/static/chunks/1718-e8702eb797e8ad25.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2117-6248ab8a803926e9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2736-40c6735e5b5f79aa.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/2972-d7f9b35a010ac3d8.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5878-51910f4ce925886c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5898-590ff9025282abe7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/5945-ee127f564fa38ad5.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/6137-de267f975f27b52e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/6547-c80170d839b70909.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/7526-2941b8a7b9d63709.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/8778-62e2afddeb0c4226.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/8989-261cee64e802debc.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/932-0d50caa7640cbb0a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/9630-f247ccbb854122ad.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-f021fb515a8eb6c0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-bb11b2337f29701f.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-5a68cd3b09ac21cb.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-668a1bc97524f227.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/layout-284cd07cfa630c6f.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/loading-1f6926bdd9f65265.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/page-5e9d59ae587e50ed.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-6a471337fc2e8745.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-23a8eb009252027a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/layout-0fc42cf16ff58300.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/login/page-78efb85392b16af4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(auth)/register/page-6aac0b4d4b819f73.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9193ba2b6b87b806.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-ca5c4eab53c7935c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-fbe5350f60830fb4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-17612f8f0cadd6f7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-56ffa8ccf4715171.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-15dc7dace88b1bbd.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-3e80db1b6e49c8ce.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-27516127472847a1.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-f7cc313a6074ae9c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-1f429f5232c69ba3.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-3b00ea583afb90d1.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-caf911676acd34ba.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-c1192798340ba741.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-e8646611ac672e9e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-3060e4a35edeb0ed.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-0b274ef97bc30229.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-1f97e6bef260dbe7.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-5ced0ca62c71a344.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-aa07619ed8c64d6a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-0babefc40c1a5ddb.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-aa78473e8caa7d7c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-d0cfda1bab6425bc.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-c64873dec5828cea.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-43dcc0a4d82afbd2.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-a38a6dc7381d2441.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-82b74c67c01c4879.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-d5c4d99ee39c57ab.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-0ab8989016f7e123.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-e0d385312b770344.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-f94d9e4034a6ae66.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-7046cdb40a39f4c4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-d601a95b8053c855.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-43a83f5c32d60d53.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-0045a18147565089.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-99bca0d10695b85c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-6a34d6c21551092d.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/error-75e2a57f15a66f59.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-e509c3e317119c2e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-3e75e01429d2122b.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/layout-5417d7595157f6e4.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/loading-d96e8654031dcabe.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-51f549225b0a465c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/_not-found/page-08c9ea462b338369.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/error-c77673c4d9bf4c49.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/global-error-0e83b7331b1f188c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-ae64c4333d1a52f9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-fb8892d5bbbb9a72.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-7fbfc6be4d57c769.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-7e77318302925f7e.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/layout-ca8adb1667a87ea0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/loading-18d2d861b42cb807.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/labs/page-da37b848389840be.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/layout-ec1b5a22fea6bb85.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/not-found-2ac06a0373343d3c.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/offline/page-a69f890b01f155ac.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/page-e33c48c0df50e31a.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-79ec74f90cdb2240.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/fd9d1056-8d69396482e34025.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/framework-a63c59c368572696.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/main-70ecea625e6bf0b9.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/main-app-2877bb5658641a8d.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/pages/_app-78ddf957b9a9b996.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/pages/_error-7ce03bcf1df914ce.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-e96e1091b6e3d5e0.js",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/_next/static/css/aa6e3a9786413129.css",revision:"aa6e3a9786413129"},{url:"/_next/static/l5wmYqHz3ccR_LRiJu4JZ/_buildManifest.js",revision:"0ea7e7088aabf697ba3d8aa8c7b54a89"},{url:"/_next/static/l5wmYqHz3ccR_LRiJu4JZ/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"l5wmYqHz3ccR_LRiJu4JZ"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),a.cleanupOutdatedCaches(),a.registerRoute("/",new a.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:a,response:s,event:c,state:e})=&gt;s&amp;&amp;"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s},{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"document"===a.destination,new a.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new a.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/_next/static/"),new a.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"image"===a.destination,new a.CacheFirst({cacheName:"image-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"style"===a.destination||"script"===a.destination,new a.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/api/"),new a.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET")});
+<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let a,s={};const t=(t,e)=&gt;(t=new URL(t+".js",e).href,s[t]||new Promise(s=&gt;{if("document"in self){const a=document.createElement("script");a.src=t,a.onload=s,document.head.appendChild(a)}else a=t,importScripts(t),s()}).then(()=&gt;{let a=s[t];if(!a)throw new Error(`Module ${t} didnâ€™t register its module`);return a}));self.define=(e,o)=&gt;{const i=a||("document"in self?document.currentScript.src:"")||location.href;if(s[i])return;let n={};const d=a=&gt;t(a,i),r={module:{uri:i},exports:n,require:d};s[i]=Promise.all(e.map(a=&gt;r[a]||d(a))).then(a=&gt;(o(...a),n))}}define(["./workbox-5268f9bb"],function(a){"use strict";importScripts("fallback-8NtOCtsaId3oqk7ka1osN.js"),self.skipWaiting(),a.clientsClaim(),a.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"37f75415c2431c66ac9061e5301180e6"},{url:"/_next/static/8NtOCtsaId3oqk7ka1osN/_buildManifest.js",revision:"6310079bf1ae7bebeb6a2135896e4564"},{url:"/_next/static/8NtOCtsaId3oqk7ka1osN/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/164f4fb6.854c391d863b90ac.js",revision:"854c391d863b90ac"},{url:"/_next/static/chunks/1718-d610c27231150fcd.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/1757-299a28a99d50ab6d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/2117-1f8af1e5a28db528.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/2736-cd7cfc1023eb88de.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/2972-7a5652e924313d47.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/2f0b94e8.452a2d27023d71da.js",revision:"452a2d27023d71da"},{url:"/_next/static/chunks/3036-3faf3aa4dff178f8.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/3969.b2d6601275784440.js",revision:"b2d6601275784440"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/4297-0294b0d9b1b57820.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/5878-773e347319c14938.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/5898-3f354c22a94449ef.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/5945-19658f3ee96bcf10.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/6137-914bac8283625abe.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/7526-417c6bd4709ef341.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/8758.6d2e237b08163e73.js",revision:"6d2e237b08163e73"},{url:"/_next/static/chunks/8778-22898e03cc0eb11f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/8848.3431d928ff2ca87d.js",revision:"3431d928ff2ca87d"},{url:"/_next/static/chunks/8989-f76de1b5de6adb6f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/932-e6eb164d477af754.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/9630-0aa7d99b4601b852.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/ad2866b8.1fd5edbd6b1bba26.js",revision:"1fd5edbd6b1bba26"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-2785039f99967232.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-e790ec0cab2f7e0e.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-4c78efbbb098f920.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-5a0153c6125a1b21.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/layout-c6a965daa1e93f53.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/loading-0f36bed46c2fe209.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/page-5c226714d62695a6.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-abcf1af978517bb7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-93da41c81ce18f7f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(auth)/layout-465bf1d2acc6178e.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(auth)/login/page-e16a422a5a54e5c3.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(auth)/register/page-20d4cf3575378bb7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9a9152bbc937ef1f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-1b20e8bca9e6749d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-53a1b5c549a2162d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-89280bb9a704c50b.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/analytics/page-4085a0838366688d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/items/page-ce88646a37805f29.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/mappings/page-9f1253dca30be1f3.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/movements/page-2a8b65fdfbd96fd2.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/page-dbdaf4bd1121ede7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/stock/page-109b17ebb02bfb10.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-48ceb51fee7013e7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-4e5aeba889c3a56c.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-7ae664095c4ff28d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-0960d60bfeaf2277.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-1876f8a8a7da4789.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-10a3e6a9686c7cb6.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-e8318ca55206cccd.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-d8d9ff75bf537410.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-062c94524a37503f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-a858c07215cdfb62.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-0bd4a89f3342f926.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-e834404bdd9a7803.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-29c305bd7879e960.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-ee32a10034a65c59.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-727a67d2fe7878b7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-5194d87781a6ecb9.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-ead461d6807bd7a1.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-d8fcefbed4270eb0.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-aa6fdc29e418541c.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-3f640e01b09a0e9d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-304bc58052a91651.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-0a3da68816b5fc1a.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-f988aff263f19d3b.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-02d91528d0b74bb5.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-4306722772e7ba2d.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-312380841b88c407.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-d48659ed89ae440f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-11f01e848aa914a9.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-cb2abeeff2860e29.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-37f73041d3c809f2.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-8028a50215e24276.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-1e05e27ab2bb9bc3.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/error-6c6b75482e10b5e1.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-776edc38801ffca0.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-26740f475e006eee.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/layout-f82efcac08231c95.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/loading-323f55c887b73635.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-9a04106ad948659a.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/_not-found/page-b413bb46289462b8.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/error-feefae734b7f985b.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/global-error-69a856ffbdc1fe22.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-079bce7001c1e213.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-23a6eb66e0c4a3ef.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-f26a86a293647e00.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-1b6140f847250c08.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/layout-6f1344eb3964919c.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/loading-8e6d9724df6320c7.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/labs/page-1e9321aed195d233.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/layout-7be316fc7d1b2d1c.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/not-found-ad4863dc2013e283.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/offline/page-eab97a70a1d73e54.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/page-4d4d08d33124228b.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-5bb7df65e3550821.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/bc98253f.5b0f4fe717c5b99c.js",revision:"5b0f4fe717c5b99c"},{url:"/_next/static/chunks/fd9d1056-8acf6684ed645502.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/framework-8e0e0f4a6b83a956.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/main-0ecb2bb11e4d13fc.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/main-app-2e493359972ed53e.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/pages/_app-3c9ca398d360b709.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/pages/_error-cf5ca766ac8f493f.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-a2f7cdb4d7a5add3.js",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/_next/static/css/509d396b8d66d1df.css",revision:"509d396b8d66d1df"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"8NtOCtsaId3oqk7ka1osN"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),a.cleanupOutdatedCaches(),a.registerRoute("/",new a.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:a,response:s,event:t,state:e})=&gt;s&amp;&amp;"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s},{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"document"===a.destination,new a.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new a.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/_next/static/"),new a.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"image"===a.destination,new a.CacheFirst({cacheName:"image-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({request:a})=&gt;"style"===a.destination||"script"===a.destination,new a.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new a.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET"),a.registerRoute(({url:a})=&gt;a.pathname.startsWith("/api/"),new a.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:a})=&gt;self.fallback(a)}]}),"GET")});
 </pre></div>
 <div class='file-block'><div class='file-header'>public/workbox-5268f9bb.js</div><pre>define(["exports"],function(t){"use strict";try{self["workbox:core:6.5.4"]&amp;&amp;_()}catch(t){}const e=(t,...e)=&gt;{let s=t;return e.length&gt;0&amp;&amp;(s+=` :: ${JSON.stringify(e)}`),s};class s extends Error{constructor(t,s){super(e(t,s)),this.name=t,this.details=s}}try{self["workbox:routing:6.5.4"]&amp;&amp;_()}catch(t){}const n=t=&gt;t&amp;&amp;"object"==typeof t?t:{handle:t};class r{constructor(t,e,s="GET"){this.handler=n(e),this.match=t,this.method=s}setCatchHandler(t){this.catchHandler=n(t)}}class i extends r{constructor(t,e,s){super(({url:e})=&gt;{const s=t.exec(e.href);if(s&amp;&amp;(e.origin===location.origin||0===s.index))return s.slice(1)},e,s)}}class a{constructor(){this.t=new Map,this.i=new Map}get routes(){return this.t}addFetchListener(){self.addEventListener("fetch",t=&gt;{const{request:e}=t,s=this.handleRequest({request:e,event:t});s&amp;&amp;t.respondWith(s)})}addCacheListener(){self.addEventListener("message",t=&gt;{if(t.data&amp;&amp;"CACHE_URLS"===t.data.type){const{payload:e}=t.data,s=Promise.all(e.urlsToCache.map(e=&gt;{"string"==typeof e&amp;&amp;(e=[e]);const s=new Request(...e);return this.handleRequest({request:s,event:t})}));t.waitUntil(s),t.ports&amp;&amp;t.ports[0]&amp;&amp;s.then(()=&gt;t.ports[0].postMessage(!0))}})}handleRequest({request:t,event:e}){const s=new URL(t.url,location.href);if(!s.protocol.startsWith("http"))return;const n=s.origin===location.origin,{params:r,route:i}=this.findMatchingRoute({event:e,request:t,sameOrigin:n,url:s});let a=i&amp;&amp;i.handler;const o=t.method;if(!a&amp;&amp;this.i.has(o)&amp;&amp;(a=this.i.get(o)),!a)return;let c;try{c=a.handle({url:s,request:t,event:e,params:r})}catch(t){c=Promise.reject(t)}const h=i&amp;&amp;i.catchHandler;return c instanceof Promise&amp;&amp;(this.o||h)&amp;&amp;(c=c.catch(async n=&gt;{if(h)try{return await h.handle({url:s,request:t,event:e,params:r})}catch(t){t instanceof Error&amp;&amp;(n=t)}if(this.o)return this.o.handle({url:s,request:t,event:e});throw n})),c}findMatchingRoute({url:t,sameOrigin:e,request:s,event:n}){const r=this.t.get(s.method)||[];for(const i of r){let r;const a=i.match({url:t,sameOrigin:e,request:s,event:n});if(a)return r=a,(Array.isArray(r)&amp;&amp;0===r.length||a.constructor===Object&amp;&amp;0===Object.keys(a).length||"boolean"==typeof a)&amp;&amp;(r=void 0),{route:i,params:r}}return{}}setDefaultHandler(t,e="GET"){this.i.set(e,n(t))}setCatchHandler(t){this.o=n(t)}registerRoute(t){this.t.has(t.method)||this.t.set(t.method,[]),this.t.get(t.method).push(t)}unregisterRoute(t){if(!this.t.has(t.method))throw new s("unregister-route-but-not-found-with-method",{method:t.method});const e=this.t.get(t.method).indexOf(t);if(!(e&gt;-1))throw new s("unregister-route-route-not-registered");this.t.get(t.method).splice(e,1)}}let o;const c=()=&gt;(o||(o=new a,o.addFetchListener(),o.addCacheListener()),o);function h(t,e,n){let a;if("string"==typeof t){const s=new URL(t,location.href);a=new r(({url:t})=&gt;t.href===s.href,e,n)}else if(t instanceof RegExp)a=new i(t,e,n);else if("function"==typeof t)a=new r(t,e,n);else{if(!(t instanceof r))throw new s("unsupported-route-type",{moduleName:"workbox-routing",funcName:"registerRoute",paramName:"capture"});a=t}return c().registerRoute(a),a}try{self["workbox:strategies:6.5.4"]&amp;&amp;_()}catch(t){}const u={cacheWillUpdate:async({response:t})=&gt;200===t.status||0===t.status?t:null},l={googleAnalytics:"googleAnalytics",precache:"precache-v2",prefix:"workbox",runtime:"runtime",suffix:"undefined"!=typeof registration?registration.scope:""},f=t=&gt;[l.prefix,t,l.suffix].filter(t=&gt;t&amp;&amp;t.length&gt;0).join("-"),w=t=&gt;t||f(l.precache),d=t=&gt;t||f(l.runtime);function p(t,e){const s=new URL(t);for(const t of e)s.searchParams.delete(t);return s.href}class y{constructor(){this.promise=new Promise((t,e)=&gt;{this.resolve=t,this.reject=e})}}const m=new Set;function g(t){return new Promise(e=&gt;setTimeout(e,t))}function R(t){return"string"==typeof t?new Request(t):t}class v{constructor(t,e){this.h={},Object.assign(this,e),this.event=e.event,this.u=t,this.l=new y,this.p=[],this.m=[...t.plugins],this.R=new Map;for(const t of this.m)this.R.set(t,{});this.event.waitUntil(this.l.promise)}async fetch(t){const{event:e}=this;let n=R(t);if("navigate"===n.mode&amp;&amp;e instanceof FetchEvent&amp;&amp;e.preloadResponse){const t=await e.preloadResponse;if(t)return t}const r=this.hasCallback("fetchDidFail")?n.clone():null;try{for(const t of this.iterateCallbacks("requestWillFetch"))n=await t({request:n.clone(),event:e})}catch(t){if(t instanceof Error)throw new s("plugin-error-request-will-fetch",{thrownErrorMessage:t.message})}const i=n.clone();try{let t;t=await fetch(n,"navigate"===n.mode?void 0:this.u.fetchOptions);for(const s of this.iterateCallbacks("fetchDidSucceed"))t=await s({event:e,request:i,response:t});return t}catch(t){throw r&amp;&amp;await this.runCallbacks("fetchDidFail",{error:t,event:e,originalRequest:r.clone(),request:i.clone()}),t}}async fetchAndCachePut(t){const e=await this.fetch(t),s=e.clone();return this.waitUntil(this.cachePut(t,s)),e}async cacheMatch(t){const e=R(t);let s;const{cacheName:n,matchOptions:r}=this.u,i=await this.getCacheKey(e,"read"),a=Object.assign(Object.assign({},r),{cacheName:n});s=await caches.match(i,a);for(const t of this.iterateCallbacks("cachedResponseWillBeUsed"))s=await t({cacheName:n,matchOptions:r,cachedResponse:s,request:i,event:this.event})||void 0;return s}async cachePut(t,e){const n=R(t);await g(0);const r=await this.getCacheKey(n,"write");if(!e)throw new s("cache-put-with-no-response",{url:(i=r.url,new URL(String(i),location.href).href.replace(new RegExp(`^${location.origin}`),""))});var i;const a=await this.v(e);if(!a)return!1;const{cacheName:o,matchOptions:c}=this.u,h=await self.caches.open(o),u=this.hasCallback("cacheDidUpdate"),l=u?await async function(t,e,s,n){const r=p(e.url,s);if(e.url===r)return t.match(e,n);const i=Object.assign(Object.assign({},n),{ignoreSearch:!0}),a=await t.keys(e,i);for(const e of a)if(r===p(e.url,s))return t.match(e,n)}(h,r.clone(),["__WB_REVISION__"],c):null;try{await h.put(r,u?a.clone():a)}catch(t){if(t instanceof Error)throw"QuotaExceededError"===t.name&amp;&amp;await async function(){for(const t of m)await t()}(),t}for(const t of this.iterateCallbacks("cacheDidUpdate"))await t({cacheName:o,oldResponse:l,newResponse:a.clone(),request:r,event:this.event});return!0}async getCacheKey(t,e){const s=`${t.url} | ${e}`;if(!this.h[s]){let n=t;for(const t of this.iterateCallbacks("cacheKeyWillBeUsed"))n=R(await t({mode:e,request:n,event:this.event,params:this.params}));this.h[s]=n}return this.h[s]}hasCallback(t){for(const e of this.u.plugins)if(t in e)return!0;return!1}async runCallbacks(t,e){for(const s of this.iterateCallbacks(t))await s(e)}*iterateCallbacks(t){for(const e of this.u.plugins)if("function"==typeof e[t]){const s=this.R.get(e),n=n=&gt;{const r=Object.assign(Object.assign({},n),{state:s});return e[t](r)};yield n}}waitUntil(t){return this.p.push(t),t}async doneWaiting(){let t;for(;t=this.p.shift();)await t}destroy(){this.l.resolve(null)}async v(t){let e=t,s=!1;for(const t of this.iterateCallbacks("cacheWillUpdate"))if(e=await t({request:this.request,response:e,event:this.event})||void 0,s=!0,!e)break;return s||e&amp;&amp;200!==e.status&amp;&amp;(e=void 0),e}}class b{constructor(t={}){this.cacheName=d(t.cacheName),this.plugins=t.plugins||[],this.fetchOptions=t.fetchOptions,this.matchOptions=t.matchOptions}handle(t){const[e]=this.handleAll(t);return e}handleAll(t){t instanceof FetchEvent&amp;&amp;(t={event:t,request:t.request});const e=t.event,s="string"==typeof t.request?new Request(t.request):t.request,n="params"in t?t.params:void 0,r=new v(this,{event:e,request:s,params:n}),i=this.q(r,s,e);return[i,this.D(i,r,s,e)]}async q(t,e,n){let r;await t.runCallbacks("handlerWillStart",{event:n,request:e});try{if(r=await this.U(e,t),!r||"error"===r.type)throw new s("no-response",{url:e.url})}catch(s){if(s instanceof Error)for(const i of t.iterateCallbacks("handlerDidError"))if(r=await i({error:s,event:n,request:e}),r)break;if(!r)throw s}for(const s of t.iterateCallbacks("handlerWillRespond"))r=await s({event:n,request:e,response:r});return r}async D(t,e,s,n){let r,i;try{r=await t}catch(i){}try{await e.runCallbacks("handlerDidRespond",{event:n,request:s,response:r}),await e.doneWaiting()}catch(t){t instanceof Error&amp;&amp;(i=t)}if(await e.runCallbacks("handlerDidComplete",{event:n,request:s,response:r,error:i}),e.destroy(),i)throw i}}function q(t){t.then(()=&gt;{})}function D(){return D=Object.assign?Object.assign.bind():function(t){for(var e=1;e&lt;arguments.length;e++){var s=arguments[e];for(var n in s)({}).hasOwnProperty.call(s,n)&amp;&amp;(t[n]=s[n])}return t},D.apply(null,arguments)}let U,x;const E=new WeakMap,I=new WeakMap,L=new WeakMap,C=new WeakMap,N=new WeakMap;let k={get(t,e,s){if(t instanceof IDBTransaction){if("done"===e)return I.get(t);if("objectStoreNames"===e)return t.objectStoreNames||L.get(t);if("store"===e)return s.objectStoreNames[1]?void 0:s.objectStore(s.objectStoreNames[0])}return T(t[e])},set:(t,e,s)=&gt;(t[e]=s,!0),has:(t,e)=&gt;t instanceof IDBTransaction&amp;&amp;("done"===e||"store"===e)||e in t};function O(t){return t!==IDBDatabase.prototype.transaction||"objectStoreNames"in IDBTransaction.prototype?(x||(x=[IDBCursor.prototype.advance,IDBCursor.prototype.continue,IDBCursor.prototype.continuePrimaryKey])).includes(t)?function(...e){return t.apply(P(this),e),T(E.get(this))}:function(...e){return T(t.apply(P(this),e))}:function(e,...s){const n=t.call(P(this),e,...s);return L.set(n,e.sort?e.sort():[e]),T(n)}}function B(t){return"function"==typeof t?O(t):(t instanceof IDBTransaction&amp;&amp;function(t){if(I.has(t))return;const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("complete",r),t.removeEventListener("error",i),t.removeEventListener("abort",i)},r=()=&gt;{e(),n()},i=()=&gt;{s(t.error||new DOMException("AbortError","AbortError")),n()};t.addEventListener("complete",r),t.addEventListener("error",i),t.addEventListener("abort",i)});I.set(t,e)}(t),e=t,(U||(U=[IDBDatabase,IDBObjectStore,IDBIndex,IDBCursor,IDBTransaction])).some(t=&gt;e instanceof t)?new Proxy(t,k):t);var e}function T(t){if(t instanceof IDBRequest)return function(t){const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("success",r),t.removeEventListener("error",i)},r=()=&gt;{e(T(t.result)),n()},i=()=&gt;{s(t.error),n()};t.addEventListener("success",r),t.addEventListener("error",i)});return e.then(e=&gt;{e instanceof IDBCursor&amp;&amp;E.set(e,t)}).catch(()=&gt;{}),N.set(e,t),e}(t);if(C.has(t))return C.get(t);const e=B(t);return e!==t&amp;&amp;(C.set(t,e),N.set(e,t)),e}const P=t=&gt;N.get(t);const M=["get","getKey","getAll","getAllKeys","count"],W=["put","add","delete","clear"],j=new Map;function S(t,e){if(!(t instanceof IDBDatabase)||e in t||"string"!=typeof e)return;if(j.get(e))return j.get(e);const s=e.replace(/FromIndex$/,""),n=e!==s,r=W.includes(s);if(!(s in(n?IDBIndex:IDBObjectStore).prototype)||!r&amp;&amp;!M.includes(s))return;const i=async function(t,...e){const i=this.transaction(t,r?"readwrite":"readonly");let a=i.store;return n&amp;&amp;(a=a.index(e.shift())),(await Promise.all([a[s](...e),r&amp;&amp;i.done]))[0]};return j.set(e,i),i}k=(t=&gt;D({},t,{get:(e,s,n)=&gt;S(e,s)||t.get(e,s,n),has:(e,s)=&gt;!!S(e,s)||t.has(e,s)}))(k);try{self["workbox:expiration:6.5.4"]&amp;&amp;_()}catch(t){}const K="cache-entries",A=t=&gt;{const e=new URL(t,location.href);return e.hash="",e.href};class F{constructor(t){this._=null,this.I=t}L(t){const e=t.createObjectStore(K,{keyPath:"id"});e.createIndex("cacheName","cacheName",{unique:!1}),e.createIndex("timestamp","timestamp",{unique:!1})}C(t){this.L(t),this.I&amp;&amp;function(t,{blocked:e}={}){const s=indexedDB.deleteDatabase(t);e&amp;&amp;s.addEventListener("blocked",t=&gt;e(t.oldVersion,t)),T(s).then(()=&gt;{})}(this.I)}async setTimestamp(t,e){const s={url:t=A(t),timestamp:e,cacheName:this.I,id:this.N(t)},n=(await this.getDb()).transaction(K,"readwrite",{durability:"relaxed"});await n.store.put(s),await n.done}async getTimestamp(t){const e=await this.getDb(),s=await e.get(K,this.N(t));return null==s?void 0:s.timestamp}async expireEntries(t,e){const s=await this.getDb();let n=await s.transaction(K).store.index("timestamp").openCursor(null,"prev");const r=[];let i=0;for(;n;){const s=n.value;s.cacheName===this.I&amp;&amp;(t&amp;&amp;s.timestamp&lt;t||e&amp;&amp;i&gt;=e?r.push(n.value):i++),n=await n.continue()}const a=[];for(const t of r)await s.delete(K,t.id),a.push(t.url);return a}N(t){return this.I+"|"+A(t)}async getDb(){return this._||(this._=await function(t,e,{blocked:s,upgrade:n,blocking:r,terminated:i}={}){const a=indexedDB.open(t,e),o=T(a);return n&amp;&amp;a.addEventListener("upgradeneeded",t=&gt;{n(T(a.result),t.oldVersion,t.newVersion,T(a.transaction),t)}),s&amp;&amp;a.addEventListener("blocked",t=&gt;s(t.oldVersion,t.newVersion,t)),o.then(t=&gt;{i&amp;&amp;t.addEventListener("close",()=&gt;i()),r&amp;&amp;t.addEventListener("versionchange",t=&gt;r(t.oldVersion,t.newVersion,t))}).catch(()=&gt;{}),o}("workbox-expiration",1,{upgrade:this.C.bind(this)})),this._}}class ${constructor(t,e={}){this.k=!1,this.O=!1,this.B=e.maxEntries,this.T=e.maxAgeSeconds,this.P=e.matchOptions,this.I=t,this.M=new F(t)}async expireEntries(){if(this.k)return void(this.O=!0);this.k=!0;const t=this.T?Date.now()-1e3*this.T:0,e=await this.M.expireEntries(t,this.B),s=await self.caches.open(this.I);for(const t of e)await s.delete(t,this.P);this.k=!1,this.O&amp;&amp;(this.O=!1,q(this.expireEntries()))}async updateTimestamp(t){await this.M.setTimestamp(t,Date.now())}async isURLExpired(t){if(this.T){const e=await this.M.getTimestamp(t),s=Date.now()-1e3*this.T;return void 0===e||e&lt;s}return!1}async delete(){this.O=!1,await this.M.expireEntries(1/0)}}function H(t,e){const s=e();return t.waitUntil(s),s}try{self["workbox:precaching:6.5.4"]&amp;&amp;_()}catch(t){}function G(t){if(!t)throw new s("add-to-cache-list-unexpected-type",{entry:t});if("string"==typeof t){const e=new URL(t,location.href);return{cacheKey:e.href,url:e.href}}const{revision:e,url:n}=t;if(!n)throw new s("add-to-cache-list-unexpected-type",{entry:t});if(!e){const t=new URL(n,location.href);return{cacheKey:t.href,url:t.href}}const r=new URL(n,location.href),i=new URL(n,location.href);return r.searchParams.set("__WB_REVISION__",e),{cacheKey:r.href,url:i.href}}class V{constructor(){this.updatedURLs=[],this.notUpdatedURLs=[],this.handlerWillStart=async({request:t,state:e})=&gt;{e&amp;&amp;(e.originalRequest=t)},this.cachedResponseWillBeUsed=async({event:t,state:e,cachedResponse:s})=&gt;{if("install"===t.type&amp;&amp;e&amp;&amp;e.originalRequest&amp;&amp;e.originalRequest instanceof Request){const t=e.originalRequest.url;s?this.notUpdatedURLs.push(t):this.updatedURLs.push(t)}return s}}}class J{constructor({precacheController:t}){this.cacheKeyWillBeUsed=async({request:t,params:e})=&gt;{const s=(null==e?void 0:e.cacheKey)||this.W.getCacheKeyForURL(t.url);return s?new Request(s,{headers:t.headers}):t},this.W=t}}let Q,z;async function X(t,e){let n=null;if(t.url){n=new URL(t.url).origin}if(n!==self.location.origin)throw new s("cross-origin-copy-response",{origin:n});const r=t.clone(),i={headers:new Headers(r.headers),status:r.status,statusText:r.statusText},a=e?e(i):i,o=function(){if(void 0===Q){const t=new Response("");if("body"in t)try{new Response(t.body),Q=!0}catch(t){Q=!1}Q=!1}return Q}()?r.body:await r.blob();return new Response(o,a)}class Y extends b{constructor(t={}){t.cacheName=w(t.cacheName),super(t),this.j=!1!==t.fallbackToNetwork,this.plugins.push(Y.copyRedirectedCacheableResponsesPlugin)}async U(t,e){const s=await e.cacheMatch(t);return s||(e.event&amp;&amp;"install"===e.event.type?await this.S(t,e):await this.K(t,e))}async K(t,e){let n;const r=e.params||{};if(!this.j)throw new s("missing-precache-entry",{cacheName:this.cacheName,url:t.url});{const s=r.integrity,i=t.integrity,a=!i||i===s;n=await e.fetch(new Request(t,{integrity:"no-cors"!==t.mode?i||s:void 0})),s&amp;&amp;a&amp;&amp;"no-cors"!==t.mode&amp;&amp;(this.A(),await e.cachePut(t,n.clone()))}return n}async S(t,e){this.A();const n=await e.fetch(t);if(!await e.cachePut(t,n.clone()))throw new s("bad-precaching-response",{url:t.url,status:n.status});return n}A(){let t=null,e=0;for(const[s,n]of this.plugins.entries())n!==Y.copyRedirectedCacheableResponsesPlugin&amp;&amp;(n===Y.defaultPrecacheCacheabilityPlugin&amp;&amp;(t=s),n.cacheWillUpdate&amp;&amp;e++);0===e?this.plugins.push(Y.defaultPrecacheCacheabilityPlugin):e&gt;1&amp;&amp;null!==t&amp;&amp;this.plugins.splice(t,1)}}Y.defaultPrecacheCacheabilityPlugin={cacheWillUpdate:async({response:t})=&gt;!t||t.status&gt;=400?null:t},Y.copyRedirectedCacheableResponsesPlugin={cacheWillUpdate:async({response:t})=&gt;t.redirected?await X(t):t};class Z{constructor({cacheName:t,plugins:e=[],fallbackToNetwork:s=!0}={}){this.F=new Map,this.$=new Map,this.H=new Map,this.u=new Y({cacheName:w(t),plugins:[...e,new J({precacheController:this})],fallbackToNetwork:s}),this.install=this.install.bind(this),this.activate=this.activate.bind(this)}get strategy(){return this.u}precache(t){this.addToCacheList(t),this.G||(self.addEventListener("install",this.install),self.addEventListener("activate",this.activate),this.G=!0)}addToCacheList(t){const e=[];for(const n of t){"string"==typeof n?e.push(n):n&amp;&amp;void 0===n.revision&amp;&amp;e.push(n.url);const{cacheKey:t,url:r}=G(n),i="string"!=typeof n&amp;&amp;n.revision?"reload":"default";if(this.F.has(r)&amp;&amp;this.F.get(r)!==t)throw new s("add-to-cache-list-conflicting-entries",{firstEntry:this.F.get(r),secondEntry:t});if("string"!=typeof n&amp;&amp;n.integrity){if(this.H.has(t)&amp;&amp;this.H.get(t)!==n.integrity)throw new s("add-to-cache-list-conflicting-integrities",{url:r});this.H.set(t,n.integrity)}if(this.F.set(r,t),this.$.set(r,i),e.length&gt;0){const t=`Workbox is precaching URLs without revision info: ${e.join(", ")}\nThis is generally NOT safe. Learn more at https://bit.ly/wb-precache`;console.warn(t)}}}install(t){return H(t,async()=&gt;{const e=new V;this.strategy.plugins.push(e);for(const[e,s]of this.F){const n=this.H.get(s),r=this.$.get(e),i=new Request(e,{integrity:n,cache:r,credentials:"same-origin"});await Promise.all(this.strategy.handleAll({params:{cacheKey:s},request:i,event:t}))}const{updatedURLs:s,notUpdatedURLs:n}=e;return{updatedURLs:s,notUpdatedURLs:n}})}activate(t){return H(t,async()=&gt;{const t=await self.caches.open(this.strategy.cacheName),e=await t.keys(),s=new Set(this.F.values()),n=[];for(const r of e)s.has(r.url)||(await t.delete(r),n.push(r.url));return{deletedURLs:n}})}getURLsToCacheKeys(){return this.F}getCachedURLs(){return[...this.F.keys()]}getCacheKeyForURL(t){const e=new URL(t,location.href);return this.F.get(e.href)}getIntegrityForCacheKey(t){return this.H.get(t)}async matchPrecache(t){const e=t instanceof Request?t.url:t,s=this.getCacheKeyForURL(e);if(s){return(await self.caches.open(this.strategy.cacheName)).match(s)}}createHandlerBoundToURL(t){const e=this.getCacheKeyForURL(t);if(!e)throw new s("non-precached-url",{url:t});return s=&gt;(s.request=new Request(t),s.params=Object.assign({cacheKey:e},s.params),this.strategy.handle(s))}}const tt=()=&gt;(z||(z=new Z),z);class et extends r{constructor(t,e){super(({request:s})=&gt;{const n=t.getURLsToCacheKeys();for(const r of function*(t,{ignoreURLParametersMatching:e=[/^utm_/,/^fbclid$/],directoryIndex:s="index.html",cleanURLs:n=!0,urlManipulation:r}={}){const i=new URL(t,location.href);i.hash="",yield i.href;const a=function(t,e=[]){for(const s of[...t.searchParams.keys()])e.some(t=&gt;t.test(s))&amp;&amp;t.searchParams.delete(s);return t}(i,e);if(yield a.href,s&amp;&amp;a.pathname.endsWith("/")){const t=new URL(a.href);t.pathname+=s,yield t.href}if(n){const t=new URL(a.href);t.pathname+=".html",yield t.href}if(r){const t=r({url:i});for(const e of t)yield e.href}}(s.url,e)){const e=n.get(r);if(e){return{cacheKey:e,integrity:t.getIntegrityForCacheKey(e)}}}},t.strategy)}}t.CacheFirst=class extends b{async U(t,e){let n,r=await e.cacheMatch(t);if(!r)try{r=await e.fetchAndCachePut(t)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.ExpirationPlugin=class{constructor(t={}){this.cachedResponseWillBeUsed=async({event:t,request:e,cacheName:s,cachedResponse:n})=&gt;{if(!n)return null;const r=this.V(n),i=this.J(s);q(i.expireEntries());const a=i.updateTimestamp(e.url);if(t)try{t.waitUntil(a)}catch(t){}return r?n:null},this.cacheDidUpdate=async({cacheName:t,request:e})=&gt;{const s=this.J(t);await s.updateTimestamp(e.url),await s.expireEntries()},this.X=t,this.T=t.maxAgeSeconds,this.Y=new Map,t.purgeOnQuotaError&amp;&amp;function(t){m.add(t)}(()=&gt;this.deleteCacheAndMetadata())}J(t){if(t===d())throw new s("expire-custom-caches-only");let e=this.Y.get(t);return e||(e=new $(t,this.X),this.Y.set(t,e)),e}V(t){if(!this.T)return!0;const e=this.Z(t);if(null===e)return!0;return e&gt;=Date.now()-1e3*this.T}Z(t){if(!t.headers.has("date"))return null;const e=t.headers.get("date"),s=new Date(e).getTime();return isNaN(s)?null:s}async deleteCacheAndMetadata(){for(const[t,e]of this.Y)await self.caches.delete(t),await e.delete();this.Y=new Map}},t.NetworkFirst=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u),this.tt=t.networkTimeoutSeconds||0}async U(t,e){const n=[],r=[];let i;if(this.tt){const{id:s,promise:a}=this.et({request:t,logs:n,handler:e});i=s,r.push(a)}const a=this.st({timeoutId:i,request:t,logs:n,handler:e});r.push(a);const o=await e.waitUntil((async()=&gt;await e.waitUntil(Promise.race(r))||await a)());if(!o)throw new s("no-response",{url:t.url});return o}et({request:t,logs:e,handler:s}){let n;return{promise:new Promise(e=&gt;{n=setTimeout(async()=&gt;{e(await s.cacheMatch(t))},1e3*this.tt)}),id:n}}async st({timeoutId:t,request:e,logs:s,handler:n}){let r,i;try{i=await n.fetchAndCachePut(e)}catch(t){t instanceof Error&amp;&amp;(r=t)}return t&amp;&amp;clearTimeout(t),!r&amp;&amp;i||(i=await n.cacheMatch(e)),i}},t.NetworkOnly=class extends b{constructor(t={}){super(t),this.tt=t.networkTimeoutSeconds||0}async U(t,e){let n,r;try{const s=[e.fetch(t)];if(this.tt){const t=g(1e3*this.tt);s.push(t)}if(r=await Promise.race(s),!r)throw new Error(`Timed out the network response after ${this.tt} seconds.`)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.StaleWhileRevalidate=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u)}async U(t,e){const n=e.fetchAndCachePut(t).catch(()=&gt;{});e.waitUntil(n);let r,i=await e.cacheMatch(t);if(i);else try{i=await n}catch(t){t instanceof Error&amp;&amp;(r=t)}if(!i)throw new s("no-response",{url:t.url,error:r});return i}},t.cleanupOutdatedCaches=function(){self.addEventListener("activate",t=&gt;{const e=w();t.waitUntil((async(t,e="-precache-")=&gt;{const s=(await self.caches.keys()).filter(s=&gt;s.includes(e)&amp;&amp;s.includes(self.registration.scope)&amp;&amp;s!==t);return await Promise.all(s.map(t=&gt;self.caches.delete(t))),s})(e).then(t=&gt;{}))})},t.clientsClaim=function(){self.addEventListener("activate",()=&gt;self.clients.claim())},t.precacheAndRoute=function(t,e){!function(t){tt().precache(t)}(t),function(t){const e=tt();h(new et(e,t))}(e)},t.registerRoute=h});
 </pre></div>
@@ -7431,6 +7550,218 @@ export default async function HrmConsultationPage() {
   );
 }
 
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/analytics/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
+
+export default async function InventoryAnalyticsPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER", "MD"].includes(user.role)) redirect("/dashboard");
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div&gt;
+        &lt;h1 className="text-base font-semibold text-slate-800"&gt;Inventory Discrepancy Analytics&lt;/h1&gt;
+        &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Expected vs actual consumption with discrepancy flags.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;InventoryOperations mode="analytics" /&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/items/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
+
+export default async function InventoryItemsPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER"].includes(user.role)) redirect("/dashboard");
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div&gt;
+        &lt;h1 className="text-base font-semibold text-slate-800"&gt;Inventory Item Setup&lt;/h1&gt;
+        &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Create items, add stock, and map consumption in one workflow.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;InventoryOperations mode="setup" /&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/mappings/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
+
+export default async function InventoryMappingsPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER"].includes(user.role)) redirect("/dashboard");
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div&gt;
+        &lt;h1 className="text-base font-semibold text-slate-800"&gt;Consumption Mapping&lt;/h1&gt;
+        &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Map inventory usage quantities to each diagnostic test.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;InventoryOperations mode="mappings" /&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/movements/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
+
+export default async function InventoryMovementsPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER", "MD"].includes(user.role)) redirect("/dashboard");
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div&gt;
+        &lt;h1 className="text-base font-semibold text-slate-800"&gt;Inventory Movement Log&lt;/h1&gt;
+        &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Audit trail of stock-in, test usage, adjustments, and reversals.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;InventoryOperations mode="movements" /&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+
+export default async function InventoryDashboardPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER", "MD"].includes(user.role)) redirect("/dashboard");
+
+  try {
+    const items = await prisma.inventoryItem.findMany({
+      where: { organizationId: user.organizationId },
+      include: {
+        balance: true,
+        stockEntries: { orderBy: { expiryDate: "asc" }, take: 1 },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return (
+      &lt;div className="space-y-4"&gt;
+        &lt;div&gt;
+          &lt;h1 className="text-base font-semibold text-slate-800"&gt;Inventory Dashboard&lt;/h1&gt;
+          &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Stock levels, low-stock alerts, and upcoming expiries.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"&gt;
+          &lt;Link href="/dashboard/hrm/inventory/items" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"&gt;Item Setup&lt;/Link&gt;
+          &lt;Link href="/dashboard/hrm/inventory/stock" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"&gt;Stock Entry&lt;/Link&gt;
+          &lt;Link href="/dashboard/hrm/inventory/mappings" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"&gt;Consumption Mapping&lt;/Link&gt;
+          &lt;Link href="/dashboard/hrm/inventory/movements" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"&gt;Movement Log&lt;/Link&gt;
+          &lt;Link href="/dashboard/hrm/inventory/analytics" className="rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"&gt;Discrepancy Analytics&lt;/Link&gt;
+        &lt;/div&gt;
+
+        &lt;div className="overflow-x-auto rounded-lg border border-slate-200 bg-white"&gt;
+          &lt;table className="min-w-full text-sm"&gt;
+            &lt;thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500"&gt;
+              &lt;tr&gt;
+                &lt;th className="px-4 py-3"&gt;Item&lt;/th&gt;
+                &lt;th className="px-4 py-3"&gt;Category&lt;/th&gt;
+                &lt;th className="px-4 py-3"&gt;Current&lt;/th&gt;
+                &lt;th className="px-4 py-3"&gt;Minimum&lt;/th&gt;
+                &lt;th className="px-4 py-3"&gt;Next Expiry&lt;/th&gt;
+                &lt;th className="px-4 py-3"&gt;Alert&lt;/th&gt;
+              &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+              {items.map((item) =&gt; {
+                const current = Number(item.balance?.currentQuantity ?? 0);
+                const minimum = Number(item.minimumStockLevel);
+                const expiry = item.stockEntries[0]?.expiryDate;
+                const out = current &lt;= 0;
+                const low = current &lt;= minimum;
+                return (
+                  &lt;tr key={item.id} className="border-t border-slate-100"&gt;
+                    &lt;td className="px-4 py-3 font-medium text-slate-800"&gt;{item.name}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-slate-600"&gt;{item.category}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-slate-700"&gt;{`${current} ${item.unit}`}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-slate-700"&gt;{`${minimum} ${item.unit}`}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-slate-600"&gt;{expiry ? new Date(expiry).toLocaleDateString() : "-"}&lt;/td&gt;
+                    &lt;td className="px-4 py-3"&gt;
+                      {out ? (
+                        &lt;span className="rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-700"&gt;Out of stock&lt;/span&gt;
+                      ) : low ? (
+                        &lt;span className="rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700"&gt;Low stock&lt;/span&gt;
+                      ) : (
+                        &lt;span className="rounded bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700"&gt;Healthy&lt;/span&gt;
+                      )}
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                );
+              })}
+              {items.length === 0 &amp;&amp; (
+                &lt;tr&gt;
+                  &lt;td colSpan={6} className="px-4 py-6 text-center text-sm text-slate-500"&gt;
+                    No inventory items yet.
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+              )}
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error while loading inventory.";
+    const migrationHint =
+      message.includes("inventory_") || message.includes("does not exist")
+        ? "Inventory tables are not available in this database yet. Apply the inventory migration and redeploy."
+        : message;
+    return (
+      &lt;div className="space-y-4"&gt;
+        &lt;div&gt;
+          &lt;h1 className="text-base font-semibold text-slate-800"&gt;Inventory Dashboard&lt;/h1&gt;
+          &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Stock levels, low-stock alerts, and upcoming expiries.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900"&gt;
+          &lt;p className="text-sm font-semibold"&gt;Inventory is not ready yet&lt;/p&gt;
+          &lt;p className="mt-1 text-xs"&gt;{migrationHint}&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/inventory/stock/page.tsx</div><pre>import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { InventoryOperations } from "@/components/inventory/inventory-operations";
+
+export default async function InventoryStockPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const user = session.user as any;
+  if (!["SUPER_ADMIN", "INVENTORY_MANAGER"].includes(user.role)) redirect("/dashboard");
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      &lt;div&gt;
+        &lt;h1 className="text-base font-semibold text-slate-800"&gt;Stock Entry&lt;/h1&gt;
+        &lt;p className="mt-0.5 text-xs text-slate-400"&gt;Add stock batches with expiry, supplier, and batch references.&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;InventoryOperations mode="stock" /&gt;
+    &lt;/div&gt;
+  );
+}
 </pre></div>
 <div class='file-block'><div class='file-header'>src/app/(dashboard)/dashboard/hrm/notifications/page.tsx</div><pre>import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -11735,6 +12066,423 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[INSIGHTS_SUMMARY_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/analytics/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { canViewInventoryDashboard } from "@/lib/inventory";
+import { prisma } from "@/lib/prisma";
+import { InventoryActionType, Prisma } from "@prisma/client";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    if (!canViewInventoryDashboard(user.role)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const discrepancyThreshold = Number(req.nextUrl.searchParams.get("threshold") ?? "0");
+    const taskIds = await prisma.routingTask.findMany({
+      where: { organizationId: user.organizationId, department: "LABORATORY", status: "COMPLETED" },
+      select: { id: true, testOrderIds: true },
+    });
+
+    const testOrderIds = Array.from(new Set(taskIds.flatMap((task) =&gt; task.testOrderIds)));
+    const completedOrders = testOrderIds.length
+      ? await prisma.testOrder.findMany({
+          where: { organizationId: user.organizationId, id: { in: testOrderIds }, submittedAt: { not: null } },
+          select: { testId: true },
+        })
+      : [];
+    const testCountMap = new Map&lt;string, number&gt;();
+    for (const row of completedOrders) {
+      testCountMap.set(row.testId, (testCountMap.get(row.testId) ?? 0) + 1);
+    }
+
+    const mappings = await prisma.inventoryConsumptionMapping.findMany({
+      where: { organizationId: user.organizationId },
+      include: { inventoryItem: true, test: { select: { name: true } } },
+    });
+
+    const expectedByItem = new Map&lt;string, Prisma.Decimal&gt;();
+    for (const mapping of mappings) {
+      const tests = testCountMap.get(mapping.testId) ?? 0;
+      if (tests === 0) continue;
+      expectedByItem.set(
+        mapping.inventoryItemId,
+        (expectedByItem.get(mapping.inventoryItemId) ?? new Prisma.Decimal(0)).add(
+          mapping.quantityPerTest.mul(tests)
+        )
+      );
+    }
+
+    const actualUsage = await prisma.inventoryMovementLog.groupBy({
+      by: ["inventoryItemId"],
+      where: { organizationId: user.organizationId, actionType: InventoryActionType.TEST_USAGE },
+      _sum: { quantityChange: true },
+    });
+    const actualByItem = new Map(
+      actualUsage.map((row) =&gt; [row.inventoryItemId, new Prisma.Decimal(row._sum.quantityChange ?? 0).abs()])
+    );
+
+    const allItemIds = new Set&lt;string&gt;(Array.from(expectedByItem.keys()).concat(Array.from(actualByItem.keys())));
+    const itemLookup = await prisma.inventoryItem.findMany({
+      where: { organizationId: user.organizationId, id: { in: Array.from(allItemIds) } },
+      select: { id: true, name: true, unit: true },
+    });
+    const itemMap = new Map(itemLookup.map((item) =&gt; [item.id, item]));
+
+    const rows = Array.from(allItemIds).map((itemId) =&gt; {
+      const expected = expectedByItem.get(itemId) ?? new Prisma.Decimal(0);
+      const actual = actualByItem.get(itemId) ?? new Prisma.Decimal(0);
+      const discrepancy = actual.sub(expected);
+      return {
+        inventoryItemId: itemId,
+        itemName: itemMap.get(itemId)?.name ?? "Unknown Item",
+        unit: itemMap.get(itemId)?.unit ?? "",
+        expectedUsage: expected.toString(),
+        actualUsage: actual.toString(),
+        discrepancy: discrepancy.toString(),
+        flagged: discrepancy.abs().gt(discrepancyThreshold),
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        totalTestsPerformed: completedOrders.length,
+        discrepancies: rows,
+        hasFlaggedDiscrepancy: rows.some((row) =&gt; row.flagged),
+      },
+    });
+  } catch (error) {
+    console.error("[INVENTORY_ANALYTICS_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/dashboard/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { canViewInventoryDashboard } from "@/lib/inventory";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    if (!canViewInventoryDashboard(user.role)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const expiryThresholdDays = Number(req.nextUrl.searchParams.get("expiryDays") ?? "30");
+    const expiryDateCutoff = new Date();
+    expiryDateCutoff.setDate(expiryDateCutoff.getDate() + expiryThresholdDays);
+
+    const items = await prisma.inventoryItem.findMany({
+      where: { organizationId: user.organizationId },
+      include: {
+        balance: true,
+        stockEntries: {
+          where: { expiryDate: { lte: expiryDateCutoff } },
+          orderBy: { expiryDate: "asc" },
+          take: 3,
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    const data = items.map((item) =&gt; {
+      const current = Number(item.balance?.currentQuantity ?? 0);
+      const minimum = Number(item.minimumStockLevel);
+      return {
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        unit: item.unit,
+        currentQuantity: current,
+        minimumStockLevel: minimum,
+        lowStock: current &lt;= minimum,
+        outOfStock: current &lt;= 0,
+        expiryAlerts: item.stockEntries.map((entry) =&gt; ({
+          stockEntryId: entry.id,
+          expiryDate: entry.expiryDate,
+          batchNumber: entry.batchNumber,
+          supplier: entry.supplier,
+        })),
+      };
+    });
+
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error("[INVENTORY_DASHBOARD_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/items/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { InventoryCategory, Prisma } from "@prisma/client";
+import { z } from "zod";
+import { assertCanManageInventory, canViewInventoryDashboard } from "@/lib/inventory";
+
+export const dynamic = "force-dynamic";
+
+const createItemSchema = z.object({
+  name: z.string().min(1),
+  category: z.nativeEnum(InventoryCategory),
+  unit: z.string().min(1),
+  minimumStockLevel: z.coerce.number().nonnegative(),
+});
+
+export async function GET() {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    if (!canViewInventoryDashboard(user.role) &amp;&amp; user.role !== "LAB_SCIENTIST") {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const items = await prisma.inventoryItem.findMany({
+      where: { organizationId: user.organizationId },
+      include: { balance: true },
+      orderBy: { name: "asc" },
+    });
+    return NextResponse.json({ success: true, data: items });
+  } catch (error) {
+    console.error("[INVENTORY_ITEMS_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    assertCanManageInventory(user.role);
+
+    const parsed = createItemSchema.safeParse(await req.json().catch(() =&gt; ({})));
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.errors[0]?.message ?? "Invalid payload" }, { status: 400 });
+    }
+
+    const item = await prisma.inventoryItem.create({
+      data: {
+        organizationId: user.organizationId,
+        name: parsed.data.name.trim(),
+        category: parsed.data.category,
+        unit: parsed.data.unit.trim(),
+        minimumStockLevel: new Prisma.Decimal(parsed.data.minimumStockLevel),
+        createdById: user.id,
+      },
+    });
+    return NextResponse.json({ success: true, data: item });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError &amp;&amp; error.code === "P2002") {
+      return NextResponse.json({ success: false, error: "Item name already exists" }, { status: 409 });
+    }
+    console.error("[INVENTORY_ITEMS_POST]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/mappings/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { assertCanManageInventory } from "@/lib/inventory";
+import { z } from "zod";
+
+export const dynamic = "force-dynamic";
+
+const mappingRowSchema = z.object({
+  inventoryItemId: z.string().min(1),
+  testId: z.string().min(1),
+  quantityPerTest: z.coerce.number().positive(),
+});
+
+const upsertMappingSchema = z.object({
+  mappings: z.array(mappingRowSchema),
+});
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    const testId = req.nextUrl.searchParams.get("testId");
+    const itemId = req.nextUrl.searchParams.get("inventoryItemId");
+
+    const data = await prisma.inventoryConsumptionMapping.findMany({
+      where: {
+        organizationId: user.organizationId,
+        ...(testId ? { testId } : {}),
+        ...(itemId ? { inventoryItemId: itemId } : {}),
+      },
+      include: { inventoryItem: true, test: { select: { id: true, name: true, code: true } } },
+      orderBy: { id: "desc" },
+    });
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error("[INVENTORY_MAPPINGS_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    assertCanManageInventory(user.role);
+
+    const parsed = upsertMappingSchema.safeParse(await req.json().catch(() =&gt; ({})));
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.errors[0]?.message ?? "Invalid payload" }, { status: 400 });
+    }
+
+    const result = await prisma.$transaction(async (tx) =&gt; {
+      const rows = [];
+      for (const row of parsed.data.mappings) {
+        const upserted = await tx.inventoryConsumptionMapping.upsert({
+          where: {
+            organizationId_inventoryItemId_testId: {
+              organizationId: user.organizationId,
+              inventoryItemId: row.inventoryItemId,
+              testId: row.testId,
+            },
+          },
+          create: {
+            organizationId: user.organizationId,
+            inventoryItemId: row.inventoryItemId,
+            testId: row.testId,
+            quantityPerTest: new Prisma.Decimal(row.quantityPerTest),
+          },
+          update: {
+            quantityPerTest: new Prisma.Decimal(row.quantityPerTest),
+          },
+        });
+        rows.push(upserted);
+      }
+      return rows;
+    });
+
+    return NextResponse.json({ success: true, data: result });
+  } catch (error) {
+    console.error("[INVENTORY_MAPPINGS_PUT]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/movements/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { canViewInventoryDashboard } from "@/lib/inventory";
+import { prisma } from "@/lib/prisma";
+import { InventoryActionType } from "@prisma/client";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+    if (!canViewInventoryDashboard(user.role)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const itemId = req.nextUrl.searchParams.get("inventoryItemId");
+    const actionType = req.nextUrl.searchParams.get("actionType") as InventoryActionType | null;
+    const from = req.nextUrl.searchParams.get("from");
+    const to = req.nextUrl.searchParams.get("to");
+
+    const logs = await prisma.inventoryMovementLog.findMany({
+      where: {
+        organizationId: user.organizationId,
+        ...(itemId ? { inventoryItemId: itemId } : {}),
+        ...(actionType ? { actionType } : {}),
+        ...(from || to
+          ? {
+              createdAt: {
+                ...(from ? { gte: new Date(from) } : {}),
+                ...(to ? { lte: new Date(to) } : {}),
+              },
+            }
+          : {}),
+      },
+      include: {
+        inventoryItem: { select: { id: true, name: true, unit: true } },
+        performedBy: { select: { id: true, fullName: true, role: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    return NextResponse.json({ success: true, data: logs });
+  } catch (error) {
+    console.error("[INVENTORY_MOVEMENTS_GET]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/inventory/stock-entries/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { addStockEntry } from "@/lib/inventory";
+import { z } from "zod";
+
+export const dynamic = "force-dynamic";
+
+const addStockSchema = z.object({
+  inventoryItemId: z.string().min(1),
+  quantityAdded: z.coerce.number().positive(),
+  expiryDate: z.string().min(1),
+  batchNumber: z.string().optional().nullable(),
+  supplier: z.string().optional().nullable(),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const user = session.user as any;
+
+    const parsed = addStockSchema.safeParse(await req.json().catch(() =&gt; ({})));
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.errors[0]?.message ?? "Invalid payload" }, { status: 400 });
+    }
+
+    const entry = await addStockEntry({
+      actor: { id: user.id, role: user.role, organizationId: user.organizationId },
+      inventoryItemId: parsed.data.inventoryItemId,
+      quantityAdded: parsed.data.quantityAdded,
+      expiryDate: new Date(parsed.data.expiryDate),
+      batchNumber: parsed.data.batchNumber,
+      supplier: parsed.data.supplier,
+    });
+
+    return NextResponse.json({ success: true, data: entry });
+  } catch (error) {
+    if (error instanceof Error &amp;&amp; error.message === "FORBIDDEN_ROLE") {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+    if (error instanceof Error &amp;&amp; error.message === "ITEM_NOT_FOUND") {
+      return NextResponse.json({ success: false, error: "Inventory item not found" }, { status: 404 });
+    }
+    if (error instanceof Error &amp;&amp; error.message === "INVALID_QUANTITY") {
+      return NextResponse.json({ success: false, error: "Quantity must be greater than zero" }, { status: 400 });
+    }
+    console.error("[INVENTORY_STOCK_POST]", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -17852,6 +18600,16 @@ export function AddStaffForm() {
 
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } =
     useForm&lt;FormData&gt;({ resolver: zodResolver(schema), defaultValues: { defaultShift: Shift.MORNING } });
+  
+  function autoDepartmentForRole(role: Role): Department | null {
+    if (role === "RECEPTIONIST") return Department.RECEPTION;
+    if (role === "LAB_SCIENTIST") return Department.LABORATORY;
+    if (role === "RADIOGRAPHER") return Department.RADIOLOGY;
+    if (role === "MD") return Department.MEDICAL_REVIEW;
+    if (role === "HRM" || role === "SUPER_ADMIN") return Department.HR_OPERATIONS;
+    if (role === "INVENTORY_MANAGER") return Department.INVENTORY;
+    return null;
+  }
 
   useEffect(() =&gt; {
     void (async () =&gt; {
@@ -17933,7 +18691,16 @@ export function AddStaffForm() {
 
           &lt;div&gt;
             &lt;label className={labelCls}&gt;Role *&lt;/label&gt;
-            &lt;Select onValueChange={(v) =&gt; setValue("role", v as Role)}&gt;
+            &lt;Select
+              onValueChange={(v) =&gt; {
+                const nextRole = v as Role;
+                setValue("role", nextRole);
+                const mappedDepartment = autoDepartmentForRole(nextRole);
+                if (mappedDepartment) {
+                  setValue("department", mappedDepartment, { shouldValidate: true });
+                }
+              }}
+            &gt;
               &lt;SelectTrigger className="h-8 text-xs"&gt;&lt;SelectValue placeholder="Select role" /&gt;&lt;/SelectTrigger&gt;
               &lt;SelectContent&gt;
                 {ROLES_FOR_FORM.map(([value, label]) =&gt; {
@@ -19969,6 +20736,373 @@ export function InstallPrompt() {
           Dismiss
         &lt;/button&gt;
       &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/components/inventory/inventory-operations.tsx</div><pre>"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/index";
+
+type InventoryItem = {
+  id: string;
+  name: string;
+  category: "TEST_KIT" | "REAGENT" | "CONSUMABLE";
+  unit: string;
+  minimumStockLevel: string;
+};
+
+type TestRow = {
+  id: string;
+  name: string;
+  code: string;
+};
+
+type MovementRow = {
+  id: string;
+  createdAt: string;
+  quantityChange: string;
+  actionType: string;
+  sourceType: string;
+  inventoryItem: { name: string; unit: string };
+  performedBy: { fullName: string };
+};
+
+type AnalyticsRow = {
+  inventoryItemId: string;
+  itemName: string;
+  unit: string;
+  expectedUsage: string;
+  actualUsage: string;
+  discrepancy: string;
+  flagged: boolean;
+};
+
+export function InventoryOperations({
+  mode = "all",
+}: {
+  mode?: "all" | "setup" | "items" | "stock" | "mappings" | "movements" | "analytics";
+}) {
+  const [items, setItems] = useState&lt;InventoryItem[]&gt;([]);
+  const [tests, setTests] = useState&lt;TestRow[]&gt;([]);
+  const [movements, setMovements] = useState&lt;MovementRow[]&gt;([]);
+  const [analytics, setAnalytics] = useState&lt;AnalyticsRow[]&gt;([]);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState&lt;string&gt;("");
+  const [error, setError] = useState&lt;string&gt;("");
+
+  const [itemName, setItemName] = useState("");
+  const [itemCategory, setItemCategory] = useState&lt;"TEST_KIT" | "REAGENT" | "CONSUMABLE"&gt;("TEST_KIT");
+  const [itemUnit, setItemUnit] = useState("kit");
+  const [itemMin, setItemMin] = useState("0");
+
+  const [stockItemId, setStockItemId] = useState("");
+  const [stockQty, setStockQty] = useState("");
+  const [stockExpiry, setStockExpiry] = useState("");
+  const [stockBatch, setStockBatch] = useState("");
+  const [stockSupplier, setStockSupplier] = useState("");
+
+  const [mapItemId, setMapItemId] = useState("");
+  const [mapTestId, setMapTestId] = useState("");
+  const [mapQty, setMapQty] = useState("");
+
+  async function loadAll() {
+    const [itemsRes, testsRes, movementRes, analyticsRes] = await Promise.all([
+      fetch("/api/inventory/items", { cache: "no-store" }),
+      fetch("/api/tests", { cache: "no-store" }),
+      fetch("/api/inventory/movements", { cache: "no-store" }),
+      fetch("/api/inventory/analytics", { cache: "no-store" }),
+    ]);
+    const itemsJson = await itemsRes.json();
+    const testsJson = await testsRes.json();
+    const movementJson = await movementRes.json();
+    const analyticsJson = await analyticsRes.json();
+
+    setItems(itemsJson.data ?? []);
+    setTests(testsJson.data ?? []);
+    setMovements(movementJson.data ?? []);
+    setAnalytics(analyticsJson.data?.discrepancies ?? []);
+  }
+
+  useEffect(() =&gt; {
+    void loadAll();
+  }, []);
+
+  const itemOptions = useMemo(() =&gt; items.map((item) =&gt; ({ id: item.id, label: `${item.name} (${item.unit})` })), [items]);
+
+  async function createItem() {
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      const res = await fetch("/api/inventory/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: itemName,
+          category: itemCategory,
+          unit: itemUnit,
+          minimumStockLevel: Number(itemMin),
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error ?? "Failed to create item");
+      setFeedback("Inventory item created.");
+      setItemName("");
+      setItemUnit("kit");
+      setItemMin("0");
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to create item");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addStock() {
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      const res = await fetch("/api/inventory/stock-entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inventoryItemId: stockItemId,
+          quantityAdded: Number(stockQty),
+          expiryDate: stockExpiry,
+          batchNumber: stockBatch || null,
+          supplier: stockSupplier || null,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error ?? "Failed to add stock");
+      setFeedback("Stock added successfully.");
+      setStockQty("");
+      setStockExpiry("");
+      setStockBatch("");
+      setStockSupplier("");
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add stock");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveMapping() {
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      const res = await fetch("/api/inventory/mappings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mappings: [
+            {
+              inventoryItemId: mapItemId,
+              testId: mapTestId,
+              quantityPerTest: Number(mapQty),
+            },
+          ],
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error ?? "Failed to save mapping");
+      setFeedback("Consumption mapping saved.");
+      setMapQty("");
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save mapping");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    &lt;div className="space-y-4"&gt;
+      {error ? &lt;div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600"&gt;{error}&lt;/div&gt; : null}
+      {feedback ? &lt;div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700"&gt;{feedback}&lt;/div&gt; : null}
+
+      {(mode === "all" || mode === "setup" || mode === "items" || mode === "stock" || mode === "mappings") ? (
+      &lt;div className="grid grid-cols-1 gap-4 xl:grid-cols-3"&gt;
+        {mode === "all" || mode === "setup" || mode === "items" ? (
+        &lt;section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"&gt;
+          &lt;h3 className="text-sm font-semibold text-slate-800"&gt;Add Inventory Item&lt;/h3&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Name&lt;/Label&gt;
+            &lt;Input value={itemName} onChange={(e) =&gt; setItemName(e.target.value)} placeholder="HIV Rapid Kit" /&gt;
+          &lt;/div&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Category&lt;/Label&gt;
+            &lt;Select value={itemCategory} onValueChange={(v) =&gt; setItemCategory(v as any)}&gt;
+              &lt;SelectTrigger&gt;&lt;SelectValue /&gt;&lt;/SelectTrigger&gt;
+              &lt;SelectContent&gt;
+                &lt;SelectItem value="TEST_KIT"&gt;Test Kit&lt;/SelectItem&gt;
+                &lt;SelectItem value="REAGENT"&gt;Reagent&lt;/SelectItem&gt;
+                &lt;SelectItem value="CONSUMABLE"&gt;Consumable&lt;/SelectItem&gt;
+              &lt;/SelectContent&gt;
+            &lt;/Select&gt;
+          &lt;/div&gt;
+          &lt;div className="grid grid-cols-2 gap-2"&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Unit&lt;/Label&gt;
+              &lt;Input value={itemUnit} onChange={(e) =&gt; setItemUnit(e.target.value)} placeholder="kit" /&gt;
+            &lt;/div&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Minimum&lt;/Label&gt;
+              &lt;Input type="number" value={itemMin} onChange={(e) =&gt; setItemMin(e.target.value)} placeholder="20" /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;Button disabled={busy || !itemName.trim() || !itemUnit.trim()} onClick={createItem}&gt;Save Item&lt;/Button&gt;
+        &lt;/section&gt;
+        ) : null}
+
+        {mode === "all" || mode === "setup" || mode === "stock" ? (
+        &lt;section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"&gt;
+          &lt;h3 className="text-sm font-semibold text-slate-800"&gt;Add Stock&lt;/h3&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Item&lt;/Label&gt;
+            &lt;Select value={stockItemId} onValueChange={setStockItemId}&gt;
+              &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select item" /&gt;&lt;/SelectTrigger&gt;
+              &lt;SelectContent&gt;
+                {itemOptions.map((opt) =&gt; &lt;SelectItem key={opt.id} value={opt.id}&gt;{opt.label}&lt;/SelectItem&gt;)}
+              &lt;/SelectContent&gt;
+            &lt;/Select&gt;
+          &lt;/div&gt;
+          &lt;div className="grid grid-cols-2 gap-2"&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Quantity&lt;/Label&gt;
+              &lt;Input type="number" value={stockQty} onChange={(e) =&gt; setStockQty(e.target.value)} placeholder="100" /&gt;
+            &lt;/div&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Expiry Date&lt;/Label&gt;
+              &lt;Input type="date" value={stockExpiry} onChange={(e) =&gt; setStockExpiry(e.target.value)} /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="grid grid-cols-2 gap-2"&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Batch (Optional)&lt;/Label&gt;
+              &lt;Input value={stockBatch} onChange={(e) =&gt; setStockBatch(e.target.value)} placeholder="BATCH-001" /&gt;
+            &lt;/div&gt;
+            &lt;div className="space-y-1"&gt;
+              &lt;Label&gt;Supplier (Optional)&lt;/Label&gt;
+              &lt;Input value={stockSupplier} onChange={(e) =&gt; setStockSupplier(e.target.value)} placeholder="MedSupply Ltd" /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;Button disabled={busy || !stockItemId || !stockQty || !stockExpiry} onClick={addStock}&gt;Add Stock&lt;/Button&gt;
+        &lt;/section&gt;
+        ) : null}
+
+        {mode === "all" || mode === "setup" || mode === "mappings" ? (
+        &lt;section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"&gt;
+          &lt;h3 className="text-sm font-semibold text-slate-800"&gt;Map Consumption To Test&lt;/h3&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Item&lt;/Label&gt;
+            &lt;Select value={mapItemId} onValueChange={setMapItemId}&gt;
+              &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select item" /&gt;&lt;/SelectTrigger&gt;
+              &lt;SelectContent&gt;
+                {itemOptions.map((opt) =&gt; &lt;SelectItem key={opt.id} value={opt.id}&gt;{opt.label}&lt;/SelectItem&gt;)}
+              &lt;/SelectContent&gt;
+            &lt;/Select&gt;
+          &lt;/div&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Test&lt;/Label&gt;
+            &lt;Select value={mapTestId} onValueChange={setMapTestId}&gt;
+              &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select test" /&gt;&lt;/SelectTrigger&gt;
+              &lt;SelectContent&gt;
+                {tests.map((t) =&gt; &lt;SelectItem key={t.id} value={t.id}&gt;{t.name} ({t.code})&lt;/SelectItem&gt;)}
+              &lt;/SelectContent&gt;
+            &lt;/Select&gt;
+          &lt;/div&gt;
+          &lt;div className="space-y-1"&gt;
+            &lt;Label&gt;Quantity Per Test&lt;/Label&gt;
+            &lt;Input type="number" value={mapQty} onChange={(e) =&gt; setMapQty(e.target.value)} placeholder="1" /&gt;
+          &lt;/div&gt;
+          &lt;Button disabled={busy || !mapItemId || !mapTestId || !mapQty} onClick={saveMapping}&gt;Save Mapping&lt;/Button&gt;
+        &lt;/section&gt;
+        ) : null}
+      &lt;/div&gt;
+      ) : null}
+
+      {mode === "all" || mode === "movements" ? (
+      &lt;section className="rounded-lg border border-slate-200 bg-white overflow-x-auto"&gt;
+        &lt;div className="border-b border-slate-100 px-4 py-2.5"&gt;
+          &lt;h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500"&gt;Recent Movement Log&lt;/h3&gt;
+        &lt;/div&gt;
+        &lt;table className="min-w-full text-xs"&gt;
+          &lt;thead&gt;
+            &lt;tr className="bg-slate-50 text-slate-500"&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Date&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Item&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Change&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Action&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Source&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;By&lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            {movements.slice(0, 12).map((m) =&gt; (
+              &lt;tr key={m.id} className="border-t border-slate-100"&gt;
+                &lt;td className="px-3 py-2"&gt;{new Date(m.createdAt).toLocaleString()}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{m.inventoryItem.name}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{m.quantityChange} {m.inventoryItem.unit}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{m.actionType}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{m.sourceType}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{m.performedBy.fullName}&lt;/td&gt;
+              &lt;/tr&gt;
+            ))}
+            {movements.length === 0 ? (
+              &lt;tr&gt;&lt;td colSpan={6} className="px-3 py-4 text-center text-slate-500"&gt;No movement logs yet.&lt;/td&gt;&lt;/tr&gt;
+            ) : null}
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/section&gt;
+      ) : null}
+
+      {mode === "all" || mode === "analytics" ? (
+      &lt;section className="rounded-lg border border-slate-200 bg-white overflow-x-auto"&gt;
+        &lt;div className="border-b border-slate-100 px-4 py-2.5"&gt;
+          &lt;h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500"&gt;Discrepancy Analytics&lt;/h3&gt;
+        &lt;/div&gt;
+        &lt;table className="min-w-full text-xs"&gt;
+          &lt;thead&gt;
+            &lt;tr className="bg-slate-50 text-slate-500"&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Item&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Expected&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Actual&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Discrepancy&lt;/th&gt;
+              &lt;th className="px-3 py-2 text-left"&gt;Flag&lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            {analytics.map((a) =&gt; (
+              &lt;tr key={a.inventoryItemId} className="border-t border-slate-100"&gt;
+                &lt;td className="px-3 py-2"&gt;{a.itemName}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{a.expectedUsage} {a.unit}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{a.actualUsage} {a.unit}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{a.discrepancy} {a.unit}&lt;/td&gt;
+                &lt;td className="px-3 py-2"&gt;{a.flagged ? "âš ï¸ Possible discrepancy detected" : "-"}&lt;/td&gt;
+              &lt;/tr&gt;
+            ))}
+            {analytics.length === 0 ? (
+              &lt;tr&gt;&lt;td colSpan={5} className="px-3 py-4 text-center text-slate-500"&gt;No analytics yet.&lt;/td&gt;&lt;/tr&gt;
+            ) : null}
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/section&gt;
+      ) : null}
     &lt;/div&gt;
   );
 }
@@ -23077,6 +24211,7 @@ import {
   TestTube2,
   Settings2,
   CreditCard,
+  Package,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
 import { Role } from "@prisma/client";
@@ -23103,6 +24238,9 @@ const navByRole: Record&lt;string, NavItem[]&gt; = {
     { label: "Release Center", href: "/dashboard/hrm/release", icon: ClipboardList },
     { label: "Audit Log", href: "/dashboard/hrm/audit", icon: ClipboardList },
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],
   HRM: [
     { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
@@ -23131,6 +24269,12 @@ const navByRole: Record&lt;string, NavItem[]&gt; = {
     { label: "My Queue", href: "/dashboard/lab-scientist/queue", icon: ClipboardList },
     { label: "Results", href: "/dashboard/lab-scientist/results", icon: FlaskConical },
   ],
+  INVENTORY_MANAGER: [
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Item Setup", href: "/dashboard/hrm/inventory/items", icon: Package },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
+  ],
   RADIOGRAPHER: [
     { label: "Dashboard", href: "/dashboard/radiographer", icon: LayoutDashboard },
     { label: "Imaging Queue", href: "/dashboard/radiographer/queue", icon: Scan },
@@ -23144,6 +24288,9 @@ const navByRole: Record&lt;string, NavItem[]&gt; = {
     { label: "Report Drafts", href: "/dashboard/md/reports", icon: ClipboardList },
     { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
     { label: "Insights Reports", href: "/insights/reports", icon: BarChart3 },
+    { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
+    { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
+    { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
   ],
 };
 
@@ -24282,6 +25429,18 @@ const navByRole: Record&lt;Role, NavConfig&gt; = {
       { label: "Test Catalog", href: "/dashboard/hrm/tests", icon: TestTube2 },
       { label: "Audit Log", href: "/dashboard/hrm/audit", icon: ClipboardList },
       { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
+      { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
+      { label: "Notifications", href: "/dashboard/hrm/notifications", icon: Bell },
+    ],
+  },
+  INVENTORY_MANAGER: {
+    primary: [
+      { label: "Inventory", href: "/dashboard/hrm/inventory", icon: LayoutDashboard },
+      { label: "Reports", href: "/dashboard/hrm/inventory", icon: FileText },
+      { label: "Alerts", href: "/dashboard/hrm/inventory", icon: Bell },
+      { label: "Stock", href: "/dashboard/hrm/inventory", icon: Activity },
+    ],
+    more: [
       { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
       { label: "Notifications", href: "/dashboard/hrm/notifications", icon: Bell },
     ],
@@ -28962,14 +30121,6 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     return `/api/reports/${reportId}/pdf${suffix ? `?${suffix}` : ""}`;
   }
 
-  function jpgUrl(reportId: string, letterheadMode: "with" | "without") {
-    const query = new URLSearchParams();
-    if (letterheadMode === "without") query.set("letterhead", "without");
-    if (previewNonce &gt; 0) query.set("v", String(previewNonce));
-    const suffix = query.toString();
-    return `/api/reports/${reportId}/jpg${suffix ? `?${suffix}` : ""}`;
-  }
-
   async function loadReports(opts?: { signal?: AbortSignal; force?: boolean }) {
     const cacheKey = `${filterStatus}:${filterType}:${appliedSearch}:${appliedDate}`;
     if (!opts?.force) {
@@ -29240,36 +30391,61 @@ export function ReportWorkspace({ role }: { role: "MD" | "HRM" | "SUPER_ADMIN" |
     window.open(previewUrl(details.id, printLetterheadMode, { showPrintButton: true, autoPrint: true }), "_blank", "noopener,noreferrer");
   }
 
+  async function fallbackDownloadPdfFromPreview(reportId: string) {
+    const frame = previewRef.current;
+    const doc = frame?.contentDocument;
+    const body = doc?.body;
+    if (!frame || !doc || !body) {
+      throw new Error("Preview not ready yet. Please wait 1-2 seconds and try again.");
+    }
+
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
+    const canvas = await html2canvas(body, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+    heightLeft -= pageHeight;
+
+    while (heightLeft &gt; 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+      heightLeft -= pageHeight;
+    }
+
+    const baseName = details?.visit?.visitNumber ? `${details.visit.visitNumber}-report` : `${reportId}-report`;
+    pdf.save(`${baseName}.pdf`);
+  }
+
   async function downloadReport() {
     if (!details) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      await fetch(`/api/reports/${details.id}/action`, {
+      void fetch(`/api/reports/${details.id}/action`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "DOWNLOAD" }),
       }).catch(() =&gt; null);
 
-      const canDownload = async (url: string) =&gt; {
-        const res = await fetch(url, { method: "GET", credentials: "include" });
-        return res.ok;
-      };
-
-      try {
-        const pdf = pdfUrl(details.id, printLetterheadMode);
-        const ok = await canDownload(pdf);
-        if (!ok) throw new Error("PDF_UNAVAILABLE");
-        window.location.assign(pdf);
-        setMessage("PDF download started.");
-      } catch {
-        const jpg = jpgUrl(details.id, printLetterheadMode);
-        const ok = await canDownload(jpg);
-        if (!ok) throw new Error("JPG_UNAVAILABLE");
-        window.location.assign(jpg);
-        setMessage("PDF unavailable, JPG download started.");
-      }
+      await fallbackDownloadPdfFromPreview(details.id);
+      setMessage("PDF download started.");
     } catch {
-      setError("Unable to download report right now. Please try again.");
+      setError("Preview not ready yet. Please wait 1-2 seconds and try again.");
     } finally {
       setBusy(false);
     }
@@ -34978,6 +36154,261 @@ export async function getPatientTrends(patientId: string): Promise&lt;TrendItem[
   return trends.sort((a, b) =&gt; a.testName.localeCompare(b.testName));
 }
 </pre></div>
+<div class='file-block'><div class='file-header'>src/lib/inventory.ts</div><pre>import { prisma } from "@/lib/prisma";
+import {
+  InventoryActionType,
+  InventorySourceType,
+  Prisma,
+  Role,
+} from "@prisma/client";
+
+type TxClient = Prisma.TransactionClient;
+
+export type InventoryActor = {
+  id: string;
+  role: string;
+  organizationId: string;
+};
+
+export type InventoryWarning = {
+  inventoryItemId: string;
+  itemName: string;
+  remaining: string;
+  message: string;
+};
+
+const STOCK_MANAGER_ROLES = new Set&lt;Role | string&gt;([
+  Role.SUPER_ADMIN,
+  Role.INVENTORY_MANAGER,
+]);
+
+const DASHBOARD_VIEW_ROLES = new Set&lt;Role | string&gt;([
+  Role.SUPER_ADMIN,
+  Role.INVENTORY_MANAGER,
+  Role.MD,
+]);
+
+export function canManageInventory(role: string) {
+  return STOCK_MANAGER_ROLES.has(role);
+}
+
+export function canViewInventoryDashboard(role: string) {
+  return DASHBOARD_VIEW_ROLES.has(role);
+}
+
+export function assertCanManageInventory(role: string) {
+  if (!canManageInventory(role)) {
+    throw new Error("FORBIDDEN_ROLE");
+  }
+}
+
+function asDecimal(value: string | number | Prisma.Decimal) {
+  return new Prisma.Decimal(value);
+}
+
+export async function applyTestUsageForTaskInTx(params: {
+  tx: TxClient;
+  organizationId: string;
+  taskId: string;
+  performedById: string;
+}) {
+  const { tx, organizationId, taskId, performedById } = params;
+  const existingUsage = await tx.inventoryMovementLog.count({
+    where: {
+      organizationId,
+      actionType: InventoryActionType.TEST_USAGE,
+      sourceType: InventorySourceType.TEST,
+      sourceId: taskId,
+    },
+  });
+  if (existingUsage &gt; 0) {
+    return [] as InventoryWarning[];
+  }
+
+  const taskOrders = await tx.routingTask.findFirst({
+    where: { id: taskId, organizationId },
+    select: { testOrderIds: true },
+  });
+  if (!taskOrders || taskOrders.testOrderIds.length === 0) return [];
+
+  const orders = await tx.testOrder.findMany({
+    where: { id: { in: taskOrders.testOrderIds }, organizationId },
+    select: { testId: true },
+  });
+  const testIds = Array.from(new Set(orders.map((order) =&gt; order.testId)));
+  if (testIds.length === 0) return [];
+
+  const mappings = await tx.inventoryConsumptionMapping.findMany({
+    where: { organizationId, testId: { in: testIds } },
+    include: {
+      inventoryItem: {
+        select: { id: true, name: true, minimumStockLevel: true },
+      },
+    },
+  });
+  if (mappings.length === 0) return [];
+
+  const testsCount = new Map&lt;string, number&gt;();
+  for (const order of orders) {
+    testsCount.set(order.testId, (testsCount.get(order.testId) ?? 0) + 1);
+  }
+
+  const usageByItem = new Map&lt;string, Prisma.Decimal&gt;();
+  const itemMeta = new Map&lt;string, { name: string }&gt;();
+  for (const mapping of mappings) {
+    const count = testsCount.get(mapping.testId) ?? 0;
+    if (count &lt;= 0) continue;
+    const addQty = mapping.quantityPerTest.mul(count);
+    usageByItem.set(
+      mapping.inventoryItemId,
+      (usageByItem.get(mapping.inventoryItemId) ?? asDecimal(0)).add(addQty)
+    );
+    itemMeta.set(mapping.inventoryItemId, { name: mapping.inventoryItem.name });
+  }
+
+  const warnings: InventoryWarning[] = [];
+  for (const entry of Array.from(usageByItem.entries())) {
+    const [inventoryItemId, usedQuantity] = entry;
+    if (usedQuantity.lte(0)) continue;
+
+    const balance = await tx.inventoryBalance.upsert({
+      where: { inventoryItemId },
+      create: {
+        inventoryItemId,
+        organizationId,
+        currentQuantity: asDecimal(0).sub(usedQuantity),
+      },
+      update: {
+        currentQuantity: { decrement: usedQuantity },
+      },
+    });
+
+    await tx.inventoryMovementLog.create({
+      data: {
+        organizationId,
+        inventoryItemId,
+        quantityChange: usedQuantity.neg(),
+        actionType: InventoryActionType.TEST_USAGE,
+        sourceType: InventorySourceType.TEST,
+        sourceId: taskId,
+        performedById,
+      },
+    });
+
+    if (balance.currentQuantity.lte(0)) {
+      const meta = itemMeta.get(inventoryItemId);
+      warnings.push({
+        inventoryItemId,
+        itemName: meta?.name ?? "Item",
+        remaining: balance.currentQuantity.toString(),
+        message: `âš ï¸ ${meta?.name ?? "Item"} is out of stock (${balance.currentQuantity.toString()} remaining). This test is being recorded without available inventory.`,
+      });
+    }
+  }
+
+  return warnings;
+}
+
+export async function reverseTestUsageForTaskInTx(params: {
+  tx: TxClient;
+  organizationId: string;
+  taskId: string;
+  performedById: string;
+}) {
+  const { tx, organizationId, taskId, performedById } = params;
+  const usageLogs = await tx.inventoryMovementLog.findMany({
+    where: {
+      organizationId,
+      sourceType: InventorySourceType.TEST,
+      sourceId: taskId,
+      actionType: InventoryActionType.TEST_USAGE,
+    },
+    select: { id: true, inventoryItemId: true, quantityChange: true },
+  });
+
+  for (const log of usageLogs) {
+    const restoreQty = log.quantityChange.abs();
+    await tx.inventoryBalance.upsert({
+      where: { inventoryItemId: log.inventoryItemId },
+      create: {
+        inventoryItemId: log.inventoryItemId,
+        organizationId,
+        currentQuantity: restoreQty,
+      },
+      update: { currentQuantity: { increment: restoreQty } },
+    });
+
+    await tx.inventoryMovementLog.create({
+      data: {
+        organizationId,
+        inventoryItemId: log.inventoryItemId,
+        quantityChange: restoreQty,
+        actionType: InventoryActionType.REVERSAL,
+        sourceType: InventorySourceType.SYSTEM,
+        sourceId: taskId,
+        performedById,
+      },
+    });
+  }
+}
+
+export async function addStockEntry(params: {
+  actor: InventoryActor;
+  inventoryItemId: string;
+  quantityAdded: string | number;
+  expiryDate: Date;
+  batchNumber?: string | null;
+  supplier?: string | null;
+}) {
+  assertCanManageInventory(params.actor.role);
+  const quantityAdded = asDecimal(params.quantityAdded);
+  if (quantityAdded.lte(0)) throw new Error("INVALID_QUANTITY");
+
+  return prisma.$transaction(async (tx) =&gt; {
+    const item = await tx.inventoryItem.findFirst({
+      where: { id: params.inventoryItemId, organizationId: params.actor.organizationId },
+      select: { id: true },
+    });
+    if (!item) throw new Error("ITEM_NOT_FOUND");
+
+    const entry = await tx.inventoryStockEntry.create({
+      data: {
+        organizationId: params.actor.organizationId,
+        inventoryItemId: params.inventoryItemId,
+        quantityAdded,
+        expiryDate: params.expiryDate,
+        batchNumber: params.batchNumber?.trim() || null,
+        supplier: params.supplier?.trim() || null,
+        addedById: params.actor.id,
+      },
+    });
+
+    await tx.inventoryBalance.upsert({
+      where: { inventoryItemId: params.inventoryItemId },
+      create: {
+        inventoryItemId: params.inventoryItemId,
+        organizationId: params.actor.organizationId,
+        currentQuantity: quantityAdded,
+      },
+      update: { currentQuantity: { increment: quantityAdded } },
+    });
+
+    await tx.inventoryMovementLog.create({
+      data: {
+        organizationId: params.actor.organizationId,
+        inventoryItemId: params.inventoryItemId,
+        quantityChange: quantityAdded,
+        actionType: InventoryActionType.STOCK_IN,
+        sourceType: InventorySourceType.ADMIN,
+        sourceId: entry.id,
+        performedById: params.actor.id,
+      },
+    });
+
+    return entry;
+  });
+}
+</pre></div>
 <div class='file-block'><div class='file-header'>src/lib/lab-workflow.ts</div><pre>import { createAuditLog, AUDIT_ACTIONS } from "@/lib/audit";
 import type { AuditMeta } from "@/lib/audit-core";
 import { requireOrganizationCoreAccess } from "@/lib/billing-service";
@@ -35001,6 +36432,7 @@ import {
   sortByPriorityAndTime,
 } from "./lab-workflow-core";
 import { computeAbnormalFlags } from "./reference-ranges";
+import { applyTestUsageForTaskInTx } from "./inventory";
 
 export type LabActor = {
   id: string;
@@ -35546,7 +36978,7 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
   const task = await assertTaskOwnership(taskId, actor);
 
   if (task.status === RoutingTaskStatus.COMPLETED) {
-    return;
+    return { inventoryWarnings: [] as Array&lt;{ message: string }&gt; };
   }
   if (!canSubmitTask(task.status)) {
     throw new Error("TASK_ALREADY_COMPLETED");
@@ -35573,6 +37005,7 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
   }
 
   const now = new Date();
+  let inventoryWarnings: Array&lt;{ message: string }&gt; = [];
   await prisma.$transaction(async (tx) =&gt; {
     await tx.labResult.updateMany({
       where: { taskId: task.id, organizationId: actor.organizationId },
@@ -35598,6 +37031,13 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
         completedAt: null,
       },
       data: { completedAt: now },
+    });
+
+    inventoryWarnings = await applyTestUsageForTaskInTx({
+      tx,
+      organizationId: actor.organizationId,
+      taskId: task.id,
+      performedById: actor.id,
     });
   });
 
@@ -35627,6 +37067,10 @@ export async function submitLabTask(taskId: string, actor: LabActor) {
       error,
     });
   }
+
+  return {
+    inventoryWarnings,
+  };
 }
 </pre></div>
 <div class='file-block'><div class='file-header'>src/lib/lab-workflow-core.test.ts</div><pre>import assert from "node:assert/strict";
@@ -39472,6 +40916,7 @@ export function formatReferenceDisplay(field: ReferenceField, context?: Referenc
 </pre></div>
 <div class='file-block'><div class='file-header'>src/lib/report-pdf.ts</div><pre>import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
+import { existsSync } from "node:fs";
 
 function findLocalChromeExecutable() {
   const candidates = [
@@ -39486,7 +40931,14 @@ function findLocalChromeExecutable() {
     "/usr/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ].filter((value): value is string =&gt; Boolean(value));
-  return candidates[0];
+  for (const candidate of candidates) {
+    try {
+      if (existsSync(candidate)) return candidate;
+    } catch {
+      // Ignore invalid paths and continue searching.
+    }
+  }
+  return undefined;
 }
 
 export async function renderHtmlToPdfBuffer(html: string) {
@@ -39495,7 +40947,18 @@ export async function renderHtmlToPdfBuffer(html: string) {
     // Better rendering stability in serverless environments.
     chromium.setGraphicsMode = false;
   }
-  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  let executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+
+  if (!executablePath &amp;&amp; !onVercel) {
+    try {
+      const bundledPath = await chromium.executablePath();
+      if (bundledPath &amp;&amp; existsSync(bundledPath)) {
+        executablePath = bundledPath;
+      }
+    } catch {
+      // Ignore fallback resolution failures.
+    }
+  }
 
   if (!executablePath) {
     throw new Error("PDF_BROWSER_NOT_FOUND");
@@ -39505,13 +40968,19 @@ export async function renderHtmlToPdfBuffer(html: string) {
     ? [...chromium.args, "--font-render-hinting=none"]
     : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    headless: onVercel ? chromium.headless : true,
-    args: launchArgs,
-    defaultViewport: chromium.defaultViewport ?? { width: 794, height: 1123 },
-    ignoreHTTPSErrors: true,
-  });
+  let browser: Awaited&lt;ReturnType&lt;typeof puppeteer.launch&gt;&gt;;
+  try {
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: onVercel ? chromium.headless : true,
+      args: launchArgs,
+      defaultViewport: chromium.defaultViewport ?? { width: 794, height: 1123 },
+      ignoreHTTPSErrors: true,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown";
+    throw new Error(`PDF_BROWSER_LAUNCH_FAILED:${reason}`);
+  }
 
   try {
     const page = await browser.newPage();
@@ -39534,7 +41003,17 @@ export async function renderHtmlToJpegBuffer(html: string) {
   if (onVercel) {
     chromium.setGraphicsMode = false;
   }
-  const executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  let executablePath = onVercel ? await chromium.executablePath() : findLocalChromeExecutable();
+  if (!executablePath &amp;&amp; !onVercel) {
+    try {
+      const bundledPath = await chromium.executablePath();
+      if (bundledPath &amp;&amp; existsSync(bundledPath)) {
+        executablePath = bundledPath;
+      }
+    } catch {
+      // Ignore fallback resolution failures.
+    }
+  }
   if (!executablePath) {
     throw new Error("PDF_BROWSER_NOT_FOUND");
   }
@@ -39543,13 +41022,19 @@ export async function renderHtmlToJpegBuffer(html: string) {
     ? [...chromium.args, "--font-render-hinting=none"]
     : ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=medium"];
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    headless: onVercel ? chromium.headless : true,
-    args: launchArgs,
-    defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
-    ignoreHTTPSErrors: true,
-  });
+  let browser: Awaited&lt;ReturnType&lt;typeof puppeteer.launch&gt;&gt;;
+  try {
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: onVercel ? chromium.headless : true,
+      args: launchArgs,
+      defaultViewport: { width: 1240, height: 1754, deviceScaleFactor: 2 },
+      ignoreHTTPSErrors: true,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown";
+    throw new Error(`PDF_BROWSER_LAUNCH_FAILED:${reason}`);
+  }
 
   try {
     const page = await browser.newPage();
@@ -40270,11 +41755,15 @@ export function renderReportHtml(args: RenderArgs) {
   const hasLetterhead = Boolean(args.includeLetterhead !== false &amp;&amp; args.organization.letterheadUrl);
   const pageHeightPx = 1123;
   const pageWidthPx = 794;
-  const contentTopPx = hasLetterhead ? 252 : 148;
-  const contentBottomPx = hasLetterhead ? 156 : 92;
-  const printMarginTopPx = hasLetterhead ? 252 : 92;
-  const printMarginBottomPx = hasLetterhead ? 156 : 96;
-  const printMarginSidePx = 44;
+  // ReeneLetterhead.jpg measured at 2481x3508:
+  // - header divider around y=540 (~15.4%)
+  // - footer divider around y=3186 (~90.8%)
+  // Scaled to A4 preview height (1123px) with breathing room for cleaner layout.
+  const contentTopPx = hasLetterhead ? 188 : 148;
+  const contentBottomPx = hasLetterhead ? 124 : 92;
+  const printMarginTopPx = hasLetterhead ? 188 : 92;
+  const printMarginBottomPx = hasLetterhead ? 124 : 96;
+  const printMarginSidePx = 40;
   const patient = args.content.patient ?? {};
   const ageLabel = formatPatientAge(
     { age: patient.age, dateOfBirth: patient.dateOfBirth },
@@ -42510,6 +43999,7 @@ export function getDashboardPath(role: Role): string {
   const map: Record&lt;Role, string&gt; = {
     MEGA_ADMIN: "/admin/dashboard",
     SUPER_ADMIN: "/dashboard/hrm",
+    INVENTORY_MANAGER: "/dashboard/hrm/inventory",
     HRM: "/dashboard/hrm",
     RECEPTIONIST: "/dashboard/receptionist",
     LAB_SCIENTIST: "/dashboard/lab-scientist",
@@ -42572,6 +44062,7 @@ export function generateVisitNumber(prefix: string, count: number): string {
 export const ROLE_LABELS: Record&lt;Role, string&gt; = {
   MEGA_ADMIN: "Platform Admin",
   SUPER_ADMIN: "Super Admin",
+  INVENTORY_MANAGER: "Inventory Manager",
   HRM: "HRM / Operations",
   RECEPTIONIST: "Receptionist",
   LAB_SCIENTIST: "Lab Scientist",
@@ -42586,6 +44077,7 @@ export const DEPARTMENT_LABELS: Record&lt;string, string&gt; = {
   RADIOLOGY: "Radiology",
   MEDICAL_REVIEW: "Medical Review",
   HR_OPERATIONS: "HR &amp; Operations",
+  INVENTORY: "Inventory",
 };
 </pre></div>
 <div class='file-block'><div class='file-header'>src/lib/utils/timestamp-safety.ts</div><pre>export type TimestampSafetyInput = {
@@ -42822,6 +44314,7 @@ const AUTH_SECRET =
 
 const roleRouteMap: Record&lt;string, Role[]&gt; = {
   "/insights": ["MD", "HRM", "SUPER_ADMIN"],
+  "/dashboard/hrm/inventory": ["INVENTORY_MANAGER", "SUPER_ADMIN", "MD"],
   "/dashboard/receptionist": ["RECEPTIONIST", "SUPER_ADMIN"],
   "/dashboard/lab-scientist": ["LAB_SCIENTIST", "SUPER_ADMIN"],
   "/dashboard/radiographer": ["RADIOGRAPHER", "SUPER_ADMIN"],
@@ -42884,8 +44377,11 @@ export default async function middleware(req: NextRequest) {
   }
 
   for (const [route, allowedRoles] of Object.entries(roleRouteMap)) {
-    if (pathname.startsWith(route) &amp;&amp; !allowedRoles.includes(userRole)) {
-      return NextResponse.redirect(new URL(getDashboardPath(userRole), nextUrl.origin));
+    if (pathname.startsWith(route)) {
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), nextUrl.origin));
+      }
+      return NextResponse.next();
     }
   }
 
