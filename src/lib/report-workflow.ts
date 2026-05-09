@@ -88,10 +88,14 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
       },
       imagingFiles: {
         select: {
+          id: true,
           fileUrl: true,
           fileName: true,
           fileType: true,
+          fileSizeBytes: true,
+          createdAt: true,
         },
+        orderBy: { createdAt: "asc" },
       },
     },
   });

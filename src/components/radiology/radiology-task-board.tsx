@@ -1,3 +1,4 @@
+// src/components/radiology/radiology-task-board.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -24,6 +25,7 @@ import {
   type RadiologyPerTestSection,
 } from "@/lib/radiology-report-sections";
 import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
+import { ImagePlus, X, Download } from "lucide-react";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -63,6 +65,16 @@ type Task = {
     };
   }>;
 };
+
+interface ImagingFile {
+  id: string;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSizeBytes: number;
+  createdAt: string;
+}
+
 type Draft = {
   findings: string;
   impression: string;
@@ -133,6 +145,13 @@ export function RadiologyTaskBoard() {
   const draftsRef = useRef<Record<string, Draft>>({});
   const tasksRef = useRef<Task[]>([]);
   const dirtyDraftTaskIdsRef = useRef<Set<string>>(new Set());
+
+  // Imaging state
+  const [imagingFiles, setImagingFiles] = useState<ImagingFile[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   function invalidateTaskCache() {
     taskCacheRef.current.clear();
   }
@@ -148,6 +167,67 @@ export function RadiologyTaskBoard() {
       });
       return next;
     });
+  }
+
+  async function uploadImagingFile(file: File) {
+    if (!expandedTask) return;
+    
+    setUploadingImage(true);
+    setImageError("");
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("taskId", expandedTask);
+      
+      const res = await fetch("/api/uploads/imaging", {
+        method: "POST",
+        body: formData,
+      });
+      
+      const json = await res.json();
+      if (!json.success) {
+        setImageError(json.error ?? "Upload failed");
+        return;
+      }
+      
+      setImagingFiles((prev) => [json.data, ...prev]);
+    } catch {
+      setImageError("Network error while uploading");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function deleteImagingFile(fileId: string) {
+    if (!window.confirm("Delete this file? This cannot be undone.")) return;
+    
+    try {
+      const res = await fetch(`/api/uploads/imaging?id=${encodeURIComponent(fileId)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!json.success) {
+        setImageError(json.error ?? "Delete failed");
+        return;
+      }
+      setImagingFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch {
+      setImageError("Network error while deleting");
+    }
+  }
+
+  async function fetchImagingFiles(taskId: string) {
+    try {
+      const res = await fetch(`/api/radiology/tasks/${taskId}/images`);
+      const json = await res.json();
+      if (json.success) {
+        setImagingFiles(json.data);
+      }
+    } catch {
+      // Silent fail for images
+    }
   }
 
   function applyLoadedRows(rows: Task[]) {
@@ -239,6 +319,12 @@ export function RadiologyTaskBoard() {
     return () => controller.abort();
   }, [statusFilter, sort, searchFilter, dateFilter]);
 
+  // Fetch imaging files when task is expanded
+  useEffect(() => {
+    if (!expandedTask) return;
+    void fetchImagingFiles(expandedTask);
+  }, [expandedTask]);
+
   useEffect(() => {
     const refreshNow = () => {
       if (document.visibilityState !== "visible") return;
@@ -269,7 +355,7 @@ export function RadiologyTaskBoard() {
 
   const filtered = useMemo(() => tasks.filter((t) => priorityFilter === "ALL" || t.priority === priorityFilter), [tasks, priorityFilter]);
 
-  // --- Day-grouping helpers (mirrors receptionist patients page) ---
+  // --- Day-grouping helpers
   function pad2(v: number) { return String(v).padStart(2, "0"); }
   function toDayKey(date: string | Date) {
     const d = new Date(date);
@@ -947,6 +1033,86 @@ export function RadiologyTaskBoard() {
                                   </div>
                                 </div>
                               ))}
+                              
+                              {/* Imaging Upload Section */}
+                              <div className="rounded border border-slate-200 bg-white p-3">
+                                <div className="mb-2 flex items-center justify-between">
+                                  <p className="text-[11px] font-medium text-slate-500">Imaging Files</p>
+                                  <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingImage}
+                                    className="inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                                  >
+                                    <ImagePlus className="h-3 w-3" />
+                                    {uploadingImage ? "Uploading..." : "Upload Image"}
+                                  </button>
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      await uploadImagingFile(file);
+                                    }}
+                                  />
+                                </div>
+                                
+                                {imageError && (
+                                  <p className="mb-2 text-[11px] text-red-600">{imageError}</p>
+                                )}
+                                
+                                {imagingFiles.length === 0 ? (
+                                  <p className="text-[11px] text-slate-400">No images uploaded yet. Upload JPEG, PNG, or WebP files.</p>
+                                ) : (
+                                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                                    {imagingFiles.map((file) => (
+                                      <div key={file.id} className="flex items-start gap-2 rounded border border-slate-200 p-2">
+                                        {file.fileType.startsWith("image/") ? (
+                                          <img
+                                            src={file.fileUrl}
+                                            alt={file.fileName}
+                                            className="h-16 w-16 rounded border object-cover"
+                                          />
+                                        ) : (
+                                          <div className="flex h-16 w-16 items-center justify-center rounded border bg-slate-100">
+                                            <span className="text-xs text-slate-500">PDF</span>
+                                          </div>
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                          <p className="truncate text-xs font-medium text-slate-700">{file.fileName}</p>
+                                          <p className="text-[11px] text-slate-400">
+                                            {(file.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
+                                          </p>
+                                        </div>
+                                        <div className="flex gap-1">
+                                          <a
+                                            href={file.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="rounded p-1 text-slate-500 hover:bg-slate-100"
+                                            title="Download"
+                                          >
+                                            <Download className="h-3.5 w-3.5" />
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => deleteImagingFile(file.id)}
+                                            className="rounded p-1 text-red-500 hover:bg-red-50"
+                                            title="Delete"
+                                          >
+                                            <X className="h-3.5 w-3.5" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="mt-2 text-[10px] text-slate-400">Supported: JPEG, PNG, WebP (max 25MB per file)</p>
+                              </div>
+                              
                               <div className="rounded border border-slate-200 bg-white p-3">
                                 <p className="text-[11px] font-medium text-slate-500 mb-2">Extra Fields</p>
                                 <div className="space-y-2">

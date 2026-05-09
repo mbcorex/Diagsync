@@ -1,3 +1,4 @@
+// src/lib/radiology-workflow.ts
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/audit";
 import type { AuditMeta } from "@/lib/audit-core";
 import { requireOrganizationCoreAccess, requireOrganizationFeature } from "@/lib/billing-service";
@@ -63,7 +64,7 @@ async function assertOwnership(taskId: string, actor: RadiologyActor) {
           submittedAt: true,
         },
       },
-      imagingFiles: { select: { id: true } },
+      imagingFiles: { select: { id: true, fileUrl: true, fileName: true, fileType: true } },
     },
   });
 
@@ -78,6 +79,102 @@ async function assertOwnership(taskId: string, actor: RadiologyActor) {
     throw new Error("FORBIDDEN_TASK");
   }
   return task;
+}
+
+/**
+ * Get radiology task with full details including imaging files
+ * Used for the radiographer dashboard to display and manage images
+ */
+export async function getRadiologyTaskWithImages(taskId: string, actor: RadiologyActor) {
+  await assertRadiologyAccess(actor);
+  
+  const task = await prisma.routingTask.findFirst({
+    where: {
+      id: taskId,
+      organizationId: actor.organizationId,
+      department: Department.RADIOLOGY,
+    },
+    include: {
+      visit: { 
+        include: { 
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            }
+          } 
+        } 
+      },
+      staff: { select: { id: true, fullName: true } },
+      imagingFiles: {
+        orderBy: { createdAt: "desc" },
+      },
+      radiologyReport: {
+        select: {
+          id: true,
+          findings: true,
+          impression: true,
+          notes: true,
+          extraFields: true,
+          isSubmitted: true,
+          submittedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!task) throw new Error("TASK_NOT_FOUND");
+  
+  // Check if user can access this task (own task or super admin)
+  if (task.staffId && task.staffId !== actor.id && actor.role !== "SUPER_ADMIN" && actor.role !== "RADIOGRAPHER") {
+    throw new Error("FORBIDDEN_TASK");
+  }
+
+  // Get test orders with their test details
+  const testOrders = await prisma.testOrder.findMany({
+    where: { 
+      id: { in: task.testOrderIds },
+      organizationId: actor.organizationId,
+    },
+    include: { 
+      test: { 
+        select: { 
+          id: true,
+          name: true, 
+          code: true,
+          description: true,
+          resultFields: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              id: true,
+              label: true,
+              fieldKey: true,
+              fieldType: true,
+              options: true,
+              isRequired: true,
+            },
+          },
+        } 
+      } 
+    },
+  });
+
+  // Determine if user can edit this task
+  const canEdit = canModifyRadiologyTask({
+    userRole: actor.role,
+    userId: actor.id,
+    assignedStaffId: task.staffId,
+  });
+
+  return { 
+    ...task, 
+    testOrders,
+    canEdit,
+  };
 }
 
 export async function getRadiologyTasks(
@@ -133,6 +230,7 @@ export async function getRadiologyTasks(
           fileSizeBytes: true,
           createdAt: true,
         },
+        orderBy: { createdAt: "desc" },
       },
       radiologyReport: {
         select: {
@@ -175,7 +273,8 @@ export async function getRadiologyTasks(
     : [];
   const orderMap = new Map(orders.map((order) => [order.id, order]));
 
-  return rows.map((task) => ({
+  // Also include image count for queue display
+  const tasksWithImageCount = rows.map((task) => ({
     ...task,
     canEdit: canModifyRadiologyTask({
       userRole: actor.role,
@@ -185,7 +284,10 @@ export async function getRadiologyTasks(
     testOrders: task.testOrderIds
       .map((id) => orderMap.get(id))
       .filter((order): order is (typeof orders)[number] => Boolean(order)),
+    imageCount: task.imagingFiles.length,
   }));
+
+  return tasksWithImageCount;
 }
 
 export async function startRadiologyTask(taskId: string, actor: RadiologyActor) {
@@ -312,6 +414,79 @@ export async function addImagingFile(taskId: string, actor: RadiologyActor, inpu
   });
 
   return file;
+}
+
+export async function getImagingFilesForTask(taskId: string, actor: RadiologyActor) {
+  await assertRadiologyAccess(actor);
+  
+  const task = await prisma.routingTask.findFirst({
+    where: {
+      id: taskId,
+      organizationId: actor.organizationId,
+      department: Department.RADIOLOGY,
+    },
+    select: { id: true, staffId: true },
+  });
+  
+  if (!task) throw new Error("TASK_NOT_FOUND");
+  
+  // Allow task owner or super admin to view images
+  if (task.staffId && task.staffId !== actor.id && actor.role !== "SUPER_ADMIN") {
+    throw new Error("FORBIDDEN_TASK");
+  }
+  
+  const images = await prisma.imagingFile.findMany({
+    where: { 
+      taskId,
+      organizationId: actor.organizationId,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  
+  return images;
+}
+
+export async function deleteImagingFile(fileId: string, actor: RadiologyActor) {
+  assertRadiographer(actor);
+  await assertRadiologyAccess(actor);
+  
+  const file = await prisma.imagingFile.findFirst({
+    where: { 
+      id: fileId,
+      organizationId: actor.organizationId,
+    },
+    include: {
+      task: {
+        select: {
+          id: true,
+          staffId: true,
+        },
+      },
+    },
+  });
+  
+  if (!file) throw new Error("FILE_NOT_FOUND");
+  
+  // Only task owner or super admin can delete
+  if (file.task.staffId && file.task.staffId !== actor.id && actor.role !== "SUPER_ADMIN") {
+    throw new Error("FORBIDDEN_DELETE");
+  }
+  
+  await prisma.imagingFile.delete({
+    where: { id: fileId },
+  });
+  
+  await createAuditLog({
+    actorId: actor.id,
+    actorRole: Role.RADIOGRAPHER,
+    action: "IMAGING_FILE_DELETED",
+    entityType: "ImagingFile",
+    entityId: fileId,
+    notes: `Imaging file deleted: ${file.fileName}`,
+    ...actor.auditMeta,
+  });
+  
+  return { success: true };
 }
 
 export async function saveRadiologyReport(

@@ -1,3 +1,4 @@
+// src/lib/report-rendering.ts
 import { Department } from "@prisma/client";
 import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY } from "./report-signoff";
 import { formatPatientAge } from "./patient-age";
@@ -542,7 +543,7 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
             <tbody>
               ${microscopyHtmlRows}
             </tbody>
-          </table>
+           </table>
         </section>
       `
       : "";
@@ -557,6 +558,35 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
     : "";
 
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
+}
+
+function renderImagingSection(imagingFiles: any[], reportDepartment: Department) {
+  if (imagingFiles.length === 0) return "";
+  
+  // Filter only images (PDFs handled separately)
+  const images = imagingFiles.filter(f => f.fileType?.startsWith("image/"));
+  if (images.length === 0) return "";
+  
+  return `
+    <section class="imaging-section" style="page-break-before: auto;">
+      <h3>Imaging Studies</h3>
+      <div class="imaging-grid" style="display: flex; flex-direction: column; gap: 20px;">
+        ${images.map((img, idx) => `
+          <div class="imaging-card" style="page-break-inside: avoid; break-inside: avoid-page;">
+            <p class="imaging-label" style="font-size: 11px; color: #6b7280; margin-bottom: 6px;">
+              Image ${idx + 1}: ${escapeHtml(img.name || img.fileName || "Image")}
+            </p>
+            <img 
+              src="${escapeHtml(img.url || img.fileUrl)}" 
+              alt="${escapeHtml(img.name || img.fileName || "Radiology Image")}" 
+              style="max-width: 100%; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px;"
+              loading="lazy"
+            />
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
 }
 
 // Improved splitRadiologyNarrative - better bullet detection
@@ -669,10 +699,6 @@ export function renderReportHtml(args: RenderArgs) {
   const hasLetterhead = Boolean(args.includeLetterhead !== false && args.organization.letterheadUrl);
   const pageHeightPx = 1123;
   const pageWidthPx = 794;
-  // ReeneLetterhead.jpg measured at 2481x3508:
-  // - header divider around y=540 (~15.4%)
-  // - footer divider around y=3186 (~90.8%)
-  // Scaled to A4 preview height (1123px) with breathing room for cleaner layout.
   const contentTopPx = hasLetterhead ? 188 : 148;
   const contentBottomPx = hasLetterhead ? 124 : 92;
   const printMarginTopPx = hasLetterhead ? 188 : 92;
@@ -782,6 +808,39 @@ export function renderReportHtml(args: RenderArgs) {
           .join("");
 
   const effectiveWatermarkUrl = args.watermarkUrl || null;
+
+  // Add imaging section for radiology reports
+  const imagingHtml = args.department === Department.RADIOLOGY && imagingFiles.length > 0
+    ? renderImagingSection(imagingFiles, args.department)
+    : "";
+
+  // Add pagination-friendly CSS for images
+  const paginationStyles = `
+    .imaging-card {
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+      margin-bottom: 16px;
+    }
+    
+    .imaging-card img {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      max-height: 400px;
+    }
+    
+    @media print {
+      .imaging-card {
+        break-inside: avoid-page !important;
+        page-break-inside: avoid !important;
+      }
+      
+      .imaging-card img {
+        break-inside: avoid-page !important;
+        page-break-inside: avoid !important;
+        max-height: 400px !important;
+      }
+    }
+  `;
 
   return `
 <!doctype html>
@@ -966,9 +1025,26 @@ export function renderReportHtml(args: RenderArgs) {
     }
     .muted { color: #6b7280; }
     .imaging-section { margin-bottom: 16px; }
-    .imaging-grid { display:grid; grid-template-columns: 1fr; gap: 14px; }
-    .imaging-card { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; background: #fff; break-inside: avoid; }
-    .imaging-card img { width: 100%; max-height: 560px; object-fit: contain; display:block; margin:0 auto; border-radius: 6px; }
+    .imaging-grid { display: flex; flex-direction: column; gap: 20px; }
+    .imaging-card { 
+      border: 1px solid #d1d5db; 
+      border-radius: 8px; 
+      padding: 8px; 
+      background: #fff; 
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+    .imaging-card img { 
+      width: 100%; 
+      max-height: 560px; 
+      object-fit: contain; 
+      display: block; 
+      margin: 0 auto; 
+      border-radius: 6px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .imaging-label { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
     .imaging-caption { font-size: 11px; color: #6b7280; margin-top: 6px; word-break: break-all; }
     .preview-actions {
       position: fixed;
@@ -998,6 +1074,7 @@ export function renderReportHtml(args: RenderArgs) {
     .preview-print-btn:active {
       transform: translateY(1px);
     }
+    ${paginationStyles}
     @media screen and (max-width: 860px) {
       .page {
         width: 100%;
@@ -1125,25 +1202,7 @@ export function renderReportHtml(args: RenderArgs) {
         <p><strong>Report Date:</strong> ${escapeHtml(reportDateLabel)}</p>
         ${referringDoctor ? `<p><strong>Referring Doctor:</strong> ${escapeHtml(referringDoctor)}</p>` : ""}
       </div>
-      ${
-        args.department === Department.RADIOLOGY && imagingFiles.length
-          ? `<section class="imaging-section">
-          <h3>Imaging Preview</h3>
-          <div class="imaging-grid">
-            ${imagingFiles
-              .map((img: any) => {
-                const isImage = String(img.fileType ?? "").startsWith("image/");
-                if (!isImage || !img.url) return "";
-                return `<div class="imaging-card">
-                  <img src="${escapeHtml(String(img.url))}" alt="${escapeHtml(String(img.name ?? "Radiology Image"))}" crossorigin="anonymous" />
-                  <p class="imaging-caption">${escapeHtml(String(img.name ?? ""))}</p>
-                </div>`;
-              })
-              .join("")}
-          </div>
-        </section>`
-          : ""
-      }
+      ${imagingHtml}
       ${testsHtml || `<p>No reportable items.</p>`}
       ${
         args.comments
