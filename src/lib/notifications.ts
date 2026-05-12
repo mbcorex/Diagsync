@@ -209,6 +209,16 @@ export async function listNotifications(
       where: baseWhere,
       orderBy: { createdAt: "desc" },
       take: limit + 1,
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        message: true,
+        isRead: true,
+        entityId: true,
+        entityType: true,
+        createdAt: true,
+      },
       ...(opts?.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
     }),
     prisma.notification.count({

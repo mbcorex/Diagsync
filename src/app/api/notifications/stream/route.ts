@@ -41,7 +41,14 @@ export async function GET() {
           const top = await prisma.notification.findFirst({
             where: { organizationId: user.organizationId, userId: user.id },
             orderBy: { createdAt: "desc" },
-            select: { id: true, createdAt: true },
+            select: {
+              id: true,
+              createdAt: true,
+              type: true,
+              title: true,
+              message: true,
+              isRead: true,
+            },
           });
           const topId = top?.id ?? null;
           // Count unread less frequently to reduce DB reads while keeping badge reasonably fresh.
@@ -55,7 +62,16 @@ export async function GET() {
           if (topId !== lastTopId || unreadCount !== lastUnread) {
             lastTopId = topId;
             lastUnread = unreadCount;
-            write(sse("notification", { unreadCount, topId }));
+            write(
+              sse("notification", {
+                unreadCount,
+                topId,
+                topType: top?.type ?? null,
+                topTitle: top?.title ?? null,
+                topMessage: top?.message ?? null,
+                topIsRead: top?.isRead ?? null,
+              })
+            );
           } else {
             write(": heartbeat\n\n");
           }
