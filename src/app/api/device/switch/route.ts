@@ -74,10 +74,6 @@ export async function POST(req: NextRequest) {
     if (target.status !== "ACTIVE") {
       return NextResponse.json({ success: false, error: "This staff account is inactive" }, { status: 403 });
     }
-    if (!target.pinHash) {
-      return NextResponse.json({ success: false, error: "This staff account has no PIN yet" }, { status: 400 });
-    }
-
     const link = await prisma.deviceStaff.findUnique({
       where: {
         deviceId_staffId: {
@@ -85,13 +81,18 @@ export async function POST(req: NextRequest) {
           staffId: target.id,
         },
       },
-      select: { id: true },
+      select: { id: true, pinHash: true },
     });
     if (!link) {
       return NextResponse.json({ success: false, error: "Staff not linked to this device" }, { status: 403 });
     }
 
-    const pinOk = await bcrypt.compare(pin, target.pinHash);
+    const pinHashToCheck = link.pinHash ?? target.pinHash;
+    if (!pinHashToCheck) {
+      return NextResponse.json({ success: false, error: "This staff account has no PIN yet on this device" }, { status: 400 });
+    }
+
+    const pinOk = await bcrypt.compare(pin, pinHashToCheck);
     if (!pinOk) {
       recordPinFailure(attemptKey);
       return NextResponse.json({ success: false, error: "Incorrect PIN" }, { status: 401 });

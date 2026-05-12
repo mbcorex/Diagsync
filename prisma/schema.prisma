@@ -657,6 +657,8 @@ model DeviceStaff {
   id         String    @id @default(cuid())
   deviceId   String
   staffId    String
+  pinHash    String?
+  pinSetAt   DateTime?
   addedAt    DateTime  @default(now())
   lastUsedAt DateTime?
   device     Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)

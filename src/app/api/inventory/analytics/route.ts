@@ -16,6 +16,16 @@ export async function GET(req: NextRequest) {
     }
 
     const discrepancyThreshold = Number(req.nextUrl.searchParams.get("threshold") ?? "0");
+    const fromParam = req.nextUrl.searchParams.get("from");
+    const toParam = req.nextUrl.searchParams.get("to");
+    const fromDate =
+      fromParam && /^\d{4}-\d{2}-\d{2}$/.test(fromParam)
+        ? new Date(`${fromParam}T00:00:00.000Z`)
+        : null;
+    const toDate =
+      toParam && /^\d{4}-\d{2}-\d{2}$/.test(toParam)
+        ? new Date(`${toParam}T23:59:59.999Z`)
+        : null;
     const taskIds = await prisma.routingTask.findMany({
       where: { organizationId: user.organizationId, department: "LABORATORY", status: "COMPLETED" },
       select: { id: true, testOrderIds: true },
@@ -24,23 +34,40 @@ export async function GET(req: NextRequest) {
     const testOrderIds = Array.from(new Set(taskIds.flatMap((task) => task.testOrderIds)));
     const completedOrders = testOrderIds.length
       ? await prisma.testOrder.findMany({
-          where: { organizationId: user.organizationId, id: { in: testOrderIds }, submittedAt: { not: null } },
-          select: { testId: true },
+          where: {
+            organizationId: user.organizationId,
+            id: { in: testOrderIds },
+            submittedAt: {
+              not: null,
+              ...(fromDate ? { gte: fromDate } : {}),
+              ...(toDate ? { lte: toDate } : {}),
+            },
+          },
+          select: { testId: true, submittedAt: true },
         })
       : [];
-    const testCountMap = new Map<string, number>();
+    const ordersByTest = new Map<string, Date[]>();
     for (const row of completedOrders) {
-      testCountMap.set(row.testId, (testCountMap.get(row.testId) ?? 0) + 1);
+      if (!row.submittedAt) continue;
+      const existing = ordersByTest.get(row.testId) ?? [];
+      existing.push(row.submittedAt);
+      ordersByTest.set(row.testId, existing);
     }
 
     const mappings = await prisma.inventoryConsumptionMapping.findMany({
       where: { organizationId: user.organizationId },
-      include: { inventoryItem: true, test: { select: { name: true } } },
+      include: {
+        inventoryItem: { select: { id: true, createdAt: true } },
+      },
     });
 
     const expectedByItem = new Map<string, Prisma.Decimal>();
     for (const mapping of mappings) {
-      const tests = testCountMap.get(mapping.testId) ?? 0;
+      // Prevent historical overcounting for inventory items created after older tests were submitted.
+      // If the item did not exist yet, those earlier tests are not counted as expected usage for this item.
+      const tests = (ordersByTest.get(mapping.testId) ?? []).filter(
+        (submittedAt) => submittedAt >= mapping.inventoryItem.createdAt
+      ).length;
       if (tests === 0) continue;
       expectedByItem.set(
         mapping.inventoryItemId,
@@ -52,7 +79,18 @@ export async function GET(req: NextRequest) {
 
     const actualUsage = await prisma.inventoryMovementLog.groupBy({
       by: ["inventoryItemId"],
-      where: { organizationId: user.organizationId, actionType: InventoryActionType.TEST_USAGE },
+      where: {
+        organizationId: user.organizationId,
+        actionType: InventoryActionType.TEST_USAGE,
+        ...(fromDate || toDate
+          ? {
+              createdAt: {
+                ...(fromDate ? { gte: fromDate } : {}),
+                ...(toDate ? { lte: toDate } : {}),
+              },
+            }
+          : {}),
+      },
       _sum: { quantityChange: true },
     });
     const actualByItem = new Map(

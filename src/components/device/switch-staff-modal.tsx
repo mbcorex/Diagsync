@@ -13,6 +13,7 @@ interface SwitchStaffModalProps {
   staff: DeviceStaffSummary[];
   onClose: () => void;
   onSwitched: (staffId: string) => void;
+  onRemoved?: (staffId: string) => void;
 }
 
 type SwitchResponse = {
@@ -33,11 +34,13 @@ export function SwitchStaffModal({
   staff,
   onClose,
   onSwitched,
+  onRemoved,
 }: SwitchStaffModalProps) {
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [removingStaffId, setRemovingStaffId] = useState<string | null>(null);
   const selected = useMemo(
     () => staff.find((item) => item.staffId === selectedStaffId) ?? null,
     [selectedStaffId, staff]
@@ -93,6 +96,33 @@ export function SwitchStaffModal({
     }
   }
 
+  async function removeFromDevice(staffId: string) {
+    if (staffId === currentStaffId) {
+      setError("You cannot remove the account currently signed in.");
+      return;
+    }
+    setRemovingStaffId(staffId);
+    setError("");
+    try {
+      const res = await fetch("/api/device/remove-staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceKey, staffId }),
+      });
+      const json = (await res.json()) as { success: boolean; error?: string };
+      if (!json.success) {
+        setError(json.error ?? "Failed to remove account from device");
+        return;
+      }
+      if (selectedStaffId === staffId) setSelectedStaffId("");
+      onRemoved?.(staffId);
+    } catch {
+      setError("Network error while removing account.");
+    } finally {
+      setRemovingStaffId(null);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4">
       <div className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
@@ -116,21 +146,37 @@ export function SwitchStaffModal({
                 const active = item.staffId === selectedStaffId;
                 const isCurrent = item.staffId === currentStaffId;
                 return (
-                  <button
+                  <div
                     key={item.staffId}
-                    type="button"
-                    onClick={() => setSelectedStaffId(item.staffId)}
-                    className={`w-full rounded border px-3 py-2 text-left transition-colors ${
-                      active ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"
+                    className={`w-full rounded border px-3 py-2 transition-colors ${
+                      active ? "border-blue-300 bg-blue-50" : "border-slate-200"
                     }`}
                   >
-                    <p className="text-sm font-medium text-slate-800">
-                      {item.name}
-                      {isCurrent ? <span className="ml-2 text-[11px] text-blue-600">(Current)</span> : null}
-                    </p>
-                    <p className="text-xs text-slate-500">{item.email}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-400">{ROLE_LABELS[item.role]}</p>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStaffId(item.staffId)}
+                      className="w-full text-left"
+                    >
+                      <p className="text-sm font-medium text-slate-800">
+                        {item.name}
+                        {isCurrent ? <span className="ml-2 text-[11px] text-blue-600">(Current)</span> : null}
+                      </p>
+                      <p className="text-xs text-slate-500">{item.email}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">{ROLE_LABELS[item.role]}</p>
+                    </button>
+                    {!isCurrent ? (
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => void removeFromDevice(item.staffId)}
+                          disabled={busy || removingStaffId === item.staffId}
+                          className="rounded border border-red-200 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 disabled:opacity-60"
+                        >
+                          {removingStaffId === item.staffId ? "Removing..." : "Remove"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>

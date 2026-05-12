@@ -256,6 +256,7 @@ export function DeviceAccountMenu({
         staff={sortedStaff}
         onClose={() => setShowSwitchModal(false)}
         onSwitched={onSwitched}
+        onRemoved={removeStaffFromLocal}
       />
 
       <RemoveStaffFromDeviceDialog

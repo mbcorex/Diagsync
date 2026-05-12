@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "This staff account is inactive" }, { status: 403 });
     }
 
+    let linkIdForDevicePin: string | null = null;
+
     if (actor.id !== target.id) {
       if (!pinSetupToken) {
         return NextResponse.json({ success: false, error: "PIN setup authorization is required" }, { status: 403 });
@@ -72,16 +74,28 @@ export async function POST(req: NextRequest) {
       if (!link) {
         return NextResponse.json({ success: false, error: "Staff is not linked to this device" }, { status: 404 });
       }
+      linkIdForDevicePin = link.id;
     }
 
     const pinHash = await bcrypt.hash(pin, 12);
-    await prisma.staff.update({
-      where: { id: target.id },
-      data: {
-        pinHash,
-        pinSetAt: new Date(),
-      },
-    });
+    const now = new Date();
+    if (linkIdForDevicePin) {
+      await prisma.deviceStaff.update({
+        where: { id: linkIdForDevicePin },
+        data: {
+          pinHash,
+          pinSetAt: now,
+        },
+      });
+    } else {
+      await prisma.staff.update({
+        where: { id: target.id },
+        data: {
+          pinHash,
+          pinSetAt: now,
+        },
+      });
+    }
 
     await createAuditLog({
       actorId: actor.id,
@@ -95,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "PIN created successfully",
+      message: linkIdForDevicePin ? "PIN set for this device successfully" : "PIN created successfully",
     });
   } catch (error) {
     console.error("[STAFF_SET_PIN_POST]", error);

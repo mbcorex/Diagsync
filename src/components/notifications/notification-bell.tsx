@@ -40,6 +40,7 @@ export function NotificationBell({ role }: { role: string }) {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectDelayMsRef = useRef(1500);
   const streamRef = useRef<EventSource | null>(null);
+  const lastLoadAtRef = useRef(0);
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -209,7 +210,11 @@ export function NotificationBell({ role }: { role: string }) {
     }
   }
 
-  async function load() {
+  async function load(force = false) {
+    if (!force && typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    const nowTs = Date.now();
+    if (!force && nowTs - lastLoadAtRef.current < 3000) return;
+    lastLoadAtRef.current = nowTs;
     try {
       setLoading(true); setError("");
       const res = await fetch("/api/notifications?limit=10", { cache: "no-store" });
@@ -356,7 +361,7 @@ export function NotificationBell({ role }: { role: string }) {
     }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(true); }, []);
   useEffect(() => { void refreshPushStatus(); }, []);
 
   useEffect(() => {
@@ -391,6 +396,7 @@ export function NotificationBell({ role }: { role: string }) {
 
     const connect = () => {
       if (cancelled) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       cleanupReconnect();
       if (streamRef.current) {
         streamRef.current.close();
@@ -418,8 +424,22 @@ export function NotificationBell({ role }: { role: string }) {
     };
 
     connect();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        reconnectDelayMsRef.current = 1500;
+        connect();
+        void load(true);
+      } else if (streamRef.current) {
+        streamRef.current.close();
+        streamRef.current = null;
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
       cleanupReconnect();
       if (streamRef.current) {
         streamRef.current.close();
@@ -431,17 +451,13 @@ export function NotificationBell({ role }: { role: string }) {
   useEffect(() => {
     const visibilityHandler = () => {
       if (document.visibilityState === "visible") {
-        void load();
+        void load(true);
         flushPendingVitalAlerts();
       }
     };
     document.addEventListener("visibilitychange", visibilityHandler);
-    const poll = window.setInterval(() => {
-      void load();
-    }, 20_000);
     return () => {
       document.removeEventListener("visibilitychange", visibilityHandler);
-      window.clearInterval(poll);
     };
   }, []);
 

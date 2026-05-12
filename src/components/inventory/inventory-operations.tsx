@@ -18,6 +18,9 @@ type InventoryItem = {
   category: "TEST_KIT" | "REAGENT" | "CONSUMABLE";
   unit: string;
   minimumStockLevel: string;
+  balance?: {
+    currentQuantity: string;
+  } | null;
 };
 
 type TestRow = {
@@ -73,13 +76,27 @@ export function InventoryOperations({
   const [mapItemId, setMapItemId] = useState("");
   const [mapTestId, setMapTestId] = useState("");
   const [mapQty, setMapQty] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState<"TEST_KIT" | "REAGENT" | "CONSUMABLE">("TEST_KIT");
+  const [editUnit, setEditUnit] = useState("");
+  const [editMinimum, setEditMinimum] = useState("");
+  const [analyticsFrom, setAnalyticsFrom] = useState("");
+  const [analyticsTo, setAnalyticsTo] = useState("");
 
   async function loadAll() {
+    const analyticsParams = new URLSearchParams();
+    if (analyticsFrom) analyticsParams.set("from", analyticsFrom);
+    if (analyticsTo) analyticsParams.set("to", analyticsTo);
+    const analyticsUrl = analyticsParams.toString()
+      ? `/api/inventory/analytics?${analyticsParams.toString()}`
+      : "/api/inventory/analytics";
+
     const [itemsRes, testsRes, movementRes, analyticsRes] = await Promise.all([
       fetch("/api/inventory/items", { cache: "no-store" }),
       fetch("/api/tests", { cache: "no-store" }),
       fetch("/api/inventory/movements", { cache: "no-store" }),
-      fetch("/api/inventory/analytics", { cache: "no-store" }),
+      fetch(analyticsUrl, { cache: "no-store" }),
     ]);
     const itemsJson = await itemsRes.json();
     const testsJson = await testsRes.json();
@@ -94,7 +111,7 @@ export function InventoryOperations({
 
   useEffect(() => {
     void loadAll();
-  }, []);
+  }, [analyticsFrom, analyticsTo]);
 
   const itemOptions = useMemo(() => items.map((item) => ({ id: item.id, label: `${item.name} (${item.unit})` })), [items]);
 
@@ -183,6 +200,72 @@ export function InventoryOperations({
       await loadAll();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save mapping");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startEditItem(item: InventoryItem) {
+    setEditingItemId(item.id);
+    setEditName(item.name);
+    setEditCategory(item.category);
+    setEditUnit(item.unit);
+    setEditMinimum(item.minimumStockLevel);
+  }
+
+  function cancelEditItem() {
+    setEditingItemId(null);
+    setEditName("");
+    setEditCategory("TEST_KIT");
+    setEditUnit("");
+    setEditMinimum("");
+  }
+
+  async function updateItem(itemId: string) {
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      const res = await fetch(`/api/inventory/items/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName,
+          category: editCategory,
+          unit: editUnit,
+          minimumStockLevel: Number(editMinimum),
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error ?? "Failed to update item");
+      setFeedback("Inventory item updated.");
+      cancelEditItem();
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update item");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteItem(item: InventoryItem) {
+    const confirmed = window.confirm(`Delete "${item.name}"?`);
+    if (!confirmed) return;
+
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      const res = await fetch(`/api/inventory/items/${item.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error ?? "Failed to delete item");
+      setFeedback(json.message ?? "Inventory item deleted.");
+      if (editingItemId === item.id) cancelEditItem();
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete item");
     } finally {
       setBusy(false);
     }
@@ -333,6 +416,26 @@ export function InventoryOperations({
       <section className="rounded-lg border border-slate-200 bg-white overflow-x-auto">
         <div className="border-b border-slate-100 px-4 py-2.5">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Discrepancy Analytics</h3>
+          <div className="mt-2 flex flex-wrap items-end gap-2">
+            <div className="space-y-1">
+              <Label>From</Label>
+              <Input type="date" value={analyticsFrom} onChange={(e) => setAnalyticsFrom(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>To</Label>
+              <Input type="date" value={analyticsTo} onChange={(e) => setAnalyticsTo(e.target.value)} />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAnalyticsFrom("");
+                setAnalyticsTo("");
+              }}
+              disabled={!analyticsFrom && !analyticsTo}
+            >
+              Clear Filter
+            </Button>
+          </div>
         </div>
         <table className="min-w-full text-xs">
           <thead>
@@ -356,6 +459,95 @@ export function InventoryOperations({
             ))}
             {analytics.length === 0 ? (
               <tr><td colSpan={5} className="px-3 py-4 text-center text-slate-500">No analytics yet.</td></tr>
+            ) : null}
+          </tbody>
+        </table>
+      </section>
+      ) : null}
+
+      {mode === "all" || mode === "setup" || mode === "items" ? (
+      <section className="rounded-lg border border-slate-200 bg-white overflow-x-auto">
+        <div className="border-b border-slate-100 px-4 py-2.5">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Manage Inventory Items</h3>
+        </div>
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="bg-slate-50 text-slate-500">
+              <th className="px-3 py-2 text-left">Name</th>
+              <th className="px-3 py-2 text-left">Category</th>
+              <th className="px-3 py-2 text-left">Unit</th>
+              <th className="px-3 py-2 text-left">Min</th>
+              <th className="px-3 py-2 text-left">Current</th>
+              <th className="px-3 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => {
+              const isEditing = editingItemId === item.id;
+              return (
+                <tr key={item.id} className="border-t border-slate-100">
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                    ) : item.name}
+                  </td>
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <Select value={editCategory} onValueChange={(v) => setEditCategory(v as any)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TEST_KIT">Test Kit</SelectItem>
+                          <SelectItem value="REAGENT">Reagent</SelectItem>
+                          <SelectItem value="CONSUMABLE">Consumable</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : item.category}
+                  </td>
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <Input value={editUnit} onChange={(e) => setEditUnit(e.target.value)} />
+                    ) : item.unit}
+                  </td>
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <Input type="number" value={editMinimum} onChange={(e) => setEditMinimum(e.target.value)} />
+                    ) : item.minimumStockLevel}
+                  </td>
+                  <td className="px-3 py-2">
+                    {item.balance?.currentQuantity ?? "0"} {item.unit}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      {isEditing ? (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={busy || !editName.trim() || !editUnit.trim() || editMinimum === ""}
+                            onClick={() => updateItem(item.id)}
+                          >
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" disabled={busy} onClick={cancelEditItem}>
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button size="sm" variant="outline" disabled={busy} onClick={() => startEditItem(item)}>
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="destructive" disabled={busy} onClick={() => deleteItem(item)}>
+                            Delete
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {items.length === 0 ? (
+              <tr><td colSpan={6} className="px-3 py-4 text-center text-slate-500">No inventory items yet.</td></tr>
             ) : null}
           </tbody>
         </table>
