@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { createAuditLog } from "@/lib/audit";
 import { getAuditMetaFromRequest } from "@/lib/audit-core";
 import { prisma } from "@/lib/prisma";
@@ -80,13 +81,28 @@ export async function POST(req: NextRequest) {
     const pinHash = await bcrypt.hash(pin, 12);
     const now = new Date();
     if (linkIdForDevicePin) {
-      await prisma.deviceStaff.update({
-        where: { id: linkIdForDevicePin },
-        data: {
-          pinHash,
-          pinSetAt: now,
-        },
-      });
+      try {
+        await prisma.deviceStaff.update({
+          where: { id: linkIdForDevicePin },
+          data: {
+            pinHash,
+            pinSetAt: now,
+          },
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+          // Backward compatibility for environments where migration hasn't been applied yet.
+          await prisma.staff.update({
+            where: { id: target.id },
+            data: {
+              pinHash,
+              pinSetAt: now,
+            },
+          });
+        } else {
+          throw error;
+        }
+      }
     } else {
       await prisma.staff.update({
         where: { id: target.id },

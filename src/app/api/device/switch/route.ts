@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { createAuditLog } from "@/lib/audit";
 import { getAuditMetaFromRequest } from "@/lib/audit-core";
 import { prisma } from "@/lib/prisma";
@@ -74,15 +75,35 @@ export async function POST(req: NextRequest) {
     if (target.status !== "ACTIVE") {
       return NextResponse.json({ success: false, error: "This staff account is inactive" }, { status: 403 });
     }
-    const link = await prisma.deviceStaff.findUnique({
-      where: {
-        deviceId_staffId: {
-          deviceId: device.id,
-          staffId: target.id,
+    let link: { id: string; pinHash: string | null } | null = null;
+    try {
+      link = await prisma.deviceStaff.findUnique({
+        where: {
+          deviceId_staffId: {
+            deviceId: device.id,
+            staffId: target.id,
+          },
         },
-      },
-      select: { id: true, pinHash: true },
-    });
+        select: { id: true, pinHash: true },
+      });
+    } catch (error) {
+      // Backward compatibility: if device-level PIN columns are not migrated yet,
+      // fall back to checking only staff-level PIN hash.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+        const legacyLink = await prisma.deviceStaff.findUnique({
+          where: {
+            deviceId_staffId: {
+              deviceId: device.id,
+              staffId: target.id,
+            },
+          },
+          select: { id: true },
+        });
+        link = legacyLink ? { id: legacyLink.id, pinHash: null } : null;
+      } else {
+        throw error;
+      }
+    }
     if (!link) {
       return NextResponse.json({ success: false, error: "Staff not linked to this device" }, { status: 403 });
     }
