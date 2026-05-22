@@ -1360,18 +1360,40 @@ export function LabTaskBoard() {
       const next = { ...prev };
       for (const task of rows) {
         if (next[task.id]) continue;
+        const offline = offlineByTask.get(task.id);
         let signatureName = "";
         let signatureImage = "";
-        for (const order of task.testOrders) {
-          const resultData = order.labResults[0]?.resultData as Record<string, unknown> | undefined;
-          const maybeName = typeof resultData?.[SIGNOFF_NAME_KEY] === "string" ? resultData[SIGNOFF_NAME_KEY] : "";
-          const maybeImage = typeof resultData?.[SIGNOFF_IMAGE_KEY] === "string" ? resultData[SIGNOFF_IMAGE_KEY] : "";
-          if (maybeName && maybeImage) {
-            signatureName = maybeName;
-            signatureImage = maybeImage;
-            break;
+
+        const loadSignOffFromMap = (resultData: Record<string, unknown> | undefined) => {
+          if (!resultData) return null;
+          const maybeName = typeof resultData[SIGNOFF_NAME_KEY] === "string" ? resultData[SIGNOFF_NAME_KEY] : "";
+          const maybeImage = typeof resultData[SIGNOFF_IMAGE_KEY] === "string" ? resultData[SIGNOFF_IMAGE_KEY] : "";
+          return maybeName && maybeImage ? { signatureName: maybeName, signatureImage: maybeImage } : null;
+        };
+
+        if (offline?.results) {
+          for (const entry of offline.results) {
+            const signOff = loadSignOffFromMap(entry.resultData as Record<string, unknown> | undefined);
+            if (signOff) {
+              signatureName = signOff.signatureName;
+              signatureImage = signOff.signatureImage;
+              break;
+            }
           }
         }
+
+        if (!signatureName || !signatureImage) {
+          for (const order of task.testOrders) {
+            const resultData = order.labResults[0]?.resultData as Record<string, unknown> | undefined;
+            const signOff = loadSignOffFromMap(resultData);
+            if (signOff) {
+              signatureName = signOff.signatureName;
+              signatureImage = signOff.signatureImage;
+              break;
+            }
+          }
+        }
+
         next[task.id] = { signatureName, signatureImage };
       }
       return next;
