@@ -208,7 +208,6 @@ export async function renderRadiologyReportForPreview(
   const report = await prisma.radiologyReport.findFirst({
     where: { id: reportId, organizationId: actor.organizationId },
     include: {
-      organization: true,
       task: {
         include: {
           visit: { include: { patient: true } },
@@ -228,19 +227,24 @@ export async function renderRadiologyReportForPreview(
     throw new Error("FORBIDDEN_ROLE");
   }
 
+  const organization = await prisma.organization.findUnique({
+    where: { id: actor.organizationId },
+  });
+  if (!organization) throw new Error("ORGANIZATION_NOT_FOUND");
+
   const built = await buildReportContentFromTask(report.taskId, actor.organizationId);
   const activeVersion = report.versions[0] ?? null;
-  const allowLetterhead = canUseCustomLetterhead(report.organization);
-  const showWatermark = shouldShowWatermark(report.organization);
+  const allowLetterhead = canUseCustomLetterhead(organization);
+  const showWatermark = shouldShowWatermark(organization);
 
   const html = renderReportHtml({
     organization: {
-      name: report.organization.name,
-      address: report.organization.address,
-      phone: report.organization.phone,
-      email: report.organization.email,
-      logo: report.organization.logo,
-      letterheadUrl: report.organization.letterheadUrl,
+      name: organization.name,
+      address: organization.address,
+      phone: organization.phone,
+      email: organization.email,
+      logo: organization.logo,
+      letterheadUrl: organization.letterheadUrl,
     },
     department: Department.RADIOLOGY,
     content: built.content as any,
