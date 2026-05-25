@@ -167,6 +167,14 @@ export default async function RadiographerApprovedResultsPage({
                         >
                           Print
                         </Link>
+                        <Link
+                          href={`/api/radiology/reports/${report.id}/preview?printButton=1&autoPrint=1&watermark=without`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          Print without watermark
+                        </Link>
                       </div>
                     </td>
                   </tr>
