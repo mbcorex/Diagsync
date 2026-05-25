@@ -35,12 +35,13 @@ function splitIntoBullets(text: string): string[] {
     return single.split(";").map((s) => s.trim());
   }
 
-  // Check for colon-separated items like "Liver: ... Gallbladder: ..."
-  // First, try splitting with space: "... Gallbladder:"
-  let colonSplit = single.split(/(?<=[.:!?])\s+(?=[A-ZÄÖÜÀ-ÿ][a-z]*:)/);
+  // Check for colon-separated items like "Liver: ..." or "Soft Tissues: ..."
+  // Pattern: ends with punctuation, then optional space, then capitalized word(s) followed by colon
+  // This handles both "... Heart:" and "...Heart:" and "...Soft Tissues:"
+  let colonSplit = single.split(/(?<=[.:!?])\s+(?=[A-ZÄÖÜÀ-ÿ][a-zA-Zäöüà-ÿ\s]*:)/);
   if (colonSplit.length === 1) {
-    // No space - try without space requirement: "...Gallbladder:"
-    colonSplit = single.split(/(?<=[.:!?])(?=[A-ZÄÖÜÀ-ÿ][a-z]*:)/);
+    // No space between punctuation and next heading - try without space requirement
+    colonSplit = single.split(/(?<=[.:!?])(?=[A-ZÄÖÜÀ-ÿ][a-zA-Zäöüà-ÿ\s]*:)/);
   }
   if (colonSplit.length > 1) {
     return colonSplit.map((s) => s.trim());
