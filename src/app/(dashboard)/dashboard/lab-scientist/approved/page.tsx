@@ -256,12 +256,12 @@ export default async function LabScientistApprovedResultsPage({
                           Print
                         </Link>
                         <Link
-                          href={`/api/lab/tasks/${row.taskId}/preview?printButton=1&autoPrint=1&watermark=without`}
+                          href={`/api/lab/tasks/${row.taskId}/preview?printButton=1&autoPrint=1&letterhead=without`}
                           target="_blank"
                           rel="noreferrer"
                           className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
                         >
-                          Print without watermark
+                          Print without letterhead
                         </Link>
                       </div>
                     </td>
