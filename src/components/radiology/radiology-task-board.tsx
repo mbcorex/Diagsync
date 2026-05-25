@@ -113,6 +113,18 @@ function perTestFieldStorageKey(testOrderId: string, fieldKey: string) {
   return `test_${testOrderId}__${fieldKey.trim().toLowerCase()}`;
 }
 
+function formatExtraFieldLabel(key: string): string {
+  // Extract the part after "__" if it exists, otherwise use the whole key
+  const parts = key.split("__");
+  const fieldName = parts.length > 1 ? parts[parts.length - 1] : key;
+  
+  // Convert underscores to spaces and capitalize first letter of each word
+  return fieldName
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 const priorityStyle: Record<string, string> = {
   EMERGENCY: "bg-red-50 text-red-600", URGENT: "bg-amber-50 text-amber-700", ROUTINE: "bg-slate-100 text-slate-600",
 };
@@ -1140,7 +1152,7 @@ export function RadiologyTaskBoard() {
                                     ).map(([fieldKey, fieldValue]) => (
                                       <div key={fieldKey} className="grid grid-cols-12 gap-2 items-center">
                                         <input
-                                          value={fieldKey}
+                                          value={formatExtraFieldLabel(fieldKey)}
                                           readOnly
                                           className="col-span-4 rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-500"
                                         />
@@ -1152,7 +1164,7 @@ export function RadiologyTaskBoard() {
                                         <button
                                           type="button"
                                           onClick={() => {
-                                            if (!window.confirm(`Remove extra field '${fieldKey}'?`)) return;
+                                            if (!window.confirm(`Remove extra field '${formatExtraFieldLabel(fieldKey)}'?`)) return;
                                             removeExtraField(task.id, fieldKey);
                                           }}
                                           className="col-span-2 rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
