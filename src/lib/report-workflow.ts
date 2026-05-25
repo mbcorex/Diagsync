@@ -194,6 +194,73 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(signOff ? { signOff } : {}) } };
 }
 
+export async function renderRadiologyReportForPreview(
+  actor: ReportActor,
+  reportId: string,
+  options?: {
+    includeLetterhead?: boolean;
+    showPrintButton?: boolean;
+    autoPrint?: boolean;
+    baseUrl?: string;
+  }
+) {
+  await assertReportCoreAccess(actor);
+  const report = await prisma.radiologyReport.findFirst({
+    where: { id: reportId, organizationId: actor.organizationId },
+    include: {
+      organization: true,
+      task: {
+        include: {
+          visit: { include: { patient: true } },
+          imagingFiles: true,
+          review: true,
+        },
+      },
+      versions: { where: { isActive: true }, orderBy: { version: "desc" }, take: 1 },
+    },
+  });
+
+  if (!report) throw new Error("REPORT_NOT_FOUND");
+  if (!report.task?.review || report.task.review.status !== ReviewStatus.APPROVED) {
+    throw new Error("FORBIDDEN_ROLE");
+  }
+  if (actor.role === "RADIOGRAPHER" && report.staffId !== actor.id) {
+    throw new Error("FORBIDDEN_ROLE");
+  }
+
+  const built = await buildReportContentFromTask(report.taskId, actor.organizationId);
+  const activeVersion = report.versions[0] ?? null;
+  const allowLetterhead = canUseCustomLetterhead(report.organization);
+  const showWatermark = shouldShowWatermark(report.organization);
+
+  const html = renderReportHtml({
+    organization: {
+      name: report.organization.name,
+      address: report.organization.address,
+      phone: report.organization.phone,
+      email: report.organization.email,
+      logo: report.organization.logo,
+      letterheadUrl: report.organization.letterheadUrl,
+    },
+    department: Department.RADIOLOGY,
+    content: built.content as any,
+    comments: activeVersion?.notes ?? undefined,
+    prescription: undefined,
+    mdName: null,
+    watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
+    includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,
+    showPrintButton: options?.showPrintButton === true,
+    autoPrint: options?.autoPrint === true,
+    baseUrl: options?.baseUrl,
+  });
+
+  return {
+    report,
+    activeVersion,
+    html,
+  };
+}
+
 export async function ensureDraftReportForTask(taskId: string, actor: ReportActor) {
   const built = await buildReportContentFromTask(taskId, actor.organizationId);
   assertContentMatchesDepartment(built.content, built.department);
