@@ -619,6 +619,33 @@ export function MdReviewBoard({
                                       <span className="font-medium">{formatExtraFieldLabel(key)}:</span> {value}
                                     </p>
                                   ))}
+                                  {item.imagingFiles && item.imagingFiles.length > 0 ? (
+                                    <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-2">
+                                      <p className="text-[11px] font-medium text-slate-600 mb-2">Imaging Files ({item.imagingFiles.length})</p>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {item.imagingFiles.map((file) => (
+                                          <div key={file.id} className="rounded border border-slate-200 bg-white p-1.5">
+                                            <a
+                                              href={file.fileUrl}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="inline-block rounded overflow-hidden bg-slate-100"
+                                            >
+                                              <img
+                                                src={file.fileUrl}
+                                                alt={file.fileName}
+                                                className="h-24 w-24 object-cover"
+                                                onError={(e) => {
+                                                  (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect fill='%23e2e8f0' width='96' height='96'/%3E%3Ctext x='48' y='48' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8'%3ENo preview%3C/text%3E%3C/svg%3E";
+                                                }}
+                                              />
+                                            </a>
+                                            <p className="text-[10px] text-slate-600 mt-1 truncate" title={file.fileName}>{file.fileName}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
                                   {submittedRadSignature ? (
                                     <div className="rounded border border-slate-200 bg-slate-50 p-2">
                                       <p className="text-[11px] font-medium text-slate-600 mb-1">Signature</p>
@@ -806,6 +833,33 @@ export function MdReviewBoard({
                                         </button>
                                       </div>
                                     </div>
+                                    {item.imagingFiles && item.imagingFiles.length > 0 ? (
+                                      <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-2">
+                                        <p className="text-[11px] font-medium text-slate-600 mb-2">Imaging Files ({item.imagingFiles.length})</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {item.imagingFiles.map((file) => (
+                                            <div key={file.id} className="rounded border border-slate-200 bg-white p-1.5">
+                                              <a
+                                                href={file.fileUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-block rounded overflow-hidden bg-slate-100"
+                                              >
+                                                <img
+                                                  src={file.fileUrl}
+                                                  alt={file.fileName}
+                                                  className="h-24 w-24 object-cover"
+                                                  onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect fill='%23e2e8f0' width='96' height='96'/%3E%3Ctext x='48' y='48' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='%2394a3b8'%3ENo preview%3C/text%3E%3C/svg%3E";
+                                                  }}
+                                                />
+                                              </a>
+                                              <p className="text-[10px] text-slate-600 mt-1 truncate" title={file.fileName}>{file.fileName}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : null}
                                   </div>
                                 )}
                                 <label className="mt-2 block">
