@@ -76,6 +76,7 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Dashboard", href: "/dashboard/lab-scientist", icon: LayoutDashboard },
     { label: "My Queue", href: "/dashboard/lab-scientist/queue", icon: ClipboardList },
     { label: "Results", href: "/dashboard/lab-scientist/results", icon: FlaskConical },
+    { label: "Approved Results", href: "/dashboard/lab-scientist/approved", icon: Activity },
   ],
   INVENTORY_MANAGER: [
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },

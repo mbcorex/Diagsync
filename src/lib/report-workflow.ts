@@ -814,3 +814,50 @@ export async function renderReportForPreview(
     html,
   };
 }
+
+export async function renderLabTaskReportForPreview(
+  actor: ReportActor,
+  taskId: string,
+  options?: {
+    includeLetterhead?: boolean;
+    showPrintButton?: boolean;
+    autoPrint?: boolean;
+    hideWatermark?: boolean;
+    baseUrl?: string;
+  }
+) {
+  await assertReportCoreAccess(actor);
+  const organization = await prisma.organization.findUnique({
+    where: { id: actor.organizationId },
+  });
+  if (!organization) throw new Error("ORGANIZATION_NOT_FOUND");
+
+  const built = await buildReportContentFromTask(taskId, actor.organizationId);
+  const allowLetterhead = canUseCustomLetterhead(organization);
+  const showWatermark = options?.hideWatermark === true ? false : shouldShowWatermark(organization);
+
+  const html = renderReportHtml({
+    organization: {
+      name: organization.name,
+      address: organization.address,
+      phone: organization.phone,
+      email: organization.email,
+      logo: organization.logo,
+      letterheadUrl: organization.letterheadUrl,
+    },
+    department: built.department,
+    content: built.content as any,
+    comments: null,
+    prescription: null,
+    mdName: null,
+    watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
+    includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,
+    showPrintButton: options?.showPrintButton === true,
+    autoPrint: options?.autoPrint === true,
+    baseUrl: options?.baseUrl,
+  });
+
+  return {
+    html,
+  };
+}
