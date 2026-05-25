@@ -36,9 +36,20 @@ function splitIntoBullets(text: string): string[] {
   }
 
   // Check for colon-separated items like "Liver: ... Gallbladder: ..."
-  const colonSplit = single.split(/(?<=[.:!?])\s+(?=[A-ZÄÖÜÀ-ÿ])/);
+  // First, try splitting with space: "... Gallbladder:"
+  let colonSplit = single.split(/(?<=[.:!?])\s+(?=[A-ZÄÖÜÀ-ÿ][a-z]*:)/);
+  if (colonSplit.length === 1) {
+    // No space - try without space requirement: "...Gallbladder:"
+    colonSplit = single.split(/(?<=[.:!?])(?=[A-ZÄÖÜÀ-ÿ][a-z]*:)/);
+  }
   if (colonSplit.length > 1) {
     return colonSplit.map((s) => s.trim());
+  }
+
+  // Fallback: try generic uppercase letter split with or without space
+  const genericSplit = single.split(/(?<=[.:!?])\s*(?=[A-ZÄÖÜÀ-ÿ])/);
+  if (genericSplit.length > 1 && genericSplit.every((s) => s.length > 5)) {
+    return genericSplit.map((s) => s.trim());
   }
 
   return [single];
