@@ -148,10 +148,24 @@ function getVisibleRadiologyExtraFields(extraFields?: Record<string, string> | n
     ([key, value]) =>
       key !== SIGNOFF_IMAGE_KEY &&
       key !== SIGNOFF_NAME_KEY &&
+      !key.startsWith("__") &&
+      !key.startsWith("test_") &&
       value !== null &&
       value !== undefined &&
       String(value).trim() !== ""
   );
+}
+
+function formatExtraFieldLabel(key: string): string {
+  // Extract the part after "__" if it exists, otherwise use the whole key
+  const parts = key.split("__");
+  const fieldName = parts.length > 1 ? parts[parts.length - 1] : key;
+  
+  // Convert underscores to spaces and capitalize first letter of each word
+  return fieldName
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 export function MdReviewBoard({
@@ -602,7 +616,7 @@ export function MdReviewBoard({
                                   <p className="text-slate-700"><span className="font-medium">Impression:</span> {item.radiologyReport?.impression ?? "â€”"}</p>
                                   {submittedRadExtraFields.map(([key, value]) => (
                                     <p key={key} className="text-slate-700">
-                                      <span className="font-medium">{key}:</span> {value}
+                                      <span className="font-medium">{formatExtraFieldLabel(key)}:</span> {value}
                                     </p>
                                   ))}
                                   {submittedRadSignature ? (
@@ -733,7 +747,7 @@ export function MdReviewBoard({
                                       <div className="space-y-1.5">
                                         {editRadExtraFields.map(([key, value]) => (
                                           <div key={key} className="grid grid-cols-12 gap-1.5 items-center">
-                                            <input value={key} readOnly className="col-span-4 h-7 rounded border border-slate-200 bg-slate-50 px-2 text-xs text-slate-500" />
+                                            <input value={formatExtraFieldLabel(key)} readOnly className="col-span-4 h-7 rounded border border-slate-200 bg-slate-50 px-2 text-xs text-slate-500" />
                                             <input
                                               value={value}
                                               onChange={(e) => setRadExtraField(item.id, key, e.target.value)}
@@ -742,7 +756,7 @@ export function MdReviewBoard({
                                             <button
                                               type="button"
                                               onClick={() => {
-                                                if (!window.confirm(`Remove extra field '${key}'?`)) return;
+                                                if (!window.confirm(`Remove extra field '${formatExtraFieldLabel(key)}'?`)) return;
                                                 removeRadExtraField(item.id, key);
                                               }}
                                               className="col-span-2 rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100"

@@ -175,6 +175,7 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     ? Object.fromEntries(
         Object.entries(stripSignOffKeys(rawExtraFields))
           .filter(([key]) => key !== "__perTestReports")
+          .filter(([key]) => !key.startsWith("test_"))
           .map(([key, value]) => [key, value === null || value === undefined ? "" : String(value)])
           .filter(([key]) => key.trim().length > 0)
       )
