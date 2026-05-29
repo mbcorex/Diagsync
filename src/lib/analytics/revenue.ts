@@ -27,26 +27,26 @@ export async function getRevenueStats(orgId: string) {
   const monthPreviousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
 
   const [todayAgg, monthAgg, prevMonthAgg, topTestsRaw, staffRevenueRaw] = await Promise.all([
-    prisma.visitPayment.aggregate({
+    prisma.visit.aggregate({
       where: {
         organizationId: orgId,
-        createdAt: { gte: todayStart, lt: now },
+        registeredAt: { gte: todayStart, lt: now },
       },
-      _sum: { amount: true },
+      _sum: { amountPaid: true },
     }),
-    prisma.visitPayment.aggregate({
+    prisma.visit.aggregate({
       where: {
         organizationId: orgId,
-        createdAt: { gte: monthCurrentStart, lt: monthNextStart },
+        registeredAt: { gte: monthCurrentStart, lt: monthNextStart },
       },
-      _sum: { amount: true },
+      _sum: { amountPaid: true },
     }),
-    prisma.visitPayment.aggregate({
+    prisma.visit.aggregate({
       where: {
         organizationId: orgId,
-        createdAt: { gte: monthPreviousStart, lt: monthCurrentStart },
+        registeredAt: { gte: monthPreviousStart, lt: monthCurrentStart },
       },
-      _sum: { amount: true },
+      _sum: { amountPaid: true },
     }),
     prisma.testOrder.groupBy({
       by: ["testId"],
