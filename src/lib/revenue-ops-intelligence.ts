@@ -24,22 +24,60 @@ function dayKey(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
-export async function getRevenueOpsIntelligence(actor: HrmActor) {
+export type AnalyticsPeriod = "today" | "last7" | "last30" | "thisMonth" | "lastMonth" | "thisYear" | "allTime" | "custom";
+
+export function getDateRangeForAnalyticsPeriod(period: AnalyticsPeriod, customStart?: Date, customEnd?: Date) {
+  const now = new Date();
+  let rangeStart: Date;
+  let rangeEnd: Date = now;
+
+  switch (period) {
+    case "today":
+      rangeStart = new Date(now);
+      rangeStart.setHours(0, 0, 0, 0);
+      break;
+    case "last7":
+      rangeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case "last30":
+      rangeStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    case "thisMonth":
+      rangeStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      break;
+    case "lastMonth":
+      rangeEnd = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      rangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+      break;
+    case "thisYear":
+      rangeStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      break;
+    case "custom":
+      rangeStart = customStart || new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      rangeEnd = customEnd || now;
+      break;
+    case "allTime":
+    default:
+      rangeStart = new Date(1970, 0, 1);
+  }
+
+  return { rangeStart, rangeEnd };
+}
+
+export async function getRevenueOpsIntelligence(actor: HrmActor, period: AnalyticsPeriod = "last30", customStart?: Date, customEnd?: Date) {
   assertHrm(actor);
 
   const now = new Date();
-  const start30 = new Date(now);
-  start30.setDate(start30.getDate() - 29);
-  start30.setHours(0, 0, 0, 0);
-
-  const start14 = new Date(now);
-  start14.setDate(start14.getDate() - 13);
-  start14.setHours(0, 0, 0, 0);
+  const { rangeStart, rangeEnd } = getDateRangeForAnalyticsPeriod(period, customStart, customEnd);
+  
+  const start30 = rangeStart;
+  const start14 = new Date(rangeStart);
+  start14.setDate(Math.max(start14.getDate(), rangeStart.getDate() - 13));
 
   const visits = await prisma.visit.findMany({
     where: {
       organizationId: actor.organizationId,
-      registeredAt: { gte: start30 },
+      registeredAt: { gte: rangeStart, lte: rangeEnd },
     },
     select: {
       id: true,
@@ -167,9 +205,11 @@ export async function getRevenueOpsIntelligence(actor: HrmActor) {
     return { date: key, ...day };
   });
 
+  const windowDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (24 * 60 * 60 * 1000));
+
   return {
     summary: {
-      windowDays: 30,
+      windowDays,
       billedValue,
       collectedValue,
       uncollectedLeakage,
@@ -177,6 +217,8 @@ export async function getRevenueOpsIntelligence(actor: HrmActor) {
       completionLeakageRate,
       orderedCount,
       completedCount,
+      rangeStart,
+      rangeEnd,
     },
     topTestPerformance,
     dailyRevenue,
