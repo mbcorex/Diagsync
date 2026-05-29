@@ -94,9 +94,9 @@ export async function getRevenueStats(orgId: string) {
   const staffMap = new Map(staff.map((s) => [s.id, s.fullName]));
 
   return {
-    todayRevenue: Number(todayAgg._sum.amount ?? 0),
-    monthRevenue: Number(monthAgg._sum.amount ?? 0),
-    growth: safeGrowth(Number(monthAgg._sum.amount ?? 0), Number(prevMonthAgg._sum.amount ?? 0)),
+    todayRevenue: Number(todayAgg._sum.amountPaid ?? 0),
+    monthRevenue: Number(monthAgg._sum.amountPaid ?? 0),
+    growth: safeGrowth(Number(monthAgg._sum.amountPaid ?? 0), Number(prevMonthAgg._sum.amountPaid ?? 0)),
     topTests: topTestsRaw.map((row) => ({
       testId: row.testId,
       testName: testMap.get(row.testId) ?? "Unknown Test",
