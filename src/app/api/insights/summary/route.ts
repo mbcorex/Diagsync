@@ -68,8 +68,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        todayRevenue: revenueStats.todayRevenue,
-        monthRevenue: revenueStats.monthRevenue,
+        todayRevenue: revenueStats.periodRevenue,
+        monthRevenue: revenueStats.periodRevenue,
         growth: revenueStats.growth,
         patientsToday,
         patientsWeek: labStats.patientsThisWeek,
