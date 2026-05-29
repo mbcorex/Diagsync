@@ -2,12 +2,9 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatCurrency } from "@/lib/utils";
-import { getRevenueStats } from "@/lib/analytics/revenue";
-import { getLabStats } from "@/lib/analytics/lab-stats";
-import { StatCard } from "@/components/insights/StatCard";
-import { SectionCard } from "@/components/insights/SectionCard";
 import { getDashboardPath } from "@/lib/utils";
+import { getLabStats } from "@/lib/analytics/lab-stats";
+import { RevenueStatsCard } from "@/components/insights/revenue-stats-card";
 import { MdStaffCallPanel } from "@/components/md/md-staff-call-panel";
 
 export default async function InsightsDashboardPage() {
@@ -23,8 +20,7 @@ export default async function InsightsDashboardPage() {
   todayStart.setHours(0, 0, 0, 0);
   const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [revenueStats, labStats, patientsToday, recentOrders] = await Promise.all([
-    getRevenueStats(user.organizationId),
+  const [labStats, patientsToday, recentOrders] = await Promise.all([
     getLabStats(user.organizationId),
     prisma.visit.count({
       where: { organizationId: user.organizationId, registeredAt: { gte: todayStart, lt: now } },
@@ -67,93 +63,14 @@ export default async function InsightsDashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-base font-semibold text-slate-800">Insights Dashboard</h1>
-        <p className="text-xs text-slate-500">Revenue, growth, activity and performance at a glance.</p>
-      </div>
-
       <MdStaffCallPanel callerRole={user.role} />
-
-      <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard
-          title="Revenue Today"
-          value={formatCurrency(revenueStats.todayRevenue)}
-          sub={`This Month: ${formatCurrency(revenueStats.monthRevenue)}`}
-        />
-        <StatCard
-          title="Growth"
-          value={`${revenueStats.growth >= 0 ? "+" : ""}${revenueStats.growth}%`}
-          sub="vs last period"
-          color={revenueStats.growth >= 0 ? "green" : "red"}
-        />
-        <StatCard
-          title="Patients Today"
-          value={`${patientsToday}`}
-          sub={`This week: ${labStats.patientsThisWeek}`}
-        />
-        <StatCard
-          title="Operational Alerts"
-          value={`${alerts} Delays`}
-          sub={alerts > 0 ? "Needs attention" : "No delay warnings"}
-          color={alerts > 0 ? "red" : "green"}
-        />
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <SectionCard title="Top Tests">
-          {revenueStats.topTests.length === 0 ? (
-            <p className="text-xs text-slate-500">No data yet</p>
-          ) : (
-            <div className="space-y-2">
-              {revenueStats.topTests.map((test) => (
-                <div key={test.testId} className="flex items-center justify-between rounded-lg border border-slate-100 p-2">
-                  <span className="text-sm text-slate-700">{test.testName}</span>
-                  <span className="text-sm font-semibold text-slate-900">{formatCurrency(test.amount)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Staff Performance">
-          {staffPerformance.length === 0 ? (
-            <p className="text-xs text-slate-500">No data yet</p>
-          ) : (
-            <div className="space-y-2">
-              {staffPerformance.map((staff) => (
-                <div key={staff.id} className="flex items-center justify-between rounded-lg border border-slate-100 p-2">
-                  <span className="text-sm text-slate-700">{staff.name}</span>
-                  <span className="text-sm font-semibold text-slate-900">{staff.completedTests} tests</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
-      </section>
-
-      <SectionCard title="Weekly Summary">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">Patients This Week</p>
-            <p className="text-lg font-semibold text-slate-900">{labStats.patientsThisWeek}</p>
-          </div>
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">Growth %</p>
-            <p className={`text-lg font-semibold ${labStats.growthPercent >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-              {labStats.growthPercent >= 0 ? "+" : ""}
-              {labStats.growthPercent}%
-            </p>
-          </div>
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">Busiest Day</p>
-            <p className="text-lg font-semibold text-slate-900">{labStats.busiestDay}</p>
-          </div>
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">Quietest Day</p>
-            <p className="text-lg font-semibold text-slate-900">{labStats.quietestDay}</p>
-          </div>
-        </div>
-      </SectionCard>
+      
+      <RevenueStatsCard
+        patientsToday={patientsToday}
+        labStats={labStats}
+        alerts={alerts}
+        staffPerformance={staffPerformance}
+      />
 
       <div className="flex justify-end">
         <Link href="/insights/reports" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">

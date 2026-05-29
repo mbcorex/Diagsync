@@ -1,16 +1,16 @@
 import { prisma } from "@/lib/prisma";
 
-function dayStart(date: Date) {
+export function dayStart(date: Date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
-function monthStart(date: Date) {
+export function monthStart(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
 }
 
-function nextMonthStart(date: Date) {
+export function nextMonthStart(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, 0, 0);
 }
 
@@ -19,32 +19,82 @@ function safeGrowth(current: number, previous: number) {
   return Number((((current - previous) / previous) * 100).toFixed(2));
 }
 
-export async function getRevenueStats(orgId: string) {
+export type RevenuePeriod = "today" | "last7" | "last30" | "thisMonth" | "lastMonth" | "thisYear" | "allTime" | "custom";
+
+export function getDateRangeForPeriod(period: RevenuePeriod, customStart?: Date, customEnd?: Date) {
   const now = new Date();
-  const todayStart = dayStart(now);
+  let rangeStart: Date;
+  let rangeEnd: Date = now;
+  let comparisonStart: Date;
+  let comparisonEnd: Date;
+
+  switch (period) {
+    case "today":
+      rangeStart = dayStart(now);
+      comparisonStart = dayStart(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+      comparisonEnd = rangeStart;
+      break;
+    case "last7":
+      rangeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      comparisonStart = new Date(rangeStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+      comparisonEnd = rangeStart;
+      break;
+    case "last30":
+      rangeStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      comparisonStart = new Date(rangeStart.getTime() - 30 * 24 * 60 * 60 * 1000);
+      comparisonEnd = rangeStart;
+      break;
+    case "thisMonth":
+      rangeStart = monthStart(now);
+      comparisonStart = monthStart(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      comparisonEnd = rangeStart;
+      break;
+    case "lastMonth":
+      rangeEnd = monthStart(now);
+      rangeStart = monthStart(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      comparisonStart = monthStart(new Date(now.getFullYear(), now.getMonth() - 2, 1));
+      comparisonEnd = rangeStart;
+      break;
+    case "thisYear":
+      rangeStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      comparisonStart = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0, 0);
+      comparisonEnd = rangeStart;
+      break;
+    case "custom":
+      rangeStart = customStart || dayStart(now);
+      rangeEnd = customEnd || now;
+      const rangeDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (24 * 60 * 60 * 1000));
+      comparisonStart = new Date(rangeStart.getTime() - rangeDays * 24 * 60 * 60 * 1000);
+      comparisonEnd = rangeStart;
+      break;
+    case "allTime":
+    default:
+      rangeStart = new Date(1970, 0, 1);
+      comparisonStart = new Date(1970, 0, 1);
+      comparisonEnd = rangeStart;
+  }
+
+  return { rangeStart, rangeEnd, comparisonStart, comparisonEnd };
+}
+
+export async function getRevenueStats(orgId: string, period: RevenuePeriod = "thisMonth", customStart?: Date, customEnd?: Date) {
+  const now = new Date();
+  const { rangeStart, rangeEnd, comparisonStart, comparisonEnd } = getDateRangeForPeriod(period, customStart, customEnd);
   const monthCurrentStart = monthStart(now);
   const monthNextStart = nextMonthStart(now);
-  const monthPreviousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
 
-  const [todayAgg, monthAgg, prevMonthAgg, topTestsRaw, staffRevenueRaw] = await Promise.all([
+  const [rangeAgg, comparisonAgg, topTestsRaw, staffRevenueRaw] = await Promise.all([
     prisma.visit.aggregate({
       where: {
         organizationId: orgId,
-        registeredAt: { gte: todayStart, lt: now },
+        registeredAt: { gte: rangeStart, lte: rangeEnd },
       },
       _sum: { amountPaid: true },
     }),
     prisma.visit.aggregate({
       where: {
         organizationId: orgId,
-        registeredAt: { gte: monthCurrentStart, lt: monthNextStart },
-      },
-      _sum: { amountPaid: true },
-    }),
-    prisma.visit.aggregate({
-      where: {
-        organizationId: orgId,
-        registeredAt: { gte: monthPreviousStart, lt: monthCurrentStart },
+        registeredAt: { gte: comparisonStart, lt: comparisonEnd },
       },
       _sum: { amountPaid: true },
     }),
@@ -52,7 +102,7 @@ export async function getRevenueStats(orgId: string) {
       by: ["testId"],
       where: {
         organizationId: orgId,
-        registeredAt: { gte: monthCurrentStart, lt: monthNextStart },
+        registeredAt: { gte: rangeStart, lte: rangeEnd },
       },
       _sum: { price: true },
       orderBy: { _sum: { price: "desc" } },
@@ -62,7 +112,7 @@ export async function getRevenueStats(orgId: string) {
       by: ["assignedToId"],
       where: {
         organizationId: orgId,
-        registeredAt: { gte: monthCurrentStart, lt: monthNextStart },
+        registeredAt: { gte: rangeStart, lte: rangeEnd },
         assignedToId: { not: null },
       },
       _sum: { price: true },
@@ -94,9 +144,11 @@ export async function getRevenueStats(orgId: string) {
   const staffMap = new Map(staff.map((s) => [s.id, s.fullName]));
 
   return {
-    todayRevenue: Number(todayAgg._sum.amountPaid ?? 0),
-    monthRevenue: Number(monthAgg._sum.amountPaid ?? 0),
-    growth: safeGrowth(Number(monthAgg._sum.amountPaid ?? 0), Number(prevMonthAgg._sum.amountPaid ?? 0)),
+    periodRevenue: Number(rangeAgg._sum.amountPaid ?? 0),
+    comparisonRevenue: Number(comparisonAgg._sum.amountPaid ?? 0),
+    growth: safeGrowth(Number(rangeAgg._sum.amountPaid ?? 0), Number(comparisonAgg._sum.amountPaid ?? 0)),
+    rangeStart,
+    rangeEnd,
     topTests: topTestsRaw.map((row) => ({
       testId: row.testId,
       testName: testMap.get(row.testId) ?? "Unknown Test",
