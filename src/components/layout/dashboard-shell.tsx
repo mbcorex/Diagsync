@@ -4,7 +4,6 @@ import { Role } from "@prisma/client";
 import { Sidebar } from "@/components/layout/sidebar";
 import { HeaderBar } from "@/components/layout/header-bar";
 import { OfflineStatusBar } from "@/components/shared/offline-status-bar";
-import { AppWarmup } from "@/components/shared/app-warmup";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { InstallPrompt } from "@/components/install-prompt";
 
@@ -43,7 +42,6 @@ export function DashboardShell({
       <Sidebar user={user} className="hidden md:flex" />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <AppWarmup />
         <HeaderBar
           staffId={staffId}
           staffName={staffName}

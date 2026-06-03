@@ -1513,7 +1513,7 @@ export function LabTaskBoard() {
       void loadTasks({ force: true, silent: true });
     };
 
-    const poll = window.setInterval(refreshNow, 12_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
 
@@ -2296,7 +2296,7 @@ export function LabTaskBoard() {
       const task = tasksRef.current.find((row) => row.id === taskId);
       if (!task || !showResultForm(task) || task.status === "COMPLETED") return;
       void persistDraft(task, draftsRef.current).catch(() => undefined);
-    }, 5000);
+    }, 30_000);
     return () => window.clearInterval(timer);
   }, [expandedTask]);
 

@@ -16,14 +16,6 @@ type NotificationItem = {
   isRead: boolean; entityId?: string | null; entityType?: string | null; createdAt: string;
 };
 type NotificationResponse = { items: NotificationItem[]; unreadCount: number; nextCursor: string | null };
-type StreamNotificationPayload = {
-  unreadCount?: number;
-  topId?: string | null;
-  topType?: string | null;
-  topTitle?: string | null;
-  topMessage?: string | null;
-  topIsRead?: boolean | null;
-};
 
 function roleNotificationPath(role: string) {
   if (role === "RECEPTIONIST") return "/dashboard/receptionist/notifications";
@@ -45,9 +37,6 @@ export function NotificationBell({ role }: { role: string }) {
   const pendingCallIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reconnectDelayMsRef = useRef(1500);
-  const streamRef = useRef<EventSource | null>(null);
   const lastLoadAtRef = useRef(0);
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
@@ -393,103 +382,21 @@ export function NotificationBell({ role }: { role: string }) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const cleanupReconnect = () => {
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") void load();
     };
-
-    const connect = () => {
-      if (cancelled) return;
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
-      cleanupReconnect();
-      if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
-      }
-      const stream = new EventSource("/api/notifications/stream");
-      streamRef.current = stream;
-
-      stream.addEventListener("ready", () => {
-        reconnectDelayMsRef.current = 1500;
-      });
-      stream.addEventListener("notification", (event) => {
-        reconnectDelayMsRef.current = 1500;
-        const payload = (() => {
-          try {
-            return JSON.parse((event as MessageEvent).data ?? "{}") as StreamNotificationPayload;
-          } catch {
-            return {} as StreamNotificationPayload;
-          }
-        })();
-
-        if (typeof payload.unreadCount === "number") {
-          setData((prev) => ({ ...prev, unreadCount: payload.unreadCount as number }));
-        }
-
-        const topId = payload.topId ?? null;
-        if (
-          topId &&
-          payload.topIsRead === false &&
-          !seenIdsRef.current.has(topId) &&
-          initializedRef.current
-        ) {
-          const topItem: NotificationItem = {
-            id: topId,
-            type: payload.topType ?? "SYSTEM",
-            title: payload.topTitle ?? "",
-            message: payload.topMessage ?? "",
-            isRead: false,
-            createdAt: new Date().toISOString(),
-          };
-          if (isCallNotification(topItem)) {
-            enqueuePendingCall([topId]);
-          } else if (isVitalNotification(topItem)) {
-            enqueuePendingVital([topId]);
-          }
-          flushPendingVitalAlerts();
-        }
-
-        if (open) {
-          void load();
-        }
-      });
-      stream.addEventListener("error", () => {
-        stream.close();
-        if (cancelled) return;
-        const delay = reconnectDelayMsRef.current;
-        reconnectDelayMsRef.current = Math.min(15_000, Math.floor(delay * 1.7));
-        reconnectTimerRef.current = setTimeout(() => {
-          connect();
-        }, delay);
-      });
-    };
-
-    connect();
-
-    const onVisibility = () => {
+    const poll = window.setInterval(refreshVisible, 45_000);
+    const onVisibilityOrFocus = () => {
       if (document.visibilityState === "visible") {
-        reconnectDelayMsRef.current = 1500;
-        connect();
         void load(true);
-      } else if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
       }
     };
-    document.addEventListener("visibilitychange", onVisibility);
-
+    window.addEventListener("focus", onVisibilityOrFocus);
+    document.addEventListener("visibilitychange", onVisibilityOrFocus);
     return () => {
-      cancelled = true;
-      document.removeEventListener("visibilitychange", onVisibility);
-      cleanupReconnect();
-      if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
-      }
+      window.clearInterval(poll);
+      window.removeEventListener("focus", onVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", onVisibilityOrFocus);
     };
   }, []);
 

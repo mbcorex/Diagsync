@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { getRevenueStats, RevenuePeriod } from "@/lib/analytics/revenue";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

@@ -90,7 +90,7 @@ export function HrmOperationsBoard({ staffOptions }: { staffOptions: StaffOption
     const timer = window.setInterval(() => {
       if (busyTaskId) return;
       void loadData();
-    }, 30000);
+    }, 120_000);
     return () => window.clearInterval(timer);
   }, [busyTaskId, department, status, priority]);
 

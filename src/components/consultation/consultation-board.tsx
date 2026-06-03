@@ -95,7 +95,7 @@ export function ConsultationBoard({ role }: { role: "RECEPTIONIST" | "MD" | "HRM
   useEffect(() => {
     const poll = window.setInterval(() => {
       void loadQueue({ silent: true });
-    }, 15_000);
+    }, 60_000);
     return () => window.clearInterval(poll);
   }, [search, date, days]);
 

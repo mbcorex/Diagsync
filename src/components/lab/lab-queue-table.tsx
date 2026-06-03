@@ -66,21 +66,14 @@ export function LabQueueTable({ rows }: { rows: QueueRow[] }) {
       }, 1200);
     };
 
-    const poll = window.setInterval(refreshNow, 10_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
-
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", refreshNow);
-    stream.onerror = () => {
-      stream.close();
-    };
 
     return () => {
       window.clearInterval(poll);
       window.removeEventListener("focus", refreshNow);
       document.removeEventListener("visibilitychange", refreshNow);
-      stream.close();
     };
   }, [router]);
 

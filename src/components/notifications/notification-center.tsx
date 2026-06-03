@@ -49,10 +49,17 @@ export function NotificationCenter() {
   useEffect(() => { void load(); }, []);
 
   useEffect(() => {
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", () => { void load(); });
-    stream.addEventListener("error", () => { stream.close(); });
-    return () => stream.close();
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    const poll = window.setInterval(refreshVisible, 60_000);
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
   }, []);
 
   return (
