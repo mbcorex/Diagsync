@@ -76,24 +76,22 @@ export async function DELETE(_: NextRequest, { params }: { params: { itemId: str
       return NextResponse.json({ success: false, error: "Item not found" }, { status: 404 });
     }
 
-    const movementCount = await prisma.inventoryMovementLog.count({
-      where: {
-        organizationId: user.organizationId,
-        inventoryItemId: params.itemId,
-      },
-    });
-    if (movementCount > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Cannot delete this item because movement history exists. Edit the item instead.",
-        },
-        { status: 409 }
-      );
-    }
-
-    await prisma.inventoryItem.delete({
-      where: { id: params.itemId },
+    await prisma.$transaction(async (tx) => {
+      await tx.inventoryConsumptionMapping.deleteMany({
+        where: { organizationId: user.organizationId, inventoryItemId: params.itemId },
+      });
+      await tx.inventoryMovementLog.deleteMany({
+        where: { organizationId: user.organizationId, inventoryItemId: params.itemId },
+      });
+      await tx.inventoryStockEntry.deleteMany({
+        where: { organizationId: user.organizationId, inventoryItemId: params.itemId },
+      });
+      await tx.inventoryBalance.deleteMany({
+        where: { organizationId: user.organizationId, inventoryItemId: params.itemId },
+      });
+      await tx.inventoryItem.delete({
+        where: { id: params.itemId },
+      });
     });
 
     return NextResponse.json({ success: true, message: `${existing.name} deleted` });
