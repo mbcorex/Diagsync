@@ -220,17 +220,23 @@ export async function getRadiologyTasks(
       ...(opts?.status && opts.status !== "ALL" ? { status: opts.status } : {}),
     },
     include: {
-      visit: { include: { patient: true } },
-      imagingFiles: {
+      visit: {
         select: {
           id: true,
-          fileUrl: true,
-          fileType: true,
-          fileName: true,
-          fileSizeBytes: true,
-          createdAt: true,
+          visitNumber: true,
+          patient: {
+            select: {
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            },
+          },
         },
-        orderBy: { createdAt: "desc" },
+      },
+      _count: {
+        select: { imagingFiles: true },
       },
       radiologyReport: {
         select: {
@@ -243,6 +249,7 @@ export async function getRadiologyTasks(
       },
     },
     orderBy: { createdAt: opts?.sort === "oldest" ? "asc" : "desc" },
+    take: 80,
   });
 
   const allOrderIds = Array.from(new Set(rows.flatMap((task) => task.testOrderIds)));
@@ -284,7 +291,7 @@ export async function getRadiologyTasks(
     testOrders: task.testOrderIds
       .map((id) => orderMap.get(id))
       .filter((order): order is (typeof orders)[number] => Boolean(order)),
-    imageCount: task.imagingFiles.length,
+    imageCount: task._count.imagingFiles,
   }));
 
   return tasksWithImageCount;

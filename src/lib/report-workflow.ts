@@ -386,8 +386,30 @@ export async function listReports(
         : {}),
       ...(dateRange ? { updatedAt: dateRange } : {}),
     },
-    include: { visit: { include: { patient: true } } },
+    select: {
+      id: true,
+      reportType: true,
+      department: true,
+      status: true,
+      isReleased: true,
+      releasedAt: true,
+      updatedAt: true,
+      visit: {
+        select: {
+          visitNumber: true,
+          patient: {
+            select: {
+              fullName: true,
+              patientId: true,
+              age: true,
+              sex: true,
+            },
+          },
+        },
+      },
+    },
     orderBy: { updatedAt: "desc" },
+    take: 80,
   });
   return reports;
 }
@@ -403,6 +425,7 @@ export async function getReportDetails(actor: ReportActor, reportId: string) {
       versions: {
         include: { editedBy: { select: { id: true, fullName: true } } },
         orderBy: { version: "desc" },
+        take: 10,
       },
     },
   });

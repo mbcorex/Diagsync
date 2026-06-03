@@ -133,16 +133,39 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
   const tasks = await prisma.routingTask.findMany({
     where,
     include: {
-      visit: { include: { patient: true } },
+      visit: {
+        select: {
+          id: true,
+          visitNumber: true,
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            },
+          },
+        },
+      },
       review: true,
       staff: { select: { id: true, fullName: true } },
-      imagingFiles: true,
+      imagingFiles: {
+        select: {
+          id: true,
+          fileName: true,
+          fileUrl: true,
+        },
+      },
       radiologyReport: {
         include: {
           staff: { select: { id: true, fullName: true } },
           versions: {
+            where: { isActive: true },
             include: { editedBy: { select: { id: true, fullName: true } } },
             orderBy: { version: "desc" },
+            take: 1,
           },
         },
       },
@@ -179,13 +202,16 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
             },
           },
           versions: {
+            where: { isActive: true },
             include: { editedBy: { select: { id: true, fullName: true } } },
             orderBy: { version: "desc" },
+            take: 1,
           },
         },
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: 80,
   });
 
   const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
@@ -241,7 +267,8 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
             orderBy: { createdAt: "asc" },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
+        take: 120,
       })
     : [];
 
@@ -272,6 +299,14 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
     }
     historyMap.set(patientId, existing);
   }
+  for (const [patientId, rows] of Array.from(historyMap.entries())) {
+    historyMap.set(
+      patientId,
+      rows
+        .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime())
+        .slice(-30)
+    );
+  }
 
   const items = tasks.map((task) => {
     const startedByNames = Array.from(
@@ -301,17 +336,7 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
         currentVersion: activeVersion?.version ?? 1,
         resultData: activeVersion?.resultData ?? result.resultData,
         notes: activeVersion?.notes ?? result.notes,
-        versionHistory: result.versions.map((version) => ({
-          id: version.id,
-          version: version.version,
-          isActive: version.isActive,
-          parentId: version.parentId,
-          resultData: version.resultData,
-          notes: version.notes,
-          editReason: version.editReason,
-          editedBy: version.editedBy,
-          createdAt: version.createdAt,
-        })),
+        versionHistory: [],
       };
     });
 
@@ -326,19 +351,7 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
           impression: activeReportVersion?.impression ?? task.radiologyReport.impression,
           notes: activeReportVersion?.notes ?? task.radiologyReport.notes,
           extraFields: activeReportVersion?.extraFields ?? task.radiologyReport.extraFields,
-          versionHistory: task.radiologyReport.versions.map((version) => ({
-            id: version.id,
-            version: version.version,
-            isActive: version.isActive,
-            parentId: version.parentId,
-            findings: version.findings,
-            impression: version.impression,
-            notes: version.notes,
-            extraFields: version.extraFields,
-            editReason: version.editReason,
-            editedBy: version.editedBy,
-            createdAt: version.createdAt,
-          })),
+          versionHistory: [],
         }
       : null;
 
