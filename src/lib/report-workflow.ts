@@ -171,21 +171,34 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   const parsedPerTest = parseRadiologyPerTestSections((rawExtraFields ?? {}) as Record<string, string>);
   const perTestMap = new Map(parsedPerTest.map((row) => [row.testOrderId, row]));
   const signOff = extractSignOffFromMap(rawExtraFields);
-  const extraFields = rawExtraFields
-    ? Object.fromEntries(
-        Object.entries(stripSignOffKeys(rawExtraFields))
-          .filter(([key]) => key !== "__perTestReports")
-          .filter(([key]) => !key.startsWith("test_"))
-          .map(([key, value]) => [key, value === null || value === undefined ? "" : String(value)])
-          .filter(([key]) => key.trim().length > 0)
-      )
-    : {};
+
+  // Split raw extra fields into common report-level fields and per-test custom fields
+  const commonExtraFields: Record<string, string> = {};
+  const perTestCustom = new Map<string, Record<string, string>>();
+  if (rawExtraFields) {
+    const stripped = stripSignOffKeys(rawExtraFields as Record<string, unknown>);
+    for (const [key, value] of Object.entries(stripped)) {
+      if (key === "__perTestReports") continue;
+      const m = key.match(/^test_(.+?)__(.+)$/);
+      if (m) {
+        const testOrderId = m[1];
+        const fieldKey = m[2];
+        const map = perTestCustom.get(testOrderId) ?? {};
+        map[fieldKey] = value === null || value === undefined ? "" : String(value);
+        perTestCustom.set(testOrderId, map);
+      } else {
+        if (String(key).trim().length === 0) continue;
+        commonExtraFields[key] = value === null || value === undefined ? "" : String(value);
+      }
+    }
+  }
+
   const tests = radiologyTests.map((order) => ({
     name: order.test.name,
     findings: perTestMap.get(order.id)?.findings ?? activeReportVersion?.findings ?? report?.findings ?? "",
     impression: perTestMap.get(order.id)?.impression ?? activeReportVersion?.impression ?? report?.impression ?? "",
     notes: perTestMap.get(order.id)?.notes ?? activeReportVersion?.notes ?? report?.notes ?? "",
-    extraFields,
+    extraFields: { ...(commonExtraFields ?? {}), ...(perTestCustom.get(order.id) ?? {}) },
   }));
   const imagingFiles = task.imagingFiles.map((file) => ({
     url: file.fileUrl,
