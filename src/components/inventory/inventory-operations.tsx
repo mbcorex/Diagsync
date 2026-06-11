@@ -73,9 +73,9 @@ export function InventoryOperations({
   const [stockBatch, setStockBatch] = useState("");
   const [stockSupplier, setStockSupplier] = useState("");
 
-  const [mapItemId, setMapItemId] = useState("");
-  const [mapTestId, setMapTestId] = useState("");
-  const [mapQty, setMapQty] = useState("");
+  const [mappingsRows, setMappingsRows] = useState<{ inventoryItemId: string; testId: string; quantity: string }[]>([
+    { inventoryItemId: "", testId: "", quantity: "" },
+  ]);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState<"TEST_KIT" | "REAGENT" | "CONSUMABLE">("TEST_KIT");
@@ -155,7 +155,7 @@ export function InventoryOperations({
         body: JSON.stringify({
           inventoryItemId: stockItemId,
           quantityAdded: Number(stockQty),
-          expiryDate: stockExpiry,
+          expiryDate: stockExpiry || null,
           batchNumber: stockBatch || null,
           supplier: stockSupplier || null,
         }),
@@ -175,28 +175,38 @@ export function InventoryOperations({
     }
   }
 
+  function updateMappingRow(index: number, row: { inventoryItemId: string; testId: string; quantity: string }) {
+    setMappingsRows((prev) => prev.map((r, i) => (i === index ? row : r)));
+  }
+
+  function removeMappingRow(index: number) {
+    setMappingsRows((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function saveMapping() {
     setBusy(true);
     setError("");
     setFeedback("");
     try {
+      const payload = mappingsRows
+        .filter((r) => r.inventoryItemId && r.testId && r.quantity)
+        .map((r) => ({
+          inventoryItemId: r.inventoryItemId,
+          testId: r.testId,
+          quantityPerTest: Number(r.quantity),
+        }));
+
+      if (payload.length === 0) throw new Error("No valid mappings to save");
+
       const res = await fetch("/api/inventory/mappings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mappings: [
-            {
-              inventoryItemId: mapItemId,
-              testId: mapTestId,
-              quantityPerTest: Number(mapQty),
-            },
-          ],
-        }),
+        body: JSON.stringify({ mappings: payload }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error ?? "Failed to save mapping");
       setFeedback("Consumption mapping saved.");
-      setMapQty("");
+      setMappingsRows([{ inventoryItemId: "", testId: "", quantity: "" }]);
       await loadAll();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save mapping");
@@ -342,36 +352,54 @@ export function InventoryOperations({
               <Input value={stockSupplier} onChange={(e) => setStockSupplier(e.target.value)} placeholder="MedSupply Ltd" />
             </div>
           </div>
-          <Button disabled={busy || !stockItemId || !stockQty || !stockExpiry} onClick={addStock}>Add Stock</Button>
+          <Button disabled={busy || !stockItemId || !stockQty} onClick={addStock}>Add Stock</Button>
         </section>
         ) : null}
 
         {mode === "all" || mode === "setup" || mode === "mappings" ? (
         <section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
           <h3 className="text-sm font-semibold text-slate-800">Map Consumption To Test</h3>
-          <div className="space-y-1">
-            <Label>Item</Label>
-            <Select value={mapItemId} onValueChange={setMapItemId}>
-              <SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger>
-              <SelectContent>
-                {itemOptions.map((opt) => <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            {mappingsRows.map((row, idx) => (
+              <div key={idx} className="grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-4 space-y-1">
+                  <Label>Item</Label>
+                  <Select value={row.inventoryItemId} onValueChange={(v) => updateMappingRow(idx, { ...row, inventoryItemId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger>
+                    <SelectContent>
+                      {itemOptions.map((opt) => (
+                        <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-4 space-y-1">
+                  <Label>Test</Label>
+                  <Select value={row.testId} onValueChange={(v) => updateMappingRow(idx, { ...row, testId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select test" /></SelectTrigger>
+                    <SelectContent>
+                      {tests.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-3 space-y-1">
+                  <Label>Quantity Per Test</Label>
+                  <Input type="number" value={row.quantity} onChange={(e) => updateMappingRow(idx, { ...row, quantity: e.target.value })} placeholder="1" />
+                </div>
+                <div className="col-span-1">
+                  <div className="flex items-center h-full">
+                    <Button variant="ghost" onClick={() => removeMappingRow(idx)} disabled={busy || mappingsRows.length === 1}>Remove</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setMappingsRows([...mappingsRows, { inventoryItemId: "", testId: "", quantity: "" }])}>Add Row</Button>
+              <Button disabled={busy || mappingsRows.every((r) => !r.inventoryItemId || !r.testId || !r.quantity)} onClick={saveMapping}>Save Mapping</Button>
+            </div>
           </div>
-          <div className="space-y-1">
-            <Label>Test</Label>
-            <Select value={mapTestId} onValueChange={setMapTestId}>
-              <SelectTrigger><SelectValue placeholder="Select test" /></SelectTrigger>
-              <SelectContent>
-                {tests.map((t) => <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label>Quantity Per Test</Label>
-            <Input type="number" value={mapQty} onChange={(e) => setMapQty(e.target.value)} placeholder="1" />
-          </div>
-          <Button disabled={busy || !mapItemId || !mapTestId || !mapQty} onClick={saveMapping}>Save Mapping</Button>
         </section>
         ) : null}
       </div>

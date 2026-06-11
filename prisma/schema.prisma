@@ -720,7 +720,7 @@ model InventoryStockEntry {
   organizationId  String
   inventoryItemId String
   quantityAdded   Decimal       @db.Decimal(12, 3)
-  expiryDate      DateTime      @db.Date
+  expiryDate      DateTime?     @db.Date
   batchNumber     String?
   supplier        String?
   addedById       String

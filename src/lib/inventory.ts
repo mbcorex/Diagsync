@@ -200,7 +200,7 @@ export async function addStockEntry(params: {
   actor: InventoryActor;
   inventoryItemId: string;
   quantityAdded: string | number;
-  expiryDate: Date;
+  expiryDate?: Date | null;
   batchNumber?: string | null;
   supplier?: string | null;
 }) {
@@ -220,7 +220,7 @@ export async function addStockEntry(params: {
         organizationId: params.actor.organizationId,
         inventoryItemId: params.inventoryItemId,
         quantityAdded,
-        expiryDate: params.expiryDate,
+        expiryDate: params.expiryDate ?? null,
         batchNumber: params.batchNumber?.trim() || null,
         supplier: params.supplier?.trim() || null,
         addedById: params.actor.id,

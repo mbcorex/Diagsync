@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const addStockSchema = z.object({
   inventoryItemId: z.string().min(1),
   quantityAdded: z.coerce.number().positive(),
-  expiryDate: z.string().min(1),
+  expiryDate: z.string().min(1).optional().nullable(),
   batchNumber: z.string().optional().nullable(),
   supplier: z.string().optional().nullable(),
 });
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       actor: { id: user.id, role: user.role, organizationId: user.organizationId },
       inventoryItemId: parsed.data.inventoryItemId,
       quantityAdded: parsed.data.quantityAdded,
-      expiryDate: new Date(parsed.data.expiryDate),
+      expiryDate: parsed.data.expiryDate ? new Date(parsed.data.expiryDate) : undefined,
       batchNumber: parsed.data.batchNumber,
       supplier: parsed.data.supplier,
     });
