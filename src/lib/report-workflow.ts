@@ -192,7 +192,9 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     name: file.fileName,
     fileType: file.fileType,
   }));
-  return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(signOff ? { signOff } : {}) } };
+  // Include imaging layout if present in extra fields (saved from draft)
+  const imagingLayout = rawExtraFields ? (rawExtraFields as Record<string, any>)['imagingLayout'] ?? null : null;
+  return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(imagingLayout ? { imagingLayout } : {}), ...(signOff ? { signOff } : {}) } };
 }
 
 export async function renderRadiologyReportForPreview(

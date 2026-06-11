@@ -163,6 +163,123 @@ export function RadiologyTaskBoard() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showLayoutEditorByTask, setShowLayoutEditorByTask] = useState<Record<string, boolean>>({});
+
+  // layout items are stored in drafts[taskId].extraFields.imagingLayout as array of {id:fileId, x, y, w, h}
+  function getLayoutForTask(taskId: string) {
+    try {
+      const d = drafts[taskId];
+      const extra = d?.extraFields ?? {};
+      return Array.isArray((extra as any).imagingLayout) ? (extra as any).imagingLayout : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function LayoutEditor({ taskId, imagingFiles, getLayout, onChange }: { taskId: string; imagingFiles: ImagingFile[]; getLayout: () => any[]; onChange: (layout: any[]) => void }) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [layout, setLayout] = useState<any[]>(() => getLayout() ?? []);
+    const dragRef = useRef<any>(null);
+
+    useEffect(() => {
+      setLayout(getLayout() ?? []);
+    }, [taskId, imagingFiles]);
+
+    useEffect(() => {
+      onChange(layout);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [layout]);
+
+    function clientToPct(clientX: number, clientY: number) {
+      const el = containerRef.current; if (!el) return { x: 0, y: 0 };
+      const rect = el.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 100;
+      const y = ((clientY - rect.top) / rect.height) * 100;
+      return { x, y };
+    }
+
+    function startDrag(e: React.PointerEvent, idx: number) {
+      const el = containerRef.current; if (!el) return;
+      (e.target as Element).setPointerCapture(e.pointerId);
+      const start = clientToPct(e.clientX, e.clientY);
+      dragRef.current = { idx, mode: "move", start, orig: { ...layout[idx] } };
+    }
+
+    function startResize(e: React.PointerEvent, idx: number) {
+      const el = containerRef.current; if (!el) return;
+      (e.target as Element).setPointerCapture(e.pointerId);
+      const start = clientToPct(e.clientX, e.clientY);
+      dragRef.current = { idx, mode: "resize", start, orig: { ...layout[idx] } };
+    }
+
+    function onPointerMove(e: React.PointerEvent) {
+      if (!dragRef.current) return;
+      const { idx, mode, start, orig } = dragRef.current;
+      const cur = clientToPct(e.clientX, e.clientY);
+      const dx = cur.x - start.x;
+      const dy = cur.y - start.y;
+      setLayout((prev) => {
+        const copy = prev.map((r) => ({ ...r }));
+        if (!copy[idx]) return prev;
+        if (mode === "move") {
+          copy[idx].x = Math.max(0, Math.min(100 - (copy[idx].w ?? 20), (orig.x ?? 0) + dx));
+          copy[idx].y = Math.max(0, Math.min(100 - (copy[idx].h ?? 20), (orig.y ?? 0) + dy));
+        } else if (mode === "resize") {
+          copy[idx].w = Math.max(5, Math.min(100 - (orig.x ?? 0), (orig.w ?? 20) + dx));
+          // allow height auto by percentage or keep aspect ratio; user can set h explicitly
+          if (orig.h !== null && orig.h !== undefined) {
+            copy[idx].h = Math.max(5, Math.min(100 - (orig.y ?? 0), (orig.h ?? 20) + dy));
+          } else {
+            copy[idx].h = null;
+          }
+        }
+        return copy;
+      });
+    }
+
+    function onPointerUp(e: React.PointerEvent) {
+      if (dragRef.current) {
+        try { (e.target as Element).releasePointerCapture(e.pointerId); } catch {}
+        dragRef.current = null;
+      }
+    }
+
+    function removeItem(idx: number) {
+      setLayout((prev) => prev.filter((_, i) => i !== idx));
+    }
+
+    return (
+      <div>
+        <div className="mb-2 text-[11px] text-slate-500">Drag images on the canvas, resize from the bottom-right corner, and click Save Draft to persist positions.</div>
+        <div ref={containerRef} onPointerMove={onPointerMove} onPointerUp={onPointerUp} className="relative bg-slate-50 border border-slate-200" style={{ width: "100%", height: 420 }}>
+          {layout.map((item, idx) => {
+            const file = imagingFiles.find((f) => f.id === item.id);
+            if (!file) return null;
+            const style: any = { position: "absolute", left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, cursor: "move", border: "1px solid #e5e7eb", borderRadius: 4, overflow: "hidden", background: "white" };
+            if (item.h) style.height = `${item.h}%`;
+            return (
+              <div key={`${item.id}-${idx}`} style={style} onPointerDown={(e) => startDrag(e, idx)}>
+                <img src={file.fileUrl} alt={file.fileName} style={{ width: "100%", height: item.h ? "100%" : "auto", display: "block", objectFit: "contain" }} />
+                <div style={{ position: "absolute", right: 4, bottom: 4 }}>
+                  <div onPointerDown={(e) => startResize(e, idx)} style={{ width: 12, height: 12, background: "rgba(0,0,0,0.6)", cursor: "nwse-resize", borderRadius: 2 }} />
+                </div>
+                <button onClick={(ev) => { ev.stopPropagation(); removeItem(idx); }} className="absolute right-1 top-1 rounded bg-white p-0.5 text-xs text-red-600">✕</button>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button type="button" onClick={() => { onChange(layout); }} className="rounded border border-blue-200 px-2 py-1 text-[11px] text-blue-700">Save Layout</button>
+          <button type="button" onClick={() => { /* noop, draft saved by Save Draft */ }} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600">Apply</button>
+        </div>
+      </div>
+    );
+  }
+
+  function updateLayoutForTask(taskId: string, layout: any[]) {
+    const current = drafts[taskId] ?? EMPTY_DRAFT;
+    updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: layout } });
+  }
 
   function invalidateTaskCache() {
     taskCacheRef.current.clear();
@@ -1088,11 +1205,9 @@ export function RadiologyTaskBoard() {
                                         )}
                                         <div className="min-w-0 flex-1">
                                           <p className="truncate text-xs font-medium text-slate-700">{file.fileName}</p>
-                                          <p className="text-[11px] text-slate-400">
-                                            {(file.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
-                                          </p>
+                                          <p className="text-[11px] text-slate-400">{(file.fileSizeBytes / 1024 / 1024).toFixed(2)} MB</p>
                                         </div>
-                                        <div className="flex gap-1">
+                                        <div className="flex gap-1 items-center">
                                           <a
                                             href={file.fileUrl}
                                             target="_blank"
@@ -1110,6 +1225,26 @@ export function RadiologyTaskBoard() {
                                           >
                                             <X className="h-3.5 w-3.5" />
                                           </button>
+                                          {file.fileType.startsWith("image/") && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const layout = getLayoutForTask(task.id);
+                                                // add new element centered with 40% width
+                                                const newItem = {
+                                                  id: file.id,
+                                                  x: 30,
+                                                  y: 10 + (layout.length * 5),
+                                                  w: 40,
+                                                  h: null,
+                                                };
+                                                updateLayoutForTask(task.id, [...layout, newItem]);
+                                                setShowLayoutEditorByTask((prev) => ({ ...prev, [task.id]: true }));
+                                              }}
+                                              className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
+                                              title="Add to layout"
+                                            >Add to layout</button>
+                                          )}
                                         </div>
                                       </div>
                                     ))}
@@ -1117,6 +1252,26 @@ export function RadiologyTaskBoard() {
                                 )}
                                 <p className="mt-2 text-[10px] text-slate-400">Supported: JPEG, PNG, WebP (max 25MB per file)</p>
                               </div>
+
+                              {/* Layout Editor */}
+                              {showLayoutEditorByTask[task.id] ? (
+                                <div className="rounded border border-slate-200 bg-white p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-[11px] font-medium text-slate-500">Layout Editor</p>
+                                    <div className="flex gap-2">
+                                      <button type="button" onClick={() => setShowLayoutEditorByTask((p) => ({ ...p, [task.id]: false }))} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600">Close</button>
+                                      <button type="button" onClick={() => updateLayoutForTask(task.id, [])} className="rounded border border-red-200 px-2 py-1 text-[11px] text-red-600">Clear</button>
+                                    </div>
+                                  </div>
+                                  <LayoutEditor
+                                    key={task.id}
+                                    taskId={task.id}
+                                    imagingFiles={imagingFiles}
+                                    getLayout={() => getLayoutForTask(task.id)}
+                                    onChange={(layout) => updateLayoutForTask(task.id, layout)}
+                                  />
+                                </div>
+                              ) : null}
                               
                               <div className="rounded border border-slate-200 bg-white p-3">
                                 <p className="text-[11px] font-medium text-slate-500 mb-2">Extra Fields</p>

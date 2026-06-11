@@ -560,13 +560,42 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
 }
 
-function renderImagingSection(imagingFiles: any[], reportDepartment: Department) {
+function renderImagingSection(imagingFiles: any[], reportDepartment: Department, imagingLayout?: any[]) {
   if (imagingFiles.length === 0) return "";
   
   // Filter only images (PDFs handled separately)
   const images = imagingFiles.filter(f => f.fileType?.startsWith("image/"));
   if (images.length === 0) return "";
   
+  // If imagingLayout is provided, render a positioned canvas using percent coordinates
+  if (Array.isArray(imagingLayout) && imagingLayout.length > 0) {
+    const layoutHtml = imagingLayout
+      .map((item: any, idx: number) => {
+        const found = images.find((i) => i.fileUrl?.includes(item.id) || i.name === item.name || i.fileUrl?.includes(item.name));
+        const src = escapeHtml(found?.url || item.url || item.fileUrl || "");
+        const left = Number(item.x ?? 0);
+        const top = Number(item.y ?? 0);
+        const width = Number(item.w ?? 40);
+        const height = item.h ? Number(item.h) : null;
+        const style = `position:absolute; left:${left}%; top:${top}%; width:${width}%; ${height ? `height:${height}%;` : ""} border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; background:#fff;`;
+        return `
+          <div class="imaging-card" style="${style}">
+            <img src="${src}" style="width:100%; height:100%; object-fit:contain; display:block;" loading="lazy" />
+          </div>
+        `;
+      })
+      .join("");
+
+    return `
+      <section class="imaging-section" style="page-break-before: auto; position: relative;">
+        <h3>Imaging Studies</h3>
+        <div style="position:relative; width:100%; height:600px; border:1px solid transparent;">
+          ${layoutHtml}
+        </div>
+      </section>
+    `;
+  }
+
   return `
     <section class="imaging-section" style="page-break-before: auto;">
       <h3>Imaging Studies</h3>
@@ -811,7 +840,7 @@ export function renderReportHtml(args: RenderArgs) {
 
   // Add imaging section for radiology reports
   const imagingHtml = args.department === Department.RADIOLOGY && imagingFiles.length > 0
-    ? renderImagingSection(imagingFiles, args.department)
+    ? renderImagingSection(imagingFiles, args.department, (args.content as any)?.imagingLayout)
     : "";
 
   // Add pagination-friendly CSS for images
