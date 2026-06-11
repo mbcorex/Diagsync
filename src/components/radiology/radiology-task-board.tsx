@@ -170,7 +170,12 @@ export function RadiologyTaskBoard() {
     try {
       const d = drafts[taskId];
       const extra = d?.extraFields ?? {};
-      return Array.isArray((extra as any).imagingLayout) ? (extra as any).imagingLayout : [];
+      const raw = (extra as any).imagingLayout;
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === "string") {
+        try { return JSON.parse(raw); } catch { return []; }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -278,7 +283,7 @@ export function RadiologyTaskBoard() {
 
   function updateLayoutForTask(taskId: string, layout: any[]) {
     const current = drafts[taskId] ?? EMPTY_DRAFT;
-    updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: layout } });
+    updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: JSON.stringify(layout) } });
   }
 
   function invalidateTaskCache() {

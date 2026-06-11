@@ -206,7 +206,14 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     fileType: file.fileType,
   }));
   // Include imaging layout if present in extra fields (saved from draft)
-  const imagingLayout = rawExtraFields ? (rawExtraFields as Record<string, any>)['imagingLayout'] ?? null : null;
+  let imagingLayout: any = rawExtraFields ? (rawExtraFields as Record<string, any>)['imagingLayout'] ?? null : null;
+  if (typeof imagingLayout === "string") {
+    try {
+      imagingLayout = JSON.parse(imagingLayout as string);
+    } catch {
+      imagingLayout = null;
+    }
+  }
   return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(imagingLayout ? { imagingLayout } : {}), ...(signOff ? { signOff } : {}) } };
 }
 
