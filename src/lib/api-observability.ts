@@ -6,7 +6,14 @@ type ApiMetric = {
 function shouldLog(ms: number, ok: boolean) {
   if (!ok) return true;
   if (ms >= 800) return true;
-  return process.env.API_METRICS_VERBOSE === "1";
+  // Allow verbose logging via env var. Otherwise sample a small percentage to reduce volume.
+  if (process.env.API_METRICS_VERBOSE === "1") return true;
+  const rate = Number(process.env.API_METRICS_SAMPLE_RATE ?? 0.05);
+  try {
+    return Math.random() < rate;
+  } catch {
+    return false;
+  }
 }
 
 export function beginApiMetric(route: string): ApiMetric {

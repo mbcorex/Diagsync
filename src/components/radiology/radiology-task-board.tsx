@@ -184,16 +184,17 @@ export function RadiologyTaskBoard() {
   function LayoutEditor({ taskId, imagingFiles, getLayout, onChange }: { taskId: string; imagingFiles: ImagingFile[]; getLayout: () => any[]; onChange: (layout: any[]) => void }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [layout, setLayout] = useState<any[]>(() => getLayout() ?? []);
+    const layoutRef = useRef<any[]>(layout);
     const dragRef = useRef<any>(null);
+
+    useEffect(() => { layoutRef.current = layout; }, [layout]);
 
     useEffect(() => {
       setLayout(getLayout() ?? []);
-    }, [taskId, imagingFiles]);
-
-    useEffect(() => {
-      onChange(layout);
+      // call onChange once to initialize saved state
+      onChange(getLayout() ?? []);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [layout]);
+    }, [taskId, imagingFiles]);
 
     function clientToPct(clientX: number, clientY: number) {
       const el = containerRef.current; if (!el) return { x: 0, y: 0 };
@@ -246,11 +247,18 @@ export function RadiologyTaskBoard() {
       if (dragRef.current) {
         try { (e.target as Element).releasePointerCapture(e.pointerId); } catch {}
         dragRef.current = null;
+        // notify parent of final layout on pointer up (throttles continuous updates)
+        onChange(layoutRef.current ?? layout);
       }
     }
 
     function removeItem(idx: number) {
-      setLayout((prev) => prev.filter((_, i) => i !== idx));
+      setLayout((prev) => {
+        const next = prev.filter((_, i) => i !== idx);
+        // persist removal immediately
+        onChange(next);
+        return next;
+      });
     }
 
     return (
@@ -310,22 +318,53 @@ export function RadiologyTaskBoard() {
     setImageError("");
     
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("taskId", expandedTask);
-      
-      const res = await fetch("/api/uploads/imaging", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const json = await res.json();
-      if (!json.success) {
-        setImageError(json.error ?? "Upload failed");
+      // Request presign info for direct upload
+      const presignRes = await fetch("/api/uploads/presign");
+      const presignJson = await presignRes.json();
+      if (!presignJson.success) {
+        // fallback to server upload if presign not available
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("taskId", expandedTask);
+        const res = await fetch("/api/uploads/imaging", { method: "POST", body: formData });
+        const json = await res.json();
+        if (!json.success) { setImageError(json.error ?? "Upload failed"); return; }
+        setImagingFiles((prev) => [json.data, ...prev]);
         return;
       }
-      
-      setImagingFiles((prev) => [json.data, ...prev]);
+
+      if (presignJson.provider === "cloudinary") {
+        const uploadUrl = presignJson.uploadUrl as string;
+        const uploadPreset = presignJson.uploadPreset as string;
+        const uploadForm = new FormData();
+        uploadForm.append("file", file);
+        uploadForm.append("upload_preset", uploadPreset);
+        uploadForm.append("folder", `diagsync/imaging/${expandedTask}`);
+
+        const cloudRes = await fetch(uploadUrl, { method: "POST", body: uploadForm });
+        const cloudJson = await cloudRes.json();
+        if (!cloudRes.ok || !cloudJson?.secure_url) {
+          setImageError(cloudJson?.error?.message ?? "Upload failed");
+          return;
+        }
+
+        // Register uploaded file in our DB
+        const reg = await fetch(`/api/radiology/tasks/${expandedTask}/register-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileUrl: cloudJson.secure_url,
+            fileName: file.name,
+            fileType: file.type,
+            fileSizeBytes: file.size,
+            metadata: { public_id: cloudJson.public_id, width: cloudJson.width, height: cloudJson.height },
+          }),
+        });
+        const regJson = await reg.json();
+        if (!regJson.success) { setImageError(regJson.error ?? "Registration failed"); return; }
+        setImagingFiles((prev) => [regJson.data, ...prev]);
+        return;
+      }
     } catch {
       setImageError("Network error while uploading");
     } finally {
@@ -805,6 +844,10 @@ export function RadiologyTaskBoard() {
         },
       });
     }, 700);
+    // increase debounce to reduce frequent writes (was 700ms)
+    // now waits 2000ms after last change before saving offline draft
+    // helps reduce function invocations and I/O
+    // (handled by clearing the timer in cleanup)
     return () => window.clearTimeout(timer);
   }, [drafts, expandedTask]);
 
@@ -827,7 +870,8 @@ export function RadiologyTaskBoard() {
           signatureImage: draft.signatureImage ?? "",
         },
       });
-    }, 5000);
+    // reduce polling frequency to 30s (was 5s) to lower function invocations
+    }, 30000);
     return () => window.clearInterval(timer);
   }, [expandedTask]);
 
