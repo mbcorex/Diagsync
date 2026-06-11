@@ -26,6 +26,7 @@ import {
 } from "@/lib/radiology-report-sections";
 import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
 import { ImagePlus, X, Download } from "lucide-react";
+import React from "react";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -290,9 +291,40 @@ export function RadiologyTaskBoard() {
   }
 
   function updateLayoutForTask(taskId: string, layout: any[]) {
-    const current = drafts[taskId] ?? EMPTY_DRAFT;
-    updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: JSON.stringify(layout) } });
+      try {
+        const current = drafts[taskId] ?? EMPTY_DRAFT;
+        updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: JSON.stringify(layout) } });
+      } catch (err) {
+        console.error("Failed to update imaging layout", err);
+        setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to update layout"));
+      }
   }
+
+    // Simple error boundary to prevent a single component error from crashing the whole dashboard
+    class ErrorBoundary extends React.Component<{
+      children: React.ReactNode;
+      onReset?: () => void;
+    }, { hasError: boolean; error?: Error }> {
+      constructor(props: any) {
+        super(props);
+        this.state = { hasError: false };
+      }
+      static getDerivedStateFromError() { return { hasError: true }; }
+      componentDidCatch(error: Error, info: any) { console.error("ErrorBoundary caught:", error, info); }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div>Layout editor failed to load. You can close and try again.</div>
+              <div className="mt-2 flex gap-2">
+                <button onClick={() => { this.setState({ hasError: false }); this.props.onReset?.(); }} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600">Close Editor</button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children as any;
+      }
+    }
 
   function invalidateTaskCache() {
     taskCacheRef.current.clear();
@@ -1278,17 +1310,22 @@ export function RadiologyTaskBoard() {
                                             <button
                                               type="button"
                                               onClick={() => {
-                                                const layout = getLayoutForTask(task.id);
-                                                // add new element centered with 40% width
-                                                const newItem = {
-                                                  id: file.id,
-                                                  x: 30,
-                                                  y: 10 + (layout.length * 5),
-                                                  w: 40,
-                                                  h: null,
-                                                };
-                                                updateLayoutForTask(task.id, [...layout, newItem]);
-                                                setShowLayoutEditorByTask((prev) => ({ ...prev, [task.id]: true }));
+                                                    try {
+                                                      const layout = getLayoutForTask(task.id);
+                                                      // add new element centered with 40% width
+                                                      const newItem = {
+                                                        id: file.id,
+                                                        x: 30,
+                                                        y: 10 + (Array.isArray(layout) ? layout.length * 5 : 0),
+                                                        w: 40,
+                                                        h: null,
+                                                      };
+                                                      updateLayoutForTask(task.id, [...(Array.isArray(layout) ? layout : []), newItem]);
+                                                      setShowLayoutEditorByTask((prev) => ({ ...prev, [task.id]: true }));
+                                                    } catch (err) {
+                                                      console.error("Add to layout failed", err);
+                                                      setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to add image to layout"));
+                                                    }
                                               }}
                                               className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
                                               title="Add to layout"
@@ -1312,13 +1349,15 @@ export function RadiologyTaskBoard() {
                                       <button type="button" onClick={() => updateLayoutForTask(task.id, [])} className="rounded border border-red-200 px-2 py-1 text-[11px] text-red-600">Clear</button>
                                     </div>
                                   </div>
-                                  <LayoutEditor
-                                    key={task.id}
-                                    taskId={task.id}
-                                    imagingFiles={imagingFiles}
-                                    getLayout={() => getLayoutForTask(task.id)}
-                                    onChange={(layout) => updateLayoutForTask(task.id, layout)}
-                                  />
+                                  <ErrorBoundary onReset={() => setShowLayoutEditorByTask((p) => ({ ...p, [task.id]: false }))}>
+                                    <LayoutEditor
+                                      key={task.id}
+                                      taskId={task.id}
+                                      imagingFiles={imagingFiles}
+                                      getLayout={() => getLayoutForTask(task.id)}
+                                      onChange={(layout) => updateLayoutForTask(task.id, layout)}
+                                    />
+                                  </ErrorBoundary>
                                 </div>
                               ) : null}
                               
