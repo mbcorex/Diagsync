@@ -1018,8 +1018,8 @@ export function RadiologyTaskBoard() {
               {dayTasks.map((task) => {
                 const isExpanded = expandedTask === task.id;
                 return (
-                  <>
-                    <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}>
+                  <React.Fragment key={task.id}>
+                    <tr className={`hover:bg-slate-50 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}>
                       <td className="px-4 py-2.5">
                         <p className="font-medium text-slate-800">{task.visit.patient.fullName}</p>
                         <p className="font-mono text-slate-400">
