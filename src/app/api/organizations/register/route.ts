@@ -78,15 +78,18 @@ export async function POST(req: NextRequest) {
     // NOTE: Supabase pgbouncer (pooled connections) does not support
     // interactive transactions. Use sequential calls to avoid prepared
     // statement / transaction errors in serverless environments.
+    const now = new Date();
+    const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
     const org = await prisma.organization.create({
       data: {
         name: data.orgName,
         email: data.orgEmail,
         plan: "TRIAL",
-        status: "EXPIRED",
+        status: "TRIAL_ACTIVE",
+        trialStartedAt: now,
+        trialEndsAt,
         watermarkEnabled: true,
-        billingLockedAt: new Date(),
-        billingLockReason: "No active subscription",
         phone: data.orgPhone,
         address: data.orgAddress,
         city: data.orgCity,
