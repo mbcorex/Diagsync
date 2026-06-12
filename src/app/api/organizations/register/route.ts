@@ -114,24 +114,34 @@ export async function POST(req: NextRequest) {
       return { org, admin };
     });
 
-    // Sync default test catalog after transaction commits
-    await syncFullTestCatalogToOrganization(prisma, result.org.id);
+    // Sync default test catalog after transaction commits. These
+    // follow-up tasks are best-effort: log failures but don't fail
+    // the registration if they error.
+    try {
+      await syncFullTestCatalogToOrganization(prisma, result.org.id);
+    } catch (err) {
+      console.error("[ORG_REGISTER][SYNC_CATALOG]", err?.stack ?? err);
+    }
 
     // Audit log — super admin creates themselves during registration
-    await createAuditLog({
-      actorId: result.admin.id,
-      actorRole: Role.SUPER_ADMIN,
-      action: AUDIT_ACTIONS.ORG_CREATED,
-      entityType: "Organization",
-      entityId: result.org.id,
-      newValue: {
-        name: result.org.name,
-        email: result.org.email,
-        logo: result.org.logo,
-        website: result.org.website,
-        letterheadUrl: result.org.letterheadUrl,
-      },
-    });
+    try {
+      await createAuditLog({
+        actorId: result.admin.id,
+        actorRole: Role.SUPER_ADMIN,
+        action: AUDIT_ACTIONS.ORG_CREATED,
+        entityType: "Organization",
+        entityId: result.org.id,
+        newValue: {
+          name: result.org.name,
+          email: result.org.email,
+          logo: result.org.logo,
+          website: result.org.website,
+          letterheadUrl: result.org.letterheadUrl,
+        },
+      });
+    } catch (err) {
+      console.error("[ORG_REGISTER][AUDIT_LOG]", err?.stack ?? err);
+    }
 
     return NextResponse.json(
       {
@@ -145,7 +155,8 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("[ORG_REGISTER]", error);
+    // Include stack if available for easier debugging in logs
+    console.error("[ORG_REGISTER]", (error as any)?.stack ?? error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
