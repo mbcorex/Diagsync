@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
         city: data.orgCity,
         state: data.orgState,
         country: data.orgCountry || "Nigeria",
+        images: [],
         slug,
         contactInfo: data.orgContactInfo ?? null,
         website: data.orgWebsite ?? null,
