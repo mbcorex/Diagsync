@@ -13,6 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "unlock:trials": "ts-node --project tsconfig.seed.json prisma/unlock-free-trials.ts",
     "test:routing": "ts-node --project tsconfig.test.json src/lib/routing-core.test.ts",
     "test:lab": "ts-node --project tsconfig.test.json src/lib/lab-workflow-core.test.ts",
     "test:radiology": "ts-node --project tsconfig.test.json src/lib/radiology-workflow-core.test.ts",
