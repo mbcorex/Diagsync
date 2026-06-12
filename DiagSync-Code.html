@@ -873,7 +873,7 @@ model InventoryStockEntry {
   organizationId  String
   inventoryItemId String
   quantityAdded   Decimal       @db.Decimal(12, 3)
-  expiryDate      DateTime      @db.Date
+  expiryDate      DateTime?     @db.Date
   batchNumber     String?
   supplier        String?
   addedById       String
@@ -5785,7 +5785,7 @@ main()
     process.exit(1);
   });
 </pre></div>
-<div class='file-block'><div class='file-header'>public/fallback-QifiQ_Rt8VsqVhMOTtH6e.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
+<div class='file-block'><div class='file-header'>public/fallback-v0kBdRbaeUeFnAhPPhi81.js</div><pre>(()=&gt;{"use strict";self.fallback=async e=&gt;"document"===e.destination?caches.match("/offline",{ignoreSearch:!0}):Response.error()})();</pre></div>
 <div class='file-block'><div class='file-header'>public/manifest.json</div><pre>{
   "name": "DiagSync",
   "short_name": "DiagSync",
@@ -5809,7 +5809,7 @@ main()
   ]
 }
 </pre></div>
-<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let s,a={};const e=(e,i)=&gt;(e=new URL(e+".js",i).href,a[e]||new Promise(a=&gt;{if("document"in self){const s=document.createElement("script");s.src=e,s.onload=a,document.head.appendChild(s)}else s=e,importScripts(e),a()}).then(()=&gt;{let s=a[e];if(!s)throw new Error(`Module ${e} didnâ€™t register its module`);return s}));self.define=(i,t)=&gt;{const n=s||("document"in self?document.currentScript.src:"")||location.href;if(a[n])return;let r={};const c=s=&gt;e(s,n),d={module:{uri:n},exports:r,require:c};a[n]=Promise.all(i.map(s=&gt;d[s]||c(s))).then(s=&gt;(t(...s),r))}}define(["./workbox-5268f9bb"],function(s){"use strict";importScripts("fallback-QifiQ_Rt8VsqVhMOTtH6e.js"),self.skipWaiting(),s.clientsClaim(),s.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"1c503b38def1475085a8932ad4bdaff8"},{url:"/_next/static/QifiQ_Rt8VsqVhMOTtH6e/_buildManifest.js",revision:"6310079bf1ae7bebeb6a2135896e4564"},{url:"/_next/static/QifiQ_Rt8VsqVhMOTtH6e/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/164f4fb6.854c391d863b90ac.js",revision:"854c391d863b90ac"},{url:"/_next/static/chunks/1718-d610c27231150fcd.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/1757-299a28a99d50ab6d.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/2117-1f8af1e5a28db528.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/2736-cd7cfc1023eb88de.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/2972-7a5652e924313d47.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/2f0b94e8.452a2d27023d71da.js",revision:"452a2d27023d71da"},{url:"/_next/static/chunks/3036-1db5d4f5a213cc2a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/3969.b2d6601275784440.js",revision:"b2d6601275784440"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/4297-0294b0d9b1b57820.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/5878-773e347319c14938.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/5898-1c23dec2b703d994.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/5945-19658f3ee96bcf10.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/6137-914bac8283625abe.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/7526-417c6bd4709ef341.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/8758.6d2e237b08163e73.js",revision:"6d2e237b08163e73"},{url:"/_next/static/chunks/8778-22898e03cc0eb11f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/8848.3431d928ff2ca87d.js",revision:"3431d928ff2ca87d"},{url:"/_next/static/chunks/8989-f76de1b5de6adb6f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/932-e6eb164d477af754.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/9630-0aa7d99b4601b852.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/ad2866b8.1fd5edbd6b1bba26.js",revision:"1fd5edbd6b1bba26"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-4e0f7e2808a22c97.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-98a4751bc5bbf28a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-d30078f25acaa601.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-951591e5d56efd97.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/layout-c6a965daa1e93f53.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/loading-ad09f8c71fab965a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/page-5d60b849974c7594.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-abcf1af978517bb7.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-085422255236d00a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(auth)/layout-0f92efaa48c2535e.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(auth)/login/page-e16a422a5a54e5c3.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(auth)/register/page-20d4cf3575378bb7.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9a9152bbc937ef1f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-7f1af30f789c477e.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-2131d2818a94312a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-89280bb9a704c50b.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/analytics/page-4085a0838366688d.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/items/page-ce88646a37805f29.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/mappings/page-9f1253dca30be1f3.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/movements/page-2a8b65fdfbd96fd2.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/page-a5f3818c16f9162a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/stock/page-109b17ebb02bfb10.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-48ceb51fee7013e7.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-4e5aeba889c3a56c.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-0c2ace2755f615e1.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-0960d60bfeaf2277.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-1876f8a8a7da4789.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-10a3e6a9686c7cb6.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-e8318ca55206cccd.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-d8d9ff75bf537410.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-062c94524a37503f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/approved/page-8c1fd919494333b8.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-a858c07215cdfb62.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-213feaa5b2af02c8.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-e834404bdd9a7803.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-f5b200d2569979a2.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-f4c2dcb0b65131ad.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-9937e04babad7140.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-5194d87781a6ecb9.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-ead461d6807bd7a1.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-6cc2ea4a2cb35004.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-aa6fdc29e418541c.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-fdd473de50b7d9e6.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-49603189848bd7ab.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/approved/page-c1aede6da30f2624.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-0a3da68816b5fc1a.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-fc3693419e457192.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-1ff3d93f7fdfd844.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-96dbf3c350f8bbd1.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-312380841b88c407.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-d48659ed89ae440f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-11f01e848aa914a9.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-04110979f9029137.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-37f73041d3c809f2.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-8028a50215e24276.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-1e05e27ab2bb9bc3.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/error-6c6b75482e10b5e1.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-e9c8b7844a449bd6.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-c537d4653596fe84.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/layout-5a4bc476dfe2e591.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/loading-e000efcae6c31f65.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-4589285175efc187.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/_not-found/page-c23f50bcc66f2f93.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/error-feefae734b7f985b.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/global-error-69a856ffbdc1fe22.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-2a5664f45fa43a34.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-23a6eb66e0c4a3ef.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-f42016164b6c28e7.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-1b6140f847250c08.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/layout-8af04a2aef33361d.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/loading-baebfe7ad8ea963c.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/labs/page-1e9321aed195d233.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/layout-7be316fc7d1b2d1c.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/not-found-93dd8b729363722b.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/offline/page-1abbbd9a705a49be.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/page-4d4d08d33124228b.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-77a260428e32a925.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/bc98253f.5b0f4fe717c5b99c.js",revision:"5b0f4fe717c5b99c"},{url:"/_next/static/chunks/fd9d1056-8acf6684ed645502.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/framework-8e0e0f4a6b83a956.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/main-app-2e493359972ed53e.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/main-dfd337c8db759d75.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/pages/_app-3c9ca398d360b709.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/pages/_error-cf5ca766ac8f493f.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-a2f7cdb4d7a5add3.js",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/_next/static/css/88553e7902a1b0ea.css",revision:"88553e7902a1b0ea"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"QifiQ_Rt8VsqVhMOTtH6e"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),s.cleanupOutdatedCaches(),s.registerRoute("/",new s.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:s,response:a,event:e,state:i})=&gt;a&amp;&amp;"opaqueredirect"===a.type?new Response(a.body,{status:200,statusText:"OK",headers:a.headers}):a},{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"document"===s.destination,new s.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new s.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({url:s})=&gt;s.pathname.startsWith("/_next/static/"),new s.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"image"===s.destination,new s.CacheFirst({cacheName:"image-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({request:s})=&gt;"style"===s.destination||"script"===s.destination,new s.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new s.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET"),s.registerRoute(({url:s})=&gt;s.pathname.startsWith("/api/"),new s.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:s})=&gt;self.fallback(s)}]}),"GET")});
+<div class='file-block'><div class='file-header'>public/sw.js</div><pre>if(!self.define){let e,a={};const s=(s,i)=&gt;(s=new URL(s+".js",i).href,a[s]||new Promise(a=&gt;{if("document"in self){const e=document.createElement("script");e.src=s,e.onload=a,document.head.appendChild(e)}else e=s,importScripts(s),a()}).then(()=&gt;{let e=a[s];if(!e)throw new Error(`Module ${s} didnâ€™t register its module`);return e}));self.define=(i,n)=&gt;{const d=e||("document"in self?document.currentScript.src:"")||location.href;if(a[d])return;let t={};const r=e=&gt;s(e,d),c={module:{uri:d},exports:t,require:r};a[d]=Promise.all(i.map(e=&gt;c[e]||r(e))).then(e=&gt;(n(...e),t))}}define(["./workbox-5268f9bb"],function(e){"use strict";importScripts("fallback-v0kBdRbaeUeFnAhPPhi81.js"),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"c4c28864f19f589e28a26861f6d410a9"},{url:"/_next/static/chunks/164f4fb6.854c391d863b90ac.js",revision:"854c391d863b90ac"},{url:"/_next/static/chunks/1718-9a29fb47bb5dea7f.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/1757-36510a0136ed787c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/2117-3ebccd161f0a38b6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/2736-fa0dcd057bf0b49c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/2972-1b7fdbb787b13c02.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/2f0b94e8.452a2d27023d71da.js",revision:"452a2d27023d71da"},{url:"/_next/static/chunks/3036-3f331c22357fded1.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/3969.b2d6601275784440.js",revision:"b2d6601275784440"},{url:"/_next/static/chunks/3e344cd8-0f991720fe9d9bba.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/4297-670f7c97a1f2fd60.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/5878-053a28143c54e2c6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/5898-1c23dec2b703d994.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/5945-d0b2dae5fe61695d.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/6137-914bac8283625abe.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/7526-fdbc4b05b9fd7657.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/8758.6d2e237b08163e73.js",revision:"6d2e237b08163e73"},{url:"/_next/static/chunks/8778-a5f7e440771a00a6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/8848.3431d928ff2ca87d.js",revision:"3431d928ff2ca87d"},{url:"/_next/static/chunks/8989-01c4e9c535d1852c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/932-e47802ffdea4dd4d.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/9630-0aa7d99b4601b852.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/ad2866b8.1fd5edbd6b1bba26.js",revision:"1fd5edbd6b1bba26"},{url:"/_next/static/chunks/app/(admin)/admin/analytics/page-85eb973e8534aa18.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/dashboard/page-29dffb5d65bcadfb.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/labs/%5Bid%5D/page-d30078f25acaa601.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/labs/page-2c4fdd1c02e9f17c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/layout-39e79c2221cfdc07.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/loading-62733f8988f8fba3.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/page-041169cf87ef011b.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/rankings/page-6436eef02adda6ea.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(admin)/admin/users/page-b562b42085cc231e.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(auth)/layout-532c4f2d9db88770.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(auth)/login/page-ba47d84b758b3ff2.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(auth)/register/page-e6490fdb8cc71b2f.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/billing/page-9a9152bbc937ef1f.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/analytics/page-7fc28a1603ce8689.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/audit/page-3fbfe0e7b4f45357.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/consultation/page-89280bb9a704c50b.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/analytics/page-4085a0838366688d.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/items/page-ce88646a37805f29.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/mappings/page-9f1253dca30be1f3.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/movements/page-2a8b65fdfbd96fd2.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/page-58ec0caa6ed50406.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/inventory/stock/page-109b17ebb02bfb10.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/notifications/page-e44d30905239f344.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/operations/page-1432e4d0778157e0.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/page-50f6fc9039c72925.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/release/page-0960d60bfeaf2277.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/settings/page-ab007211211a9f6a.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/%5Bid%5D/page-10a3e6a9686c7cb6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/new/page-0509e97d102fbe32.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/staff/page-a16b71b941334bc4.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/hrm/tests/page-8944bdd1de5d19c2.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/approved/page-f33df4d509a9c866.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/notifications/page-9ca58c081dc1a8a1.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/page-8e4ef0acbcf8893a.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/queue/page-b8915ca948af0122.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/lab-scientist/results/page-b87652beacd7e012.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/loading-a4e240c3af1b1bc6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/approved/page-77d43c0e448c6db6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/consultation/page-5194d87781a6ecb9.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/notifications/page-2c25841951cc344b.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/page-b9d449f566a002b3.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/reports/page-aa6fdc29e418541c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/md/review/page-2436f77c3df623f1.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/page-021965f6de3b4284.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/approved/page-cf85ec97f2ec6070.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/notifications/page-7540a325e5c7d005.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/page-c6f96886bc83a8b4.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/queue/page-cbc663e3fc5657a9.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/radiographer/reports/page-c6b7fe28bf6d07e4.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/consultation/page-312380841b88c407.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/new-patient/page-f0168006be6a5788.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/notifications/page-02cc5e53f90d866a.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/page-796d3eeaf3b8ff9e.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/%5BpatientId%5D/edit/page-bce08b0086f69216.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/patients/page-25485d3b7e7de570.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/receptionist/release/page-1e05e27ab2bb9bc3.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/error-eab1fe38c05b8af6.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/loading-9f36479ee5ca0c6a.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/insights/reports/page-cebc0a981af62a0e.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/layout-197e808f6415c7fa.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/loading-2092bb5cafffdc6c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/(dashboard)/patients/%5Bid%5D/page-4589285175efc187.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/_not-found/page-75039dc0961bd5ee.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/error-a1fd377e401c4c86.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/global-error-53efc965129a511c.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/loading-c94bcd3d530c2232.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/%5Bslug%5D/page-23a6eb66e0c4a3ef.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/loading-53d0bbac3485f932.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/%5Blocation%5D/page-1b6140f847250c08.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/layout-23b0debbe50740cd.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/loading-e9b3466a03b5f32f.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/labs/page-1534266502aed54b.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/layout-f360abc2e81ee3c7.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/not-found-69dbf92f018e31b2.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/offline/page-6a86abf7a8f65be8.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/page-4d4d08d33124228b.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/app/public/reports/%5Btoken%5D/page-ec8b1c61c5bc9f84.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/bc98253f.5b0f4fe717c5b99c.js",revision:"5b0f4fe717c5b99c"},{url:"/_next/static/chunks/fd9d1056-43148dfa603769a5.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/framework-8e0e0f4a6b83a956.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/main-83b57792964d2e53.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/main-app-2e493359972ed53e.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/pages/_app-3c9ca398d360b709.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/pages/_error-cf5ca766ac8f493f.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-a2f7cdb4d7a5add3.js",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/_next/static/css/57d52b7f8bee5b5a.css",revision:"57d52b7f8bee5b5a"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/_next/static/v0kBdRbaeUeFnAhPPhi81/_buildManifest.js",revision:"6310079bf1ae7bebeb6a2135896e4564"},{url:"/_next/static/v0kBdRbaeUeFnAhPPhi81/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/diagsync-logo.png",revision:"77e9c567b2a574379952fca17baf6e35"},{url:"/diagsync-watermark.png",revision:"aeff36c86804a6d13167bef4500ec421"},{url:"/icons/icon-192.png",revision:"cde0b3a52915e1aff301981f4779e52b"},{url:"/icons/icon-512.png",revision:"49194c78838f3f11eb491c3253dbfdbc"},{url:"/manifest.json",revision:"8bdaaa3cc85732dcb12359430cd0e4ef"},{url:"/offline",revision:"v0kBdRbaeUeFnAhPPhi81"},{url:"/splash-screen.png",revision:"febe7eb192dd065880036523e3d1a075"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:a,event:s,state:i})=&gt;a&amp;&amp;"opaqueredirect"===a.type?new Response(a.body,{status:200,statusText:"OK",headers:a.headers}):a},{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET"),e.registerRoute(({request:e})=&gt;"document"===e.destination,new e.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:5,plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400}),{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET"),e.registerRoute(({url:e})=&gt;e.pathname.startsWith("/_next/static/"),new e.StaleWhileRevalidate({cacheName:"next-static-cache",plugins:[new e.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET"),e.registerRoute(({request:e})=&gt;"image"===e.destination,new e.CacheFirst({cacheName:"image-cache",plugins:[new e.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET"),e.registerRoute(({request:e})=&gt;"style"===e.destination||"script"===e.destination,new e.StaleWhileRevalidate({cacheName:"asset-cache",plugins:[new e.ExpirationPlugin({maxEntries:128,maxAgeSeconds:604800}),{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET"),e.registerRoute(({url:e})=&gt;e.pathname.startsWith("/api/"),new e.NetworkOnly({cacheName:"api-no-cache",plugins:[{handlerDidError:async({request:e})=&gt;self.fallback(e)}]}),"GET")});
 </pre></div>
 <div class='file-block'><div class='file-header'>public/workbox-5268f9bb.js</div><pre>define(["exports"],function(t){"use strict";try{self["workbox:core:6.5.4"]&amp;&amp;_()}catch(t){}const e=(t,...e)=&gt;{let s=t;return e.length&gt;0&amp;&amp;(s+=` :: ${JSON.stringify(e)}`),s};class s extends Error{constructor(t,s){super(e(t,s)),this.name=t,this.details=s}}try{self["workbox:routing:6.5.4"]&amp;&amp;_()}catch(t){}const n=t=&gt;t&amp;&amp;"object"==typeof t?t:{handle:t};class r{constructor(t,e,s="GET"){this.handler=n(e),this.match=t,this.method=s}setCatchHandler(t){this.catchHandler=n(t)}}class i extends r{constructor(t,e,s){super(({url:e})=&gt;{const s=t.exec(e.href);if(s&amp;&amp;(e.origin===location.origin||0===s.index))return s.slice(1)},e,s)}}class a{constructor(){this.t=new Map,this.i=new Map}get routes(){return this.t}addFetchListener(){self.addEventListener("fetch",t=&gt;{const{request:e}=t,s=this.handleRequest({request:e,event:t});s&amp;&amp;t.respondWith(s)})}addCacheListener(){self.addEventListener("message",t=&gt;{if(t.data&amp;&amp;"CACHE_URLS"===t.data.type){const{payload:e}=t.data,s=Promise.all(e.urlsToCache.map(e=&gt;{"string"==typeof e&amp;&amp;(e=[e]);const s=new Request(...e);return this.handleRequest({request:s,event:t})}));t.waitUntil(s),t.ports&amp;&amp;t.ports[0]&amp;&amp;s.then(()=&gt;t.ports[0].postMessage(!0))}})}handleRequest({request:t,event:e}){const s=new URL(t.url,location.href);if(!s.protocol.startsWith("http"))return;const n=s.origin===location.origin,{params:r,route:i}=this.findMatchingRoute({event:e,request:t,sameOrigin:n,url:s});let a=i&amp;&amp;i.handler;const o=t.method;if(!a&amp;&amp;this.i.has(o)&amp;&amp;(a=this.i.get(o)),!a)return;let c;try{c=a.handle({url:s,request:t,event:e,params:r})}catch(t){c=Promise.reject(t)}const h=i&amp;&amp;i.catchHandler;return c instanceof Promise&amp;&amp;(this.o||h)&amp;&amp;(c=c.catch(async n=&gt;{if(h)try{return await h.handle({url:s,request:t,event:e,params:r})}catch(t){t instanceof Error&amp;&amp;(n=t)}if(this.o)return this.o.handle({url:s,request:t,event:e});throw n})),c}findMatchingRoute({url:t,sameOrigin:e,request:s,event:n}){const r=this.t.get(s.method)||[];for(const i of r){let r;const a=i.match({url:t,sameOrigin:e,request:s,event:n});if(a)return r=a,(Array.isArray(r)&amp;&amp;0===r.length||a.constructor===Object&amp;&amp;0===Object.keys(a).length||"boolean"==typeof a)&amp;&amp;(r=void 0),{route:i,params:r}}return{}}setDefaultHandler(t,e="GET"){this.i.set(e,n(t))}setCatchHandler(t){this.o=n(t)}registerRoute(t){this.t.has(t.method)||this.t.set(t.method,[]),this.t.get(t.method).push(t)}unregisterRoute(t){if(!this.t.has(t.method))throw new s("unregister-route-but-not-found-with-method",{method:t.method});const e=this.t.get(t.method).indexOf(t);if(!(e&gt;-1))throw new s("unregister-route-route-not-registered");this.t.get(t.method).splice(e,1)}}let o;const c=()=&gt;(o||(o=new a,o.addFetchListener(),o.addCacheListener()),o);function h(t,e,n){let a;if("string"==typeof t){const s=new URL(t,location.href);a=new r(({url:t})=&gt;t.href===s.href,e,n)}else if(t instanceof RegExp)a=new i(t,e,n);else if("function"==typeof t)a=new r(t,e,n);else{if(!(t instanceof r))throw new s("unsupported-route-type",{moduleName:"workbox-routing",funcName:"registerRoute",paramName:"capture"});a=t}return c().registerRoute(a),a}try{self["workbox:strategies:6.5.4"]&amp;&amp;_()}catch(t){}const u={cacheWillUpdate:async({response:t})=&gt;200===t.status||0===t.status?t:null},l={googleAnalytics:"googleAnalytics",precache:"precache-v2",prefix:"workbox",runtime:"runtime",suffix:"undefined"!=typeof registration?registration.scope:""},f=t=&gt;[l.prefix,t,l.suffix].filter(t=&gt;t&amp;&amp;t.length&gt;0).join("-"),w=t=&gt;t||f(l.precache),d=t=&gt;t||f(l.runtime);function p(t,e){const s=new URL(t);for(const t of e)s.searchParams.delete(t);return s.href}class y{constructor(){this.promise=new Promise((t,e)=&gt;{this.resolve=t,this.reject=e})}}const m=new Set;function g(t){return new Promise(e=&gt;setTimeout(e,t))}function R(t){return"string"==typeof t?new Request(t):t}class v{constructor(t,e){this.h={},Object.assign(this,e),this.event=e.event,this.u=t,this.l=new y,this.p=[],this.m=[...t.plugins],this.R=new Map;for(const t of this.m)this.R.set(t,{});this.event.waitUntil(this.l.promise)}async fetch(t){const{event:e}=this;let n=R(t);if("navigate"===n.mode&amp;&amp;e instanceof FetchEvent&amp;&amp;e.preloadResponse){const t=await e.preloadResponse;if(t)return t}const r=this.hasCallback("fetchDidFail")?n.clone():null;try{for(const t of this.iterateCallbacks("requestWillFetch"))n=await t({request:n.clone(),event:e})}catch(t){if(t instanceof Error)throw new s("plugin-error-request-will-fetch",{thrownErrorMessage:t.message})}const i=n.clone();try{let t;t=await fetch(n,"navigate"===n.mode?void 0:this.u.fetchOptions);for(const s of this.iterateCallbacks("fetchDidSucceed"))t=await s({event:e,request:i,response:t});return t}catch(t){throw r&amp;&amp;await this.runCallbacks("fetchDidFail",{error:t,event:e,originalRequest:r.clone(),request:i.clone()}),t}}async fetchAndCachePut(t){const e=await this.fetch(t),s=e.clone();return this.waitUntil(this.cachePut(t,s)),e}async cacheMatch(t){const e=R(t);let s;const{cacheName:n,matchOptions:r}=this.u,i=await this.getCacheKey(e,"read"),a=Object.assign(Object.assign({},r),{cacheName:n});s=await caches.match(i,a);for(const t of this.iterateCallbacks("cachedResponseWillBeUsed"))s=await t({cacheName:n,matchOptions:r,cachedResponse:s,request:i,event:this.event})||void 0;return s}async cachePut(t,e){const n=R(t);await g(0);const r=await this.getCacheKey(n,"write");if(!e)throw new s("cache-put-with-no-response",{url:(i=r.url,new URL(String(i),location.href).href.replace(new RegExp(`^${location.origin}`),""))});var i;const a=await this.v(e);if(!a)return!1;const{cacheName:o,matchOptions:c}=this.u,h=await self.caches.open(o),u=this.hasCallback("cacheDidUpdate"),l=u?await async function(t,e,s,n){const r=p(e.url,s);if(e.url===r)return t.match(e,n);const i=Object.assign(Object.assign({},n),{ignoreSearch:!0}),a=await t.keys(e,i);for(const e of a)if(r===p(e.url,s))return t.match(e,n)}(h,r.clone(),["__WB_REVISION__"],c):null;try{await h.put(r,u?a.clone():a)}catch(t){if(t instanceof Error)throw"QuotaExceededError"===t.name&amp;&amp;await async function(){for(const t of m)await t()}(),t}for(const t of this.iterateCallbacks("cacheDidUpdate"))await t({cacheName:o,oldResponse:l,newResponse:a.clone(),request:r,event:this.event});return!0}async getCacheKey(t,e){const s=`${t.url} | ${e}`;if(!this.h[s]){let n=t;for(const t of this.iterateCallbacks("cacheKeyWillBeUsed"))n=R(await t({mode:e,request:n,event:this.event,params:this.params}));this.h[s]=n}return this.h[s]}hasCallback(t){for(const e of this.u.plugins)if(t in e)return!0;return!1}async runCallbacks(t,e){for(const s of this.iterateCallbacks(t))await s(e)}*iterateCallbacks(t){for(const e of this.u.plugins)if("function"==typeof e[t]){const s=this.R.get(e),n=n=&gt;{const r=Object.assign(Object.assign({},n),{state:s});return e[t](r)};yield n}}waitUntil(t){return this.p.push(t),t}async doneWaiting(){let t;for(;t=this.p.shift();)await t}destroy(){this.l.resolve(null)}async v(t){let e=t,s=!1;for(const t of this.iterateCallbacks("cacheWillUpdate"))if(e=await t({request:this.request,response:e,event:this.event})||void 0,s=!0,!e)break;return s||e&amp;&amp;200!==e.status&amp;&amp;(e=void 0),e}}class b{constructor(t={}){this.cacheName=d(t.cacheName),this.plugins=t.plugins||[],this.fetchOptions=t.fetchOptions,this.matchOptions=t.matchOptions}handle(t){const[e]=this.handleAll(t);return e}handleAll(t){t instanceof FetchEvent&amp;&amp;(t={event:t,request:t.request});const e=t.event,s="string"==typeof t.request?new Request(t.request):t.request,n="params"in t?t.params:void 0,r=new v(this,{event:e,request:s,params:n}),i=this.q(r,s,e);return[i,this.D(i,r,s,e)]}async q(t,e,n){let r;await t.runCallbacks("handlerWillStart",{event:n,request:e});try{if(r=await this.U(e,t),!r||"error"===r.type)throw new s("no-response",{url:e.url})}catch(s){if(s instanceof Error)for(const i of t.iterateCallbacks("handlerDidError"))if(r=await i({error:s,event:n,request:e}),r)break;if(!r)throw s}for(const s of t.iterateCallbacks("handlerWillRespond"))r=await s({event:n,request:e,response:r});return r}async D(t,e,s,n){let r,i;try{r=await t}catch(i){}try{await e.runCallbacks("handlerDidRespond",{event:n,request:s,response:r}),await e.doneWaiting()}catch(t){t instanceof Error&amp;&amp;(i=t)}if(await e.runCallbacks("handlerDidComplete",{event:n,request:s,response:r,error:i}),e.destroy(),i)throw i}}function q(t){t.then(()=&gt;{})}function D(){return D=Object.assign?Object.assign.bind():function(t){for(var e=1;e&lt;arguments.length;e++){var s=arguments[e];for(var n in s)({}).hasOwnProperty.call(s,n)&amp;&amp;(t[n]=s[n])}return t},D.apply(null,arguments)}let U,x;const E=new WeakMap,I=new WeakMap,L=new WeakMap,C=new WeakMap,N=new WeakMap;let k={get(t,e,s){if(t instanceof IDBTransaction){if("done"===e)return I.get(t);if("objectStoreNames"===e)return t.objectStoreNames||L.get(t);if("store"===e)return s.objectStoreNames[1]?void 0:s.objectStore(s.objectStoreNames[0])}return T(t[e])},set:(t,e,s)=&gt;(t[e]=s,!0),has:(t,e)=&gt;t instanceof IDBTransaction&amp;&amp;("done"===e||"store"===e)||e in t};function O(t){return t!==IDBDatabase.prototype.transaction||"objectStoreNames"in IDBTransaction.prototype?(x||(x=[IDBCursor.prototype.advance,IDBCursor.prototype.continue,IDBCursor.prototype.continuePrimaryKey])).includes(t)?function(...e){return t.apply(P(this),e),T(E.get(this))}:function(...e){return T(t.apply(P(this),e))}:function(e,...s){const n=t.call(P(this),e,...s);return L.set(n,e.sort?e.sort():[e]),T(n)}}function B(t){return"function"==typeof t?O(t):(t instanceof IDBTransaction&amp;&amp;function(t){if(I.has(t))return;const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("complete",r),t.removeEventListener("error",i),t.removeEventListener("abort",i)},r=()=&gt;{e(),n()},i=()=&gt;{s(t.error||new DOMException("AbortError","AbortError")),n()};t.addEventListener("complete",r),t.addEventListener("error",i),t.addEventListener("abort",i)});I.set(t,e)}(t),e=t,(U||(U=[IDBDatabase,IDBObjectStore,IDBIndex,IDBCursor,IDBTransaction])).some(t=&gt;e instanceof t)?new Proxy(t,k):t);var e}function T(t){if(t instanceof IDBRequest)return function(t){const e=new Promise((e,s)=&gt;{const n=()=&gt;{t.removeEventListener("success",r),t.removeEventListener("error",i)},r=()=&gt;{e(T(t.result)),n()},i=()=&gt;{s(t.error),n()};t.addEventListener("success",r),t.addEventListener("error",i)});return e.then(e=&gt;{e instanceof IDBCursor&amp;&amp;E.set(e,t)}).catch(()=&gt;{}),N.set(e,t),e}(t);if(C.has(t))return C.get(t);const e=B(t);return e!==t&amp;&amp;(C.set(t,e),N.set(e,t)),e}const P=t=&gt;N.get(t);const M=["get","getKey","getAll","getAllKeys","count"],W=["put","add","delete","clear"],j=new Map;function S(t,e){if(!(t instanceof IDBDatabase)||e in t||"string"!=typeof e)return;if(j.get(e))return j.get(e);const s=e.replace(/FromIndex$/,""),n=e!==s,r=W.includes(s);if(!(s in(n?IDBIndex:IDBObjectStore).prototype)||!r&amp;&amp;!M.includes(s))return;const i=async function(t,...e){const i=this.transaction(t,r?"readwrite":"readonly");let a=i.store;return n&amp;&amp;(a=a.index(e.shift())),(await Promise.all([a[s](...e),r&amp;&amp;i.done]))[0]};return j.set(e,i),i}k=(t=&gt;D({},t,{get:(e,s,n)=&gt;S(e,s)||t.get(e,s,n),has:(e,s)=&gt;!!S(e,s)||t.has(e,s)}))(k);try{self["workbox:expiration:6.5.4"]&amp;&amp;_()}catch(t){}const K="cache-entries",A=t=&gt;{const e=new URL(t,location.href);return e.hash="",e.href};class F{constructor(t){this._=null,this.I=t}L(t){const e=t.createObjectStore(K,{keyPath:"id"});e.createIndex("cacheName","cacheName",{unique:!1}),e.createIndex("timestamp","timestamp",{unique:!1})}C(t){this.L(t),this.I&amp;&amp;function(t,{blocked:e}={}){const s=indexedDB.deleteDatabase(t);e&amp;&amp;s.addEventListener("blocked",t=&gt;e(t.oldVersion,t)),T(s).then(()=&gt;{})}(this.I)}async setTimestamp(t,e){const s={url:t=A(t),timestamp:e,cacheName:this.I,id:this.N(t)},n=(await this.getDb()).transaction(K,"readwrite",{durability:"relaxed"});await n.store.put(s),await n.done}async getTimestamp(t){const e=await this.getDb(),s=await e.get(K,this.N(t));return null==s?void 0:s.timestamp}async expireEntries(t,e){const s=await this.getDb();let n=await s.transaction(K).store.index("timestamp").openCursor(null,"prev");const r=[];let i=0;for(;n;){const s=n.value;s.cacheName===this.I&amp;&amp;(t&amp;&amp;s.timestamp&lt;t||e&amp;&amp;i&gt;=e?r.push(n.value):i++),n=await n.continue()}const a=[];for(const t of r)await s.delete(K,t.id),a.push(t.url);return a}N(t){return this.I+"|"+A(t)}async getDb(){return this._||(this._=await function(t,e,{blocked:s,upgrade:n,blocking:r,terminated:i}={}){const a=indexedDB.open(t,e),o=T(a);return n&amp;&amp;a.addEventListener("upgradeneeded",t=&gt;{n(T(a.result),t.oldVersion,t.newVersion,T(a.transaction),t)}),s&amp;&amp;a.addEventListener("blocked",t=&gt;s(t.oldVersion,t.newVersion,t)),o.then(t=&gt;{i&amp;&amp;t.addEventListener("close",()=&gt;i()),r&amp;&amp;t.addEventListener("versionchange",t=&gt;r(t.oldVersion,t.newVersion,t))}).catch(()=&gt;{}),o}("workbox-expiration",1,{upgrade:this.C.bind(this)})),this._}}class ${constructor(t,e={}){this.k=!1,this.O=!1,this.B=e.maxEntries,this.T=e.maxAgeSeconds,this.P=e.matchOptions,this.I=t,this.M=new F(t)}async expireEntries(){if(this.k)return void(this.O=!0);this.k=!0;const t=this.T?Date.now()-1e3*this.T:0,e=await this.M.expireEntries(t,this.B),s=await self.caches.open(this.I);for(const t of e)await s.delete(t,this.P);this.k=!1,this.O&amp;&amp;(this.O=!1,q(this.expireEntries()))}async updateTimestamp(t){await this.M.setTimestamp(t,Date.now())}async isURLExpired(t){if(this.T){const e=await this.M.getTimestamp(t),s=Date.now()-1e3*this.T;return void 0===e||e&lt;s}return!1}async delete(){this.O=!1,await this.M.expireEntries(1/0)}}function H(t,e){const s=e();return t.waitUntil(s),s}try{self["workbox:precaching:6.5.4"]&amp;&amp;_()}catch(t){}function G(t){if(!t)throw new s("add-to-cache-list-unexpected-type",{entry:t});if("string"==typeof t){const e=new URL(t,location.href);return{cacheKey:e.href,url:e.href}}const{revision:e,url:n}=t;if(!n)throw new s("add-to-cache-list-unexpected-type",{entry:t});if(!e){const t=new URL(n,location.href);return{cacheKey:t.href,url:t.href}}const r=new URL(n,location.href),i=new URL(n,location.href);return r.searchParams.set("__WB_REVISION__",e),{cacheKey:r.href,url:i.href}}class V{constructor(){this.updatedURLs=[],this.notUpdatedURLs=[],this.handlerWillStart=async({request:t,state:e})=&gt;{e&amp;&amp;(e.originalRequest=t)},this.cachedResponseWillBeUsed=async({event:t,state:e,cachedResponse:s})=&gt;{if("install"===t.type&amp;&amp;e&amp;&amp;e.originalRequest&amp;&amp;e.originalRequest instanceof Request){const t=e.originalRequest.url;s?this.notUpdatedURLs.push(t):this.updatedURLs.push(t)}return s}}}class J{constructor({precacheController:t}){this.cacheKeyWillBeUsed=async({request:t,params:e})=&gt;{const s=(null==e?void 0:e.cacheKey)||this.W.getCacheKeyForURL(t.url);return s?new Request(s,{headers:t.headers}):t},this.W=t}}let Q,z;async function X(t,e){let n=null;if(t.url){n=new URL(t.url).origin}if(n!==self.location.origin)throw new s("cross-origin-copy-response",{origin:n});const r=t.clone(),i={headers:new Headers(r.headers),status:r.status,statusText:r.statusText},a=e?e(i):i,o=function(){if(void 0===Q){const t=new Response("");if("body"in t)try{new Response(t.body),Q=!0}catch(t){Q=!1}Q=!1}return Q}()?r.body:await r.blob();return new Response(o,a)}class Y extends b{constructor(t={}){t.cacheName=w(t.cacheName),super(t),this.j=!1!==t.fallbackToNetwork,this.plugins.push(Y.copyRedirectedCacheableResponsesPlugin)}async U(t,e){const s=await e.cacheMatch(t);return s||(e.event&amp;&amp;"install"===e.event.type?await this.S(t,e):await this.K(t,e))}async K(t,e){let n;const r=e.params||{};if(!this.j)throw new s("missing-precache-entry",{cacheName:this.cacheName,url:t.url});{const s=r.integrity,i=t.integrity,a=!i||i===s;n=await e.fetch(new Request(t,{integrity:"no-cors"!==t.mode?i||s:void 0})),s&amp;&amp;a&amp;&amp;"no-cors"!==t.mode&amp;&amp;(this.A(),await e.cachePut(t,n.clone()))}return n}async S(t,e){this.A();const n=await e.fetch(t);if(!await e.cachePut(t,n.clone()))throw new s("bad-precaching-response",{url:t.url,status:n.status});return n}A(){let t=null,e=0;for(const[s,n]of this.plugins.entries())n!==Y.copyRedirectedCacheableResponsesPlugin&amp;&amp;(n===Y.defaultPrecacheCacheabilityPlugin&amp;&amp;(t=s),n.cacheWillUpdate&amp;&amp;e++);0===e?this.plugins.push(Y.defaultPrecacheCacheabilityPlugin):e&gt;1&amp;&amp;null!==t&amp;&amp;this.plugins.splice(t,1)}}Y.defaultPrecacheCacheabilityPlugin={cacheWillUpdate:async({response:t})=&gt;!t||t.status&gt;=400?null:t},Y.copyRedirectedCacheableResponsesPlugin={cacheWillUpdate:async({response:t})=&gt;t.redirected?await X(t):t};class Z{constructor({cacheName:t,plugins:e=[],fallbackToNetwork:s=!0}={}){this.F=new Map,this.$=new Map,this.H=new Map,this.u=new Y({cacheName:w(t),plugins:[...e,new J({precacheController:this})],fallbackToNetwork:s}),this.install=this.install.bind(this),this.activate=this.activate.bind(this)}get strategy(){return this.u}precache(t){this.addToCacheList(t),this.G||(self.addEventListener("install",this.install),self.addEventListener("activate",this.activate),this.G=!0)}addToCacheList(t){const e=[];for(const n of t){"string"==typeof n?e.push(n):n&amp;&amp;void 0===n.revision&amp;&amp;e.push(n.url);const{cacheKey:t,url:r}=G(n),i="string"!=typeof n&amp;&amp;n.revision?"reload":"default";if(this.F.has(r)&amp;&amp;this.F.get(r)!==t)throw new s("add-to-cache-list-conflicting-entries",{firstEntry:this.F.get(r),secondEntry:t});if("string"!=typeof n&amp;&amp;n.integrity){if(this.H.has(t)&amp;&amp;this.H.get(t)!==n.integrity)throw new s("add-to-cache-list-conflicting-integrities",{url:r});this.H.set(t,n.integrity)}if(this.F.set(r,t),this.$.set(r,i),e.length&gt;0){const t=`Workbox is precaching URLs without revision info: ${e.join(", ")}\nThis is generally NOT safe. Learn more at https://bit.ly/wb-precache`;console.warn(t)}}}install(t){return H(t,async()=&gt;{const e=new V;this.strategy.plugins.push(e);for(const[e,s]of this.F){const n=this.H.get(s),r=this.$.get(e),i=new Request(e,{integrity:n,cache:r,credentials:"same-origin"});await Promise.all(this.strategy.handleAll({params:{cacheKey:s},request:i,event:t}))}const{updatedURLs:s,notUpdatedURLs:n}=e;return{updatedURLs:s,notUpdatedURLs:n}})}activate(t){return H(t,async()=&gt;{const t=await self.caches.open(this.strategy.cacheName),e=await t.keys(),s=new Set(this.F.values()),n=[];for(const r of e)s.has(r.url)||(await t.delete(r),n.push(r.url));return{deletedURLs:n}})}getURLsToCacheKeys(){return this.F}getCachedURLs(){return[...this.F.keys()]}getCacheKeyForURL(t){const e=new URL(t,location.href);return this.F.get(e.href)}getIntegrityForCacheKey(t){return this.H.get(t)}async matchPrecache(t){const e=t instanceof Request?t.url:t,s=this.getCacheKeyForURL(e);if(s){return(await self.caches.open(this.strategy.cacheName)).match(s)}}createHandlerBoundToURL(t){const e=this.getCacheKeyForURL(t);if(!e)throw new s("non-precached-url",{url:t});return s=&gt;(s.request=new Request(t),s.params=Object.assign({cacheKey:e},s.params),this.strategy.handle(s))}}const tt=()=&gt;(z||(z=new Z),z);class et extends r{constructor(t,e){super(({request:s})=&gt;{const n=t.getURLsToCacheKeys();for(const r of function*(t,{ignoreURLParametersMatching:e=[/^utm_/,/^fbclid$/],directoryIndex:s="index.html",cleanURLs:n=!0,urlManipulation:r}={}){const i=new URL(t,location.href);i.hash="",yield i.href;const a=function(t,e=[]){for(const s of[...t.searchParams.keys()])e.some(t=&gt;t.test(s))&amp;&amp;t.searchParams.delete(s);return t}(i,e);if(yield a.href,s&amp;&amp;a.pathname.endsWith("/")){const t=new URL(a.href);t.pathname+=s,yield t.href}if(n){const t=new URL(a.href);t.pathname+=".html",yield t.href}if(r){const t=r({url:i});for(const e of t)yield e.href}}(s.url,e)){const e=n.get(r);if(e){return{cacheKey:e,integrity:t.getIntegrityForCacheKey(e)}}}},t.strategy)}}t.CacheFirst=class extends b{async U(t,e){let n,r=await e.cacheMatch(t);if(!r)try{r=await e.fetchAndCachePut(t)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.ExpirationPlugin=class{constructor(t={}){this.cachedResponseWillBeUsed=async({event:t,request:e,cacheName:s,cachedResponse:n})=&gt;{if(!n)return null;const r=this.V(n),i=this.J(s);q(i.expireEntries());const a=i.updateTimestamp(e.url);if(t)try{t.waitUntil(a)}catch(t){}return r?n:null},this.cacheDidUpdate=async({cacheName:t,request:e})=&gt;{const s=this.J(t);await s.updateTimestamp(e.url),await s.expireEntries()},this.X=t,this.T=t.maxAgeSeconds,this.Y=new Map,t.purgeOnQuotaError&amp;&amp;function(t){m.add(t)}(()=&gt;this.deleteCacheAndMetadata())}J(t){if(t===d())throw new s("expire-custom-caches-only");let e=this.Y.get(t);return e||(e=new $(t,this.X),this.Y.set(t,e)),e}V(t){if(!this.T)return!0;const e=this.Z(t);if(null===e)return!0;return e&gt;=Date.now()-1e3*this.T}Z(t){if(!t.headers.has("date"))return null;const e=t.headers.get("date"),s=new Date(e).getTime();return isNaN(s)?null:s}async deleteCacheAndMetadata(){for(const[t,e]of this.Y)await self.caches.delete(t),await e.delete();this.Y=new Map}},t.NetworkFirst=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u),this.tt=t.networkTimeoutSeconds||0}async U(t,e){const n=[],r=[];let i;if(this.tt){const{id:s,promise:a}=this.et({request:t,logs:n,handler:e});i=s,r.push(a)}const a=this.st({timeoutId:i,request:t,logs:n,handler:e});r.push(a);const o=await e.waitUntil((async()=&gt;await e.waitUntil(Promise.race(r))||await a)());if(!o)throw new s("no-response",{url:t.url});return o}et({request:t,logs:e,handler:s}){let n;return{promise:new Promise(e=&gt;{n=setTimeout(async()=&gt;{e(await s.cacheMatch(t))},1e3*this.tt)}),id:n}}async st({timeoutId:t,request:e,logs:s,handler:n}){let r,i;try{i=await n.fetchAndCachePut(e)}catch(t){t instanceof Error&amp;&amp;(r=t)}return t&amp;&amp;clearTimeout(t),!r&amp;&amp;i||(i=await n.cacheMatch(e)),i}},t.NetworkOnly=class extends b{constructor(t={}){super(t),this.tt=t.networkTimeoutSeconds||0}async U(t,e){let n,r;try{const s=[e.fetch(t)];if(this.tt){const t=g(1e3*this.tt);s.push(t)}if(r=await Promise.race(s),!r)throw new Error(`Timed out the network response after ${this.tt} seconds.`)}catch(t){t instanceof Error&amp;&amp;(n=t)}if(!r)throw new s("no-response",{url:t.url,error:n});return r}},t.StaleWhileRevalidate=class extends b{constructor(t={}){super(t),this.plugins.some(t=&gt;"cacheWillUpdate"in t)||this.plugins.unshift(u)}async U(t,e){const n=e.fetchAndCachePut(t).catch(()=&gt;{});e.waitUntil(n);let r,i=await e.cacheMatch(t);if(i);else try{i=await n}catch(t){t instanceof Error&amp;&amp;(r=t)}if(!i)throw new s("no-response",{url:t.url,error:r});return i}},t.cleanupOutdatedCaches=function(){self.addEventListener("activate",t=&gt;{const e=w();t.waitUntil((async(t,e="-precache-")=&gt;{const s=(await self.caches.keys()).filter(s=&gt;s.includes(e)&amp;&amp;s.includes(self.registration.scope)&amp;&amp;s!==t);return await Promise.all(s.map(t=&gt;self.caches.delete(t))),s})(e).then(t=&gt;{}))})},t.clientsClaim=function(){self.addEventListener("activate",()=&gt;self.clients.claim())},t.precacheAndRoute=function(t,e){!function(t){tt().precache(t)}(t),function(t){const e=tt();h(new et(e,t))}(e)},t.registerRoute=h});
 </pre></div>
@@ -11116,6 +11116,8 @@ export async function GET(request: NextRequest) {
 import { getRevenueStats, RevenuePeriod } from "@/lib/analytics/revenue";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -13090,7 +13092,7 @@ export const dynamic = "force-dynamic";
 const addStockSchema = z.object({
   inventoryItemId: z.string().min(1),
   quantityAdded: z.coerce.number().positive(),
-  expiryDate: z.string().min(1),
+  expiryDate: z.string().min(1).optional().nullable(),
   batchNumber: z.string().optional().nullable(),
   supplier: z.string().optional().nullable(),
 });
@@ -13110,7 +13112,7 @@ export async function POST(req: NextRequest) {
       actor: { id: user.id, role: user.role, organizationId: user.organizationId },
       inventoryItemId: parsed.data.inventoryItemId,
       quantityAdded: parsed.data.quantityAdded,
-      expiryDate: new Date(parsed.data.expiryDate),
+      expiryDate: parsed.data.expiryDate ? new Date(parsed.data.expiryDate) : undefined,
       batchNumber: parsed.data.batchNumber,
       supplier: parsed.data.supplier,
     });
@@ -13799,24 +13801,34 @@ export async function POST(req: NextRequest) {
       return { org, admin };
     });
 
-    // Sync default test catalog after transaction commits
-    await syncFullTestCatalogToOrganization(prisma, result.org.id);
+    // Sync default test catalog after transaction commits. These
+    // follow-up tasks are best-effort: log failures but don't fail
+    // the registration if they error.
+    try {
+      await syncFullTestCatalogToOrganization(prisma, result.org.id);
+    } catch (err) {
+      console.error("[ORG_REGISTER][SYNC_CATALOG]", (err as any)?.stack ?? err);
+    }
 
     // Audit log â€” super admin creates themselves during registration
-    await createAuditLog({
-      actorId: result.admin.id,
-      actorRole: Role.SUPER_ADMIN,
-      action: AUDIT_ACTIONS.ORG_CREATED,
-      entityType: "Organization",
-      entityId: result.org.id,
-      newValue: {
-        name: result.org.name,
-        email: result.org.email,
-        logo: result.org.logo,
-        website: result.org.website,
-        letterheadUrl: result.org.letterheadUrl,
-      },
-    });
+    try {
+      await createAuditLog({
+        actorId: result.admin.id,
+        actorRole: Role.SUPER_ADMIN,
+        action: AUDIT_ACTIONS.ORG_CREATED,
+        entityType: "Organization",
+        entityId: result.org.id,
+        newValue: {
+          name: result.org.name,
+          email: result.org.email,
+          logo: result.org.logo,
+          website: result.org.website,
+          letterheadUrl: result.org.letterheadUrl,
+        },
+      });
+    } catch (err) {
+      console.error("[ORG_REGISTER][AUDIT_LOG]", (err as any)?.stack ?? err);
+    }
 
     return NextResponse.json(
       {
@@ -13830,7 +13842,8 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("[ORG_REGISTER]", error);
+    // Include stack if available for easier debugging in logs
+    console.error("[ORG_REGISTER]", (error as any)?.stack ?? error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
@@ -15431,36 +15444,36 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }</pre></div>
-<div class='file-block'><div class='file-header'>src/app/api/warmup/route.ts</div><pre>import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+<div class='file-block'><div class='file-header'>src/app/api/uploads/presign/route.ts</div><pre>import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+
+export async function GET(req: NextRequest) {
+  try {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+    if (cloudName &amp;&amp; uploadPreset) {
+      return NextResponse.json({
+        success: true,
+        provider: "cloudinary",
+        uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        uploadPreset,
+      });
+    }
+
+    return NextResponse.json({ success: false, error: "No unsigned upload configured" }, { status: 501 });
+  } catch (error) {
+    console.error("[UPLOADS_PRESIGN]", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+</pre></div>
+<div class='file-block'><div class='file-header'>src/app/api/warmup/route.ts</div><pre>import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ success: true });
-    }
-    const user = session.user as { id?: string; organizationId?: string };
-    if (!user.id || !user.organizationId) {
-      return NextResponse.json({ success: true });
-    }
-
-    await prisma.staff.findFirst({
-      where: {
-        id: user.id,
-        organizationId: user.organizationId,
-      },
-      select: { id: true },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ success: true });
-  }
+  return NextResponse.json({ success: true });
 }
 </pre></div>
 <div class='file-block'><div class='file-header'>src/app/error.tsx</div><pre>"use client";
@@ -18098,7 +18111,7 @@ export function ConsultationBoard({ role }: { role: "RECEPTIONIST" | "MD" | "HRM
   useEffect(() =&gt; {
     const poll = window.setInterval(() =&gt; {
       void loadQueue({ silent: true });
-    }, 15_000);
+    }, 60_000);
     return () =&gt; window.clearInterval(poll);
   }, [search, date, days]);
 
@@ -19780,7 +19793,7 @@ export function HrmOperationsBoard({ staffOptions }: { staffOptions: StaffOption
     const timer = window.setInterval(() =&gt; {
       if (busyTaskId) return;
       void loadData();
-    }, 30000);
+    }, 120_000);
     return () =&gt; window.clearInterval(timer);
   }, [busyTaskId, department, status, priority]);
 
@@ -22303,9 +22316,9 @@ export function InventoryOperations({
   const [stockBatch, setStockBatch] = useState("");
   const [stockSupplier, setStockSupplier] = useState("");
 
-  const [mapItemId, setMapItemId] = useState("");
-  const [mapTestId, setMapTestId] = useState("");
-  const [mapQty, setMapQty] = useState("");
+  const [mappingsRows, setMappingsRows] = useState&lt;{ inventoryItemId: string; testId: string; quantity: string }[]&gt;([
+    { inventoryItemId: "", testId: "", quantity: "" },
+  ]);
   const [editingItemId, setEditingItemId] = useState&lt;string | null&gt;(null);
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState&lt;"TEST_KIT" | "REAGENT" | "CONSUMABLE"&gt;("TEST_KIT");
@@ -22385,7 +22398,7 @@ export function InventoryOperations({
         body: JSON.stringify({
           inventoryItemId: stockItemId,
           quantityAdded: Number(stockQty),
-          expiryDate: stockExpiry,
+          expiryDate: stockExpiry || null,
           batchNumber: stockBatch || null,
           supplier: stockSupplier || null,
         }),
@@ -22405,28 +22418,38 @@ export function InventoryOperations({
     }
   }
 
+  function updateMappingRow(index: number, row: { inventoryItemId: string; testId: string; quantity: string }) {
+    setMappingsRows((prev) =&gt; prev.map((r, i) =&gt; (i === index ? row : r)));
+  }
+
+  function removeMappingRow(index: number) {
+    setMappingsRows((prev) =&gt; prev.filter((_, i) =&gt; i !== index));
+  }
+
   async function saveMapping() {
     setBusy(true);
     setError("");
     setFeedback("");
     try {
+      const payload = mappingsRows
+        .filter((r) =&gt; r.inventoryItemId &amp;&amp; r.testId &amp;&amp; r.quantity)
+        .map((r) =&gt; ({
+          inventoryItemId: r.inventoryItemId,
+          testId: r.testId,
+          quantityPerTest: Number(r.quantity),
+        }));
+
+      if (payload.length === 0) throw new Error("No valid mappings to save");
+
       const res = await fetch("/api/inventory/mappings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mappings: [
-            {
-              inventoryItemId: mapItemId,
-              testId: mapTestId,
-              quantityPerTest: Number(mapQty),
-            },
-          ],
-        }),
+        body: JSON.stringify({ mappings: payload }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error ?? "Failed to save mapping");
       setFeedback("Consumption mapping saved.");
-      setMapQty("");
+      setMappingsRows([{ inventoryItemId: "", testId: "", quantity: "" }]);
       await loadAll();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save mapping");
@@ -22572,36 +22595,54 @@ export function InventoryOperations({
               &lt;Input value={stockSupplier} onChange={(e) =&gt; setStockSupplier(e.target.value)} placeholder="MedSupply Ltd" /&gt;
             &lt;/div&gt;
           &lt;/div&gt;
-          &lt;Button disabled={busy || !stockItemId || !stockQty || !stockExpiry} onClick={addStock}&gt;Add Stock&lt;/Button&gt;
+          &lt;Button disabled={busy || !stockItemId || !stockQty} onClick={addStock}&gt;Add Stock&lt;/Button&gt;
         &lt;/section&gt;
         ) : null}
 
         {mode === "all" || mode === "setup" || mode === "mappings" ? (
         &lt;section className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"&gt;
           &lt;h3 className="text-sm font-semibold text-slate-800"&gt;Map Consumption To Test&lt;/h3&gt;
-          &lt;div className="space-y-1"&gt;
-            &lt;Label&gt;Item&lt;/Label&gt;
-            &lt;Select value={mapItemId} onValueChange={setMapItemId}&gt;
-              &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select item" /&gt;&lt;/SelectTrigger&gt;
-              &lt;SelectContent&gt;
-                {itemOptions.map((opt) =&gt; &lt;SelectItem key={opt.id} value={opt.id}&gt;{opt.label}&lt;/SelectItem&gt;)}
-              &lt;/SelectContent&gt;
-            &lt;/Select&gt;
+          &lt;div className="space-y-2"&gt;
+            {mappingsRows.map((row, idx) =&gt; (
+              &lt;div key={idx} className="grid grid-cols-12 gap-2 items-end"&gt;
+                &lt;div className="col-span-4 space-y-1"&gt;
+                  &lt;Label&gt;Item&lt;/Label&gt;
+                  &lt;Select value={row.inventoryItemId} onValueChange={(v) =&gt; updateMappingRow(idx, { ...row, inventoryItemId: v })}&gt;
+                    &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select item" /&gt;&lt;/SelectTrigger&gt;
+                    &lt;SelectContent&gt;
+                      {itemOptions.map((opt) =&gt; (
+                        &lt;SelectItem key={opt.id} value={opt.id}&gt;{opt.label}&lt;/SelectItem&gt;
+                      ))}
+                    &lt;/SelectContent&gt;
+                  &lt;/Select&gt;
+                &lt;/div&gt;
+                &lt;div className="col-span-4 space-y-1"&gt;
+                  &lt;Label&gt;Test&lt;/Label&gt;
+                  &lt;Select value={row.testId} onValueChange={(v) =&gt; updateMappingRow(idx, { ...row, testId: v })}&gt;
+                    &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select test" /&gt;&lt;/SelectTrigger&gt;
+                    &lt;SelectContent&gt;
+                      {tests.map((t) =&gt; (
+                        &lt;SelectItem key={t.id} value={t.id}&gt;{t.name} ({t.code})&lt;/SelectItem&gt;
+                      ))}
+                    &lt;/SelectContent&gt;
+                  &lt;/Select&gt;
+                &lt;/div&gt;
+                &lt;div className="col-span-3 space-y-1"&gt;
+                  &lt;Label&gt;Quantity Per Test&lt;/Label&gt;
+                  &lt;Input type="number" value={row.quantity} onChange={(e) =&gt; updateMappingRow(idx, { ...row, quantity: e.target.value })} placeholder="1" /&gt;
+                &lt;/div&gt;
+                &lt;div className="col-span-1"&gt;
+                  &lt;div className="flex items-center h-full"&gt;
+                    &lt;Button variant="ghost" onClick={() =&gt; removeMappingRow(idx)} disabled={busy || mappingsRows.length === 1}&gt;Remove&lt;/Button&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            ))}
+            &lt;div className="flex gap-2"&gt;
+              &lt;Button variant="outline" onClick={() =&gt; setMappingsRows([...mappingsRows, { inventoryItemId: "", testId: "", quantity: "" }])}&gt;Add Row&lt;/Button&gt;
+              &lt;Button disabled={busy || mappingsRows.every((r) =&gt; !r.inventoryItemId || !r.testId || !r.quantity)} onClick={saveMapping}&gt;Save Mapping&lt;/Button&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
-          &lt;div className="space-y-1"&gt;
-            &lt;Label&gt;Test&lt;/Label&gt;
-            &lt;Select value={mapTestId} onValueChange={setMapTestId}&gt;
-              &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select test" /&gt;&lt;/SelectTrigger&gt;
-              &lt;SelectContent&gt;
-                {tests.map((t) =&gt; &lt;SelectItem key={t.id} value={t.id}&gt;{t.name} ({t.code})&lt;/SelectItem&gt;)}
-              &lt;/SelectContent&gt;
-            &lt;/Select&gt;
-          &lt;/div&gt;
-          &lt;div className="space-y-1"&gt;
-            &lt;Label&gt;Quantity Per Test&lt;/Label&gt;
-            &lt;Input type="number" value={mapQty} onChange={(e) =&gt; setMapQty(e.target.value)} placeholder="1" /&gt;
-          &lt;/div&gt;
-          &lt;Button disabled={busy || !mapItemId || !mapTestId || !mapQty} onClick={saveMapping}&gt;Save Mapping&lt;/Button&gt;
         &lt;/section&gt;
         ) : null}
       &lt;/div&gt;
@@ -22855,21 +22896,14 @@ export function LabQueueTable({ rows }: { rows: QueueRow[] }) {
       }, 1200);
     };
 
-    const poll = window.setInterval(refreshNow, 10_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
-
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", refreshNow);
-    stream.onerror = () =&gt; {
-      stream.close();
-    };
 
     return () =&gt; {
       window.clearInterval(poll);
       window.removeEventListener("focus", refreshNow);
       document.removeEventListener("visibilitychange", refreshNow);
-      stream.close();
     };
   }, [router]);
 
@@ -24482,7 +24516,7 @@ export function LabTaskBoard() {
       void loadTasks({ force: true, silent: true });
     };
 
-    const poll = window.setInterval(refreshNow, 12_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
 
@@ -25265,7 +25299,7 @@ export function LabTaskBoard() {
       const task = tasksRef.current.find((row) =&gt; row.id === taskId);
       if (!task || !showResultForm(task) || task.status === "COMPLETED") return;
       void persistDraft(task, draftsRef.current).catch(() =&gt; undefined);
-    }, 5000);
+    }, 30_000);
     return () =&gt; window.clearInterval(timer);
   }, [expandedTask]);
 
@@ -25706,7 +25740,6 @@ import { Role } from "@prisma/client";
 import { Sidebar } from "@/components/layout/sidebar";
 import { HeaderBar } from "@/components/layout/header-bar";
 import { OfflineStatusBar } from "@/components/shared/offline-status-bar";
-import { AppWarmup } from "@/components/shared/app-warmup";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { InstallPrompt } from "@/components/install-prompt";
 
@@ -25745,7 +25778,6 @@ export function DashboardShell({
       &lt;Sidebar user={user} className="hidden md:flex" /&gt;
 
       &lt;div className="flex min-w-0 flex-1 flex-col overflow-hidden"&gt;
-        &lt;AppWarmup /&gt;
         &lt;HeaderBar
           staffId={staffId}
           staffName={staffName}
@@ -27419,14 +27451,6 @@ type NotificationItem = {
   isRead: boolean; entityId?: string | null; entityType?: string | null; createdAt: string;
 };
 type NotificationResponse = { items: NotificationItem[]; unreadCount: number; nextCursor: string | null };
-type StreamNotificationPayload = {
-  unreadCount?: number;
-  topId?: string | null;
-  topType?: string | null;
-  topTitle?: string | null;
-  topMessage?: string | null;
-  topIsRead?: boolean | null;
-};
 
 function roleNotificationPath(role: string) {
   if (role === "RECEPTIONIST") return "/dashboard/receptionist/notifications";
@@ -27448,9 +27472,6 @@ export function NotificationBell({ role }: { role: string }) {
   const pendingCallIdsRef = useRef&lt;Set&lt;string&gt;&gt;(new Set());
   const initializedRef = useRef(false);
   const audioCtxRef = useRef&lt;AudioContext | null&gt;(null);
-  const reconnectTimerRef = useRef&lt;ReturnType&lt;typeof setTimeout&gt; | null&gt;(null);
-  const reconnectDelayMsRef = useRef(1500);
-  const streamRef = useRef&lt;EventSource | null&gt;(null);
   const lastLoadAtRef = useRef(0);
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState&lt;NotificationPermission&gt;("default");
@@ -27796,103 +27817,21 @@ export function NotificationBell({ role }: { role: string }) {
   }, []);
 
   useEffect(() =&gt; {
-    let cancelled = false;
-
-    const cleanupReconnect = () =&gt; {
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
+    const refreshVisible = () =&gt; {
+      if (document.visibilityState === "visible") void load();
     };
-
-    const connect = () =&gt; {
-      if (cancelled) return;
-      if (typeof document !== "undefined" &amp;&amp; document.visibilityState !== "visible") return;
-      cleanupReconnect();
-      if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
-      }
-      const stream = new EventSource("/api/notifications/stream");
-      streamRef.current = stream;
-
-      stream.addEventListener("ready", () =&gt; {
-        reconnectDelayMsRef.current = 1500;
-      });
-      stream.addEventListener("notification", (event) =&gt; {
-        reconnectDelayMsRef.current = 1500;
-        const payload = (() =&gt; {
-          try {
-            return JSON.parse((event as MessageEvent).data ?? "{}") as StreamNotificationPayload;
-          } catch {
-            return {} as StreamNotificationPayload;
-          }
-        })();
-
-        if (typeof payload.unreadCount === "number") {
-          setData((prev) =&gt; ({ ...prev, unreadCount: payload.unreadCount as number }));
-        }
-
-        const topId = payload.topId ?? null;
-        if (
-          topId &amp;&amp;
-          payload.topIsRead === false &amp;&amp;
-          !seenIdsRef.current.has(topId) &amp;&amp;
-          initializedRef.current
-        ) {
-          const topItem: NotificationItem = {
-            id: topId,
-            type: payload.topType ?? "SYSTEM",
-            title: payload.topTitle ?? "",
-            message: payload.topMessage ?? "",
-            isRead: false,
-            createdAt: new Date().toISOString(),
-          };
-          if (isCallNotification(topItem)) {
-            enqueuePendingCall([topId]);
-          } else if (isVitalNotification(topItem)) {
-            enqueuePendingVital([topId]);
-          }
-          flushPendingVitalAlerts();
-        }
-
-        if (open) {
-          void load();
-        }
-      });
-      stream.addEventListener("error", () =&gt; {
-        stream.close();
-        if (cancelled) return;
-        const delay = reconnectDelayMsRef.current;
-        reconnectDelayMsRef.current = Math.min(15_000, Math.floor(delay * 1.7));
-        reconnectTimerRef.current = setTimeout(() =&gt; {
-          connect();
-        }, delay);
-      });
-    };
-
-    connect();
-
-    const onVisibility = () =&gt; {
+    const poll = window.setInterval(refreshVisible, 45_000);
+    const onVisibilityOrFocus = () =&gt; {
       if (document.visibilityState === "visible") {
-        reconnectDelayMsRef.current = 1500;
-        connect();
         void load(true);
-      } else if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
       }
     };
-    document.addEventListener("visibilitychange", onVisibility);
-
+    window.addEventListener("focus", onVisibilityOrFocus);
+    document.addEventListener("visibilitychange", onVisibilityOrFocus);
     return () =&gt; {
-      cancelled = true;
-      document.removeEventListener("visibilitychange", onVisibility);
-      cleanupReconnect();
-      if (streamRef.current) {
-        streamRef.current.close();
-        streamRef.current = null;
-      }
+      window.clearInterval(poll);
+      window.removeEventListener("focus", onVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", onVisibilityOrFocus);
     };
   }, []);
 
@@ -28052,10 +27991,17 @@ export function NotificationCenter() {
   useEffect(() =&gt; { void load(); }, []);
 
   useEffect(() =&gt; {
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", () =&gt; { void load(); });
-    stream.addEventListener("error", () =&gt; { stream.close(); });
-    return () =&gt; stream.close();
+    const refreshVisible = () =&gt; {
+      if (document.visibilityState === "visible") void load();
+    };
+    const poll = window.setInterval(refreshVisible, 60_000);
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () =&gt; {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
   }, []);
 
   return (
@@ -28113,7 +28059,8 @@ export function NotificationCenter() {
       &lt;/div&gt;
     &lt;/div&gt;
   );
-}</pre></div>
+}
+</pre></div>
 <div class='file-block'><div class='file-header'>src/components/patients/patient-insights.tsx</div><pre>type Props = {
   insights: string[];
 };
@@ -28577,21 +28524,14 @@ export function RadiologyQueueTable({ rows }: { rows: Row[] }) {
       }, 1200);
     };
 
-    const poll = window.setInterval(refreshNow, 10_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
-
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", refreshNow);
-    stream.onerror = () =&gt; {
-      stream.close();
-    };
 
     return () =&gt; {
       window.clearInterval(poll);
       window.removeEventListener("focus", refreshNow);
       document.removeEventListener("visibilitychange", refreshNow);
-      stream.close();
     };
   }, [router]);
 
@@ -28721,7 +28661,8 @@ export function RadiologyQueueTable({ rows }: { rows: Row[] }) {
       &lt;/div&gt;
     &lt;/div&gt;
   );
-}</pre></div>
+}
+</pre></div>
 <div class='file-block'><div class='file-header'>src/components/radiology/radiology-task-board.tsx</div><pre>// src/components/radiology/radiology-task-board.tsx
 "use client";
 
@@ -28750,6 +28691,7 @@ import {
 } from "@/lib/radiology-report-sections";
 import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
 import { ImagePlus, X, Download } from "lucide-react";
+import React from "react";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -28887,6 +28829,167 @@ export function RadiologyTaskBoard() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
   const fileInputRef = useRef&lt;HTMLInputElement&gt;(null);
+  const [showLayoutEditorByTask, setShowLayoutEditorByTask] = useState&lt;Record&lt;string, boolean&gt;&gt;({});
+
+  // layout items are stored in drafts[taskId].extraFields.imagingLayout as array of {id:fileId, x, y, w, h}
+  function getLayoutForTask(taskId: string) {
+    try {
+      const d = drafts[taskId];
+      const extra = d?.extraFields ?? {};
+      const raw = (extra as any).imagingLayout;
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === "string") {
+        try { return JSON.parse(raw); } catch { return []; }
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  }
+
+  function LayoutEditor({ taskId, imagingFiles, getLayout, onChange }: { taskId: string; imagingFiles: ImagingFile[]; getLayout: () =&gt; any[]; onChange: (layout: any[]) =&gt; void }) {
+    const containerRef = useRef&lt;HTMLDivElement | null&gt;(null);
+    const [layout, setLayout] = useState&lt;any[]&gt;(() =&gt; getLayout() ?? []);
+    const layoutRef = useRef&lt;any[]&gt;(layout);
+    const dragRef = useRef&lt;any&gt;(null);
+
+    useEffect(() =&gt; { layoutRef.current = layout; }, [layout]);
+
+    useEffect(() =&gt; {
+      setLayout(getLayout() ?? []);
+      // call onChange once to initialize saved state
+      onChange(getLayout() ?? []);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [taskId, imagingFiles]);
+
+    function clientToPct(clientX: number, clientY: number) {
+      const el = containerRef.current; if (!el) return { x: 0, y: 0 };
+      const rect = el.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 100;
+      const y = ((clientY - rect.top) / rect.height) * 100;
+      return { x, y };
+    }
+
+    function startDrag(e: React.PointerEvent, idx: number) {
+      const el = containerRef.current; if (!el) return;
+      (e.target as Element).setPointerCapture(e.pointerId);
+      const start = clientToPct(e.clientX, e.clientY);
+      dragRef.current = { idx, mode: "move", start, orig: { ...layout[idx] } };
+    }
+
+    function startResize(e: React.PointerEvent, idx: number) {
+      const el = containerRef.current; if (!el) return;
+      (e.target as Element).setPointerCapture(e.pointerId);
+      const start = clientToPct(e.clientX, e.clientY);
+      dragRef.current = { idx, mode: "resize", start, orig: { ...layout[idx] } };
+    }
+
+    function onPointerMove(e: React.PointerEvent) {
+      if (!dragRef.current) return;
+      const { idx, mode, start, orig } = dragRef.current;
+      const cur = clientToPct(e.clientX, e.clientY);
+      const dx = cur.x - start.x;
+      const dy = cur.y - start.y;
+      setLayout((prev) =&gt; {
+        const copy = prev.map((r) =&gt; ({ ...r }));
+        if (!copy[idx]) return prev;
+        if (mode === "move") {
+          copy[idx].x = Math.max(0, Math.min(100 - (copy[idx].w ?? 20), (orig.x ?? 0) + dx));
+          copy[idx].y = Math.max(0, Math.min(100 - (copy[idx].h ?? 20), (orig.y ?? 0) + dy));
+        } else if (mode === "resize") {
+          copy[idx].w = Math.max(5, Math.min(100 - (orig.x ?? 0), (orig.w ?? 20) + dx));
+          // allow height auto by percentage or keep aspect ratio; user can set h explicitly
+          if (orig.h !== null &amp;&amp; orig.h !== undefined) {
+            copy[idx].h = Math.max(5, Math.min(100 - (orig.y ?? 0), (orig.h ?? 20) + dy));
+          } else {
+            copy[idx].h = null;
+          }
+        }
+        return copy;
+      });
+    }
+
+    function onPointerUp(e: React.PointerEvent) {
+      if (dragRef.current) {
+        try { (e.target as Element).releasePointerCapture(e.pointerId); } catch {}
+        dragRef.current = null;
+        // notify parent of final layout on pointer up (throttles continuous updates)
+        onChange(layoutRef.current ?? layout);
+      }
+    }
+
+    function removeItem(idx: number) {
+      setLayout((prev) =&gt; {
+        const next = prev.filter((_, i) =&gt; i !== idx);
+        // persist removal immediately
+        onChange(next);
+        return next;
+      });
+    }
+
+    return (
+      &lt;div&gt;
+        &lt;div className="mb-2 text-[11px] text-slate-500"&gt;Drag images on the canvas, resize from the bottom-right corner, and click Save Draft to persist positions.&lt;/div&gt;
+        &lt;div ref={containerRef} onPointerMove={onPointerMove} onPointerUp={onPointerUp} className="relative bg-slate-50 border border-slate-200" style={{ width: "100%", height: 420 }}&gt;
+          {layout.map((item, idx) =&gt; {
+            const file = imagingFiles.find((f) =&gt; f.id === item.id);
+            if (!file) return null;
+            const style: any = { position: "absolute", left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, cursor: "move", border: "1px solid #e5e7eb", borderRadius: 4, overflow: "hidden", background: "white" };
+            if (item.h) style.height = `${item.h}%`;
+            return (
+              &lt;div key={`${item.id}-${idx}`} style={style} onPointerDown={(e) =&gt; startDrag(e, idx)}&gt;
+                &lt;img src={file.fileUrl} alt={file.fileName} style={{ width: "100%", height: item.h ? "100%" : "auto", display: "block", objectFit: "contain" }} /&gt;
+                &lt;div style={{ position: "absolute", right: 4, bottom: 4 }}&gt;
+                  &lt;div onPointerDown={(e) =&gt; startResize(e, idx)} style={{ width: 12, height: 12, background: "rgba(0,0,0,0.6)", cursor: "nwse-resize", borderRadius: 2 }} /&gt;
+                &lt;/div&gt;
+                &lt;button onClick={(ev) =&gt; { ev.stopPropagation(); removeItem(idx); }} className="absolute right-1 top-1 rounded bg-white p-0.5 text-xs text-red-600"&gt;âœ•&lt;/button&gt;
+              &lt;/div&gt;
+            );
+          })}
+        &lt;/div&gt;
+        &lt;div className="mt-2 flex flex-wrap gap-2"&gt;
+          &lt;button type="button" onClick={() =&gt; { onChange(layout); }} className="rounded border border-blue-200 px-2 py-1 text-[11px] text-blue-700"&gt;Save Layout&lt;/button&gt;
+          &lt;button type="button" onClick={() =&gt; { /* noop, draft saved by Save Draft */ }} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600"&gt;Apply&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  function updateLayoutForTask(taskId: string, layout: any[]) {
+      try {
+        const current = drafts[taskId] ?? EMPTY_DRAFT;
+        updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: JSON.stringify(layout) } });
+      } catch (err) {
+        console.error("Failed to update imaging layout", err);
+        setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to update layout"));
+      }
+  }
+
+    // Simple error boundary to prevent a single component error from crashing the whole dashboard
+    class ErrorBoundary extends React.Component&lt;{
+      children: React.ReactNode;
+      onReset?: () =&gt; void;
+    }, { hasError: boolean; error?: Error }&gt; {
+      constructor(props: any) {
+        super(props);
+        this.state = { hasError: false };
+      }
+      static getDerivedStateFromError() { return { hasError: true }; }
+      componentDidCatch(error: Error, info: any) { console.error("ErrorBoundary caught:", error, info); }
+      render() {
+        if (this.state.hasError) {
+          return (
+            &lt;div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"&gt;
+              &lt;div&gt;Layout editor failed to load. You can close and try again.&lt;/div&gt;
+              &lt;div className="mt-2 flex gap-2"&gt;
+                &lt;button onClick={() =&gt; { this.setState({ hasError: false }); this.props.onReset?.(); }} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600"&gt;Close Editor&lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          );
+        }
+        return this.props.children as any;
+      }
+    }
 
   function invalidateTaskCache() {
     taskCacheRef.current.clear();
@@ -28912,22 +29015,53 @@ export function RadiologyTaskBoard() {
     setImageError("");
     
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("taskId", expandedTask);
-      
-      const res = await fetch("/api/uploads/imaging", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const json = await res.json();
-      if (!json.success) {
-        setImageError(json.error ?? "Upload failed");
+      // Request presign info for direct upload
+      const presignRes = await fetch("/api/uploads/presign");
+      const presignJson = await presignRes.json();
+      if (!presignJson.success) {
+        // fallback to server upload if presign not available
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("taskId", expandedTask);
+        const res = await fetch("/api/uploads/imaging", { method: "POST", body: formData });
+        const json = await res.json();
+        if (!json.success) { setImageError(json.error ?? "Upload failed"); return; }
+        setImagingFiles((prev) =&gt; [json.data, ...prev]);
         return;
       }
-      
-      setImagingFiles((prev) =&gt; [json.data, ...prev]);
+
+      if (presignJson.provider === "cloudinary") {
+        const uploadUrl = presignJson.uploadUrl as string;
+        const uploadPreset = presignJson.uploadPreset as string;
+        const uploadForm = new FormData();
+        uploadForm.append("file", file);
+        uploadForm.append("upload_preset", uploadPreset);
+        uploadForm.append("folder", `diagsync/imaging/${expandedTask}`);
+
+        const cloudRes = await fetch(uploadUrl, { method: "POST", body: uploadForm });
+        const cloudJson = await cloudRes.json();
+        if (!cloudRes.ok || !cloudJson?.secure_url) {
+          setImageError(cloudJson?.error?.message ?? "Upload failed");
+          return;
+        }
+
+        // Register uploaded file in our DB
+        const reg = await fetch(`/api/radiology/tasks/${expandedTask}/register-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileUrl: cloudJson.secure_url,
+            fileName: file.name,
+            fileType: file.type,
+            fileSizeBytes: file.size,
+            metadata: { public_id: cloudJson.public_id, width: cloudJson.width, height: cloudJson.height },
+          }),
+        });
+        const regJson = await reg.json();
+        if (!regJson.success) { setImageError(regJson.error ?? "Registration failed"); return; }
+        setImagingFiles((prev) =&gt; [regJson.data, ...prev]);
+        return;
+      }
     } catch {
       setImageError("Network error while uploading");
     } finally {
@@ -29067,21 +29201,14 @@ export function RadiologyTaskBoard() {
       void loadTasks({ force: true, silent: true });
     };
 
-    const poll = window.setInterval(refreshNow, 12_000);
+    const poll = window.setInterval(refreshNow, 60_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
-
-    const stream = new EventSource("/api/notifications/stream");
-    stream.addEventListener("notification", refreshNow);
-    stream.onerror = () =&gt; {
-      stream.close();
-    };
 
     return () =&gt; {
       window.clearInterval(poll);
       window.removeEventListener("focus", refreshNow);
       document.removeEventListener("visibilitychange", refreshNow);
-      stream.close();
     };
   }, [statusFilter, sort, searchFilter, dateFilter]);
 
@@ -29414,6 +29541,10 @@ export function RadiologyTaskBoard() {
         },
       });
     }, 700);
+    // increase debounce to reduce frequent writes (was 700ms)
+    // now waits 2000ms after last change before saving offline draft
+    // helps reduce function invocations and I/O
+    // (handled by clearing the timer in cleanup)
     return () =&gt; window.clearTimeout(timer);
   }, [drafts, expandedTask]);
 
@@ -29436,7 +29567,8 @@ export function RadiologyTaskBoard() {
           signatureImage: draft.signatureImage ?? "",
         },
       });
-    }, 5000);
+    // reduce polling frequency to 30s (was 5s) to lower function invocations
+    }, 30000);
     return () =&gt; window.clearInterval(timer);
   }, [expandedTask]);
 
@@ -29551,8 +29683,8 @@ export function RadiologyTaskBoard() {
               {dayTasks.map((task) =&gt; {
                 const isExpanded = expandedTask === task.id;
                 return (
-                  &lt;&gt;
-                    &lt;tr key={task.id} className={`hover:bg-slate-50 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}&gt;
+                  &lt;React.Fragment key={task.id}&gt;
+                    &lt;tr className={`hover:bg-slate-50 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}&gt;
                       &lt;td className="px-4 py-2.5"&gt;
                         &lt;p className="font-medium text-slate-800"&gt;{task.visit.patient.fullName}&lt;/p&gt;
                         &lt;p className="font-mono text-slate-400"&gt;
@@ -29819,11 +29951,9 @@ export function RadiologyTaskBoard() {
                                         )}
                                         &lt;div className="min-w-0 flex-1"&gt;
                                           &lt;p className="truncate text-xs font-medium text-slate-700"&gt;{file.fileName}&lt;/p&gt;
-                                          &lt;p className="text-[11px] text-slate-400"&gt;
-                                            {(file.fileSizeBytes / 1024 / 1024).toFixed(2)} MB
-                                          &lt;/p&gt;
+                                          &lt;p className="text-[11px] text-slate-400"&gt;{(file.fileSizeBytes / 1024 / 1024).toFixed(2)} MB&lt;/p&gt;
                                         &lt;/div&gt;
-                                        &lt;div className="flex gap-1"&gt;
+                                        &lt;div className="flex gap-1 items-center"&gt;
                                           &lt;a
                                             href={file.fileUrl}
                                             target="_blank"
@@ -29841,6 +29971,31 @@ export function RadiologyTaskBoard() {
                                           &gt;
                                             &lt;X className="h-3.5 w-3.5" /&gt;
                                           &lt;/button&gt;
+                                          {file.fileType.startsWith("image/") &amp;&amp; (
+                                            &lt;button
+                                              type="button"
+                                              onClick={() =&gt; {
+                                                    try {
+                                                      const layout = getLayoutForTask(task.id);
+                                                      // add new element centered with 40% width
+                                                      const newItem = {
+                                                        id: file.id,
+                                                        x: 30,
+                                                        y: 10 + (Array.isArray(layout) ? layout.length * 5 : 0),
+                                                        w: 40,
+                                                        h: null,
+                                                      };
+                                                      updateLayoutForTask(task.id, [...(Array.isArray(layout) ? layout : []), newItem]);
+                                                      setShowLayoutEditorByTask((prev) =&gt; ({ ...prev, [task.id]: true }));
+                                                    } catch (err) {
+                                                      console.error("Add to layout failed", err);
+                                                      setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to add image to layout"));
+                                                    }
+                                              }}
+                                              className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
+                                              title="Add to layout"
+                                            &gt;Add to layout&lt;/button&gt;
+                                          )}
                                         &lt;/div&gt;
                                       &lt;/div&gt;
                                     ))}
@@ -29848,6 +30003,28 @@ export function RadiologyTaskBoard() {
                                 )}
                                 &lt;p className="mt-2 text-[10px] text-slate-400"&gt;Supported: JPEG, PNG, WebP (max 25MB per file)&lt;/p&gt;
                               &lt;/div&gt;
+
+                              {/* Layout Editor */}
+                              {showLayoutEditorByTask[task.id] ? (
+                                &lt;div className="rounded border border-slate-200 bg-white p-3"&gt;
+                                  &lt;div className="flex items-center justify-between mb-2"&gt;
+                                    &lt;p className="text-[11px] font-medium text-slate-500"&gt;Layout Editor&lt;/p&gt;
+                                    &lt;div className="flex gap-2"&gt;
+                                      &lt;button type="button" onClick={() =&gt; setShowLayoutEditorByTask((p) =&gt; ({ ...p, [task.id]: false }))} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600"&gt;Close&lt;/button&gt;
+                                      &lt;button type="button" onClick={() =&gt; updateLayoutForTask(task.id, [])} className="rounded border border-red-200 px-2 py-1 text-[11px] text-red-600"&gt;Clear&lt;/button&gt;
+                                    &lt;/div&gt;
+                                  &lt;/div&gt;
+                                  &lt;ErrorBoundary onReset={() =&gt; setShowLayoutEditorByTask((p) =&gt; ({ ...p, [task.id]: false }))}&gt;
+                                    &lt;LayoutEditor
+                                      key={task.id}
+                                      taskId={task.id}
+                                      imagingFiles={imagingFiles}
+                                      getLayout={() =&gt; getLayoutForTask(task.id)}
+                                      onChange={(layout) =&gt; updateLayoutForTask(task.id, layout)}
+                                    /&gt;
+                                  &lt;/ErrorBoundary&gt;
+                                &lt;/div&gt;
+                              ) : null}
                               
                               &lt;div className="rounded border border-slate-200 bg-white p-3"&gt;
                                 &lt;p className="text-[11px] font-medium text-slate-500 mb-2"&gt;Extra Fields&lt;/p&gt;
@@ -30043,7 +30220,7 @@ export function RadiologyTaskBoard() {
                         &lt;/td&gt;
                       &lt;/tr&gt;
                     )}
-                  &lt;/&gt;
+                  &lt;/React.Fragment&gt;
                 );
               })}
                 &lt;/tbody&gt;
@@ -30055,7 +30232,8 @@ export function RadiologyTaskBoard() {
       &lt;/div&gt;
     &lt;/div&gt;
   );
-}</pre></div>
+}
+</pre></div>
 <div class='file-block'><div class='file-header'>src/components/receptionist/day-rollover-refresh.tsx</div><pre>"use client";
 
 import { useEffect } from "react";
@@ -35777,7 +35955,14 @@ export async function getRevenueStats(orgId: string, period: RevenuePeriod = "th
 function shouldLog(ms: number, ok: boolean) {
   if (!ok) return true;
   if (ms &gt;= 800) return true;
-  return process.env.API_METRICS_VERBOSE === "1";
+  // Allow verbose logging via env var. Otherwise sample a small percentage to reduce volume.
+  if (process.env.API_METRICS_VERBOSE === "1") return true;
+  const rate = Number(process.env.API_METRICS_SAMPLE_RATE ?? 0.05);
+  try {
+    return Math.random() &lt; rate;
+  } catch {
+    return false;
+  }
 }
 
 export function beginApiMetric(route: string): ApiMetric {
@@ -38718,7 +38903,7 @@ export async function addStockEntry(params: {
   actor: InventoryActor;
   inventoryItemId: string;
   quantityAdded: string | number;
-  expiryDate: Date;
+  expiryDate?: Date | null;
   batchNumber?: string | null;
   supplier?: string | null;
 }) {
@@ -38738,7 +38923,7 @@ export async function addStockEntry(params: {
         organizationId: params.actor.organizationId,
         inventoryItemId: params.inventoryItemId,
         quantityAdded,
-        expiryDate: params.expiryDate,
+        expiryDate: params.expiryDate ?? null,
         batchNumber: params.batchNumber?.trim() || null,
         supplier: params.supplier?.trim() || null,
         addedById: params.actor.id,
@@ -38946,23 +39131,63 @@ export async function getLabTasks(actor: LabActor, opts?: {
     },
     include: {
       visit: {
-        include: { patient: true },
+        select: {
+          id: true,
+          visitNumber: true,
+          patient: {
+            select: {
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            },
+          },
+        },
       },
       sample: true,
-      review: true,
+      review: {
+        select: {
+          rejectionReason: true,
+          editedData: true,
+        },
+      },
       staff: { select: { id: true, fullName: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 80,
   });
 
   const allOrderIds = Array.from(new Set(rows.flatMap((task) =&gt; task.testOrderIds)));
   const testOrders = allOrderIds.length
     ? await prisma.testOrder.findMany({
         where: { id: { in: allOrderIds }, organizationId: actor.organizationId },
-        include: {
+        select: {
+          id: true,
+          createdAt: true,
+          status: true,
           test: {
-            include: {
-              resultFields: { orderBy: { sortOrder: "asc" } },
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              sampleType: true,
+              resultFields: {
+                orderBy: { sortOrder: "asc" },
+                select: {
+                  id: true,
+                  fieldKey: true,
+                  label: true,
+                  fieldType: true,
+                  options: true,
+                  unit: true,
+                  normalMin: true,
+                  normalMax: true,
+                  normalText: true,
+                  referenceNote: true,
+                  isRequired: true,
+                },
+              },
             },
           },
           labResults: {
@@ -39737,16 +39962,39 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
   const tasks = await prisma.routingTask.findMany({
     where,
     include: {
-      visit: { include: { patient: true } },
+      visit: {
+        select: {
+          id: true,
+          visitNumber: true,
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            },
+          },
+        },
+      },
       review: true,
       staff: { select: { id: true, fullName: true } },
-      imagingFiles: true,
+      imagingFiles: {
+        select: {
+          id: true,
+          fileName: true,
+          fileUrl: true,
+        },
+      },
       radiologyReport: {
         include: {
           staff: { select: { id: true, fullName: true } },
           versions: {
+            where: { isActive: true },
             include: { editedBy: { select: { id: true, fullName: true } } },
             orderBy: { version: "desc" },
+            take: 1,
           },
         },
       },
@@ -39783,13 +40031,16 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
             },
           },
           versions: {
+            where: { isActive: true },
             include: { editedBy: { select: { id: true, fullName: true } } },
             orderBy: { version: "desc" },
+            take: 1,
           },
         },
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: 80,
   });
 
   const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
@@ -39845,7 +40096,8 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
             orderBy: { createdAt: "asc" },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
+        take: 120,
       })
     : [];
 
@@ -39876,6 +40128,14 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
     }
     historyMap.set(patientId, existing);
   }
+  for (const [patientId, rows] of Array.from(historyMap.entries())) {
+    historyMap.set(
+      patientId,
+      rows
+        .sort((a, b) =&gt; new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime())
+        .slice(-30)
+    );
+  }
 
   const items = tasks.map((task) =&gt; {
     const startedByNames = Array.from(
@@ -39905,17 +40165,7 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
         currentVersion: activeVersion?.version ?? 1,
         resultData: activeVersion?.resultData ?? result.resultData,
         notes: activeVersion?.notes ?? result.notes,
-        versionHistory: result.versions.map((version) =&gt; ({
-          id: version.id,
-          version: version.version,
-          isActive: version.isActive,
-          parentId: version.parentId,
-          resultData: version.resultData,
-          notes: version.notes,
-          editReason: version.editReason,
-          editedBy: version.editedBy,
-          createdAt: version.createdAt,
-        })),
+        versionHistory: [],
       };
     });
 
@@ -39930,19 +40180,7 @@ export async function getMdReviewItems(actor: MdActor, filter: MdFilter = "pendi
           impression: activeReportVersion?.impression ?? task.radiologyReport.impression,
           notes: activeReportVersion?.notes ?? task.radiologyReport.notes,
           extraFields: activeReportVersion?.extraFields ?? task.radiologyReport.extraFields,
-          versionHistory: task.radiologyReport.versions.map((version) =&gt; ({
-            id: version.id,
-            version: version.version,
-            isActive: version.isActive,
-            parentId: version.parentId,
-            findings: version.findings,
-            impression: version.impression,
-            notes: version.notes,
-            extraFields: version.extraFields,
-            editReason: version.editReason,
-            editedBy: version.editedBy,
-            createdAt: version.createdAt,
-          })),
+          versionHistory: [],
         }
       : null;
 
@@ -42373,17 +42611,23 @@ export async function getRadiologyTasks(
       ...(opts?.status &amp;&amp; opts.status !== "ALL" ? { status: opts.status } : {}),
     },
     include: {
-      visit: { include: { patient: true } },
-      imagingFiles: {
+      visit: {
         select: {
           id: true,
-          fileUrl: true,
-          fileType: true,
-          fileName: true,
-          fileSizeBytes: true,
-          createdAt: true,
+          visitNumber: true,
+          patient: {
+            select: {
+              fullName: true,
+              patientId: true,
+              age: true,
+              dateOfBirth: true,
+              sex: true,
+            },
+          },
         },
-        orderBy: { createdAt: "desc" },
+      },
+      _count: {
+        select: { imagingFiles: true },
       },
       radiologyReport: {
         select: {
@@ -42396,6 +42640,7 @@ export async function getRadiologyTasks(
       },
     },
     orderBy: { createdAt: opts?.sort === "oldest" ? "asc" : "desc" },
+    take: 80,
   });
 
   const allOrderIds = Array.from(new Set(rows.flatMap((task) =&gt; task.testOrderIds)));
@@ -42437,7 +42682,7 @@ export async function getRadiologyTasks(
     testOrders: task.testOrderIds
       .map((id) =&gt; orderMap.get(id))
       .filter((order): order is (typeof orders)[number] =&gt; Boolean(order)),
-    imageCount: task.imagingFiles.length,
+    imageCount: task._count.imagingFiles,
   }));
 
   return tasksWithImageCount;
@@ -42797,7 +43042,8 @@ export async function submitRadiologyTask(
     // Notification delivery must never fail report submission.
     console.error("[RAD_TASK_SUBMIT_NOTIFY]", error);
   }
-}</pre></div>
+}
+</pre></div>
 <div class='file-block'><div class='file-header'>src/lib/radiology-workflow-core.test.ts</div><pre>import assert from "node:assert/strict";
 import { RoutingTaskStatus } from "@prisma/client";
 import {
@@ -44205,13 +44451,42 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
 }
 
-function renderImagingSection(imagingFiles: any[], reportDepartment: Department) {
+function renderImagingSection(imagingFiles: any[], reportDepartment: Department, imagingLayout?: any[]) {
   if (imagingFiles.length === 0) return "";
   
   // Filter only images (PDFs handled separately)
   const images = imagingFiles.filter(f =&gt; f.fileType?.startsWith("image/"));
   if (images.length === 0) return "";
   
+  // If imagingLayout is provided, render a positioned canvas using percent coordinates
+  if (Array.isArray(imagingLayout) &amp;&amp; imagingLayout.length &gt; 0) {
+    const layoutHtml = imagingLayout
+      .map((item: any, idx: number) =&gt; {
+        const found = images.find((i) =&gt; i.fileUrl?.includes(item.id) || i.name === item.name || i.fileUrl?.includes(item.name));
+        const src = escapeHtml(found?.url || item.url || item.fileUrl || "");
+        const left = Number(item.x ?? 0);
+        const top = Number(item.y ?? 0);
+        const width = Number(item.w ?? 40);
+        const height = item.h ? Number(item.h) : null;
+        const style = `position:absolute; left:${left}%; top:${top}%; width:${width}%; ${height ? `height:${height}%;` : ""} border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; background:#fff;`;
+        return `
+          &lt;div class="imaging-card" style="${style}"&gt;
+            &lt;img src="${src}" style="width:100%; height:100%; object-fit:contain; display:block;" loading="lazy" /&gt;
+          &lt;/div&gt;
+        `;
+      })
+      .join("");
+
+    return `
+      &lt;section class="imaging-section" style="page-break-before: auto; position: relative;"&gt;
+        &lt;h3&gt;Imaging Studies&lt;/h3&gt;
+        &lt;div style="position:relative; width:100%; height:600px; border:1px solid transparent;"&gt;
+          ${layoutHtml}
+        &lt;/div&gt;
+      &lt;/section&gt;
+    `;
+  }
+
   return `
     &lt;section class="imaging-section" style="page-break-before: auto;"&gt;
       &lt;h3&gt;Imaging Studies&lt;/h3&gt;
@@ -44456,7 +44731,7 @@ export function renderReportHtml(args: RenderArgs) {
 
   // Add imaging section for radiology reports
   const imagingHtml = args.department === Department.RADIOLOGY &amp;&amp; imagingFiles.length &gt; 0
-    ? renderImagingSection(imagingFiles, args.department)
+    ? renderImagingSection(imagingFiles, args.department, (args.content as any)?.imagingLayout)
     : "";
 
   // Add pagination-friendly CSS for images
@@ -45094,28 +45369,50 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   const parsedPerTest = parseRadiologyPerTestSections((rawExtraFields ?? {}) as Record&lt;string, string&gt;);
   const perTestMap = new Map(parsedPerTest.map((row) =&gt; [row.testOrderId, row]));
   const signOff = extractSignOffFromMap(rawExtraFields);
-  const extraFields = rawExtraFields
-    ? Object.fromEntries(
-        Object.entries(stripSignOffKeys(rawExtraFields))
-          .filter(([key]) =&gt; key !== "__perTestReports")
-          .filter(([key]) =&gt; !key.startsWith("test_"))
-          .map(([key, value]) =&gt; [key, value === null || value === undefined ? "" : String(value)])
-          .filter(([key]) =&gt; key.trim().length &gt; 0)
-      )
-    : {};
+
+  // Split raw extra fields into common report-level fields and per-test custom fields
+  const commonExtraFields: Record&lt;string, string&gt; = {};
+  const perTestCustom = new Map&lt;string, Record&lt;string, string&gt;&gt;();
+  if (rawExtraFields) {
+    const stripped = stripSignOffKeys(rawExtraFields as Record&lt;string, unknown&gt;);
+    for (const [key, value] of Object.entries(stripped)) {
+      if (key === "__perTestReports") continue;
+      const m = key.match(/^test_(.+?)__(.+)$/);
+      if (m) {
+        const testOrderId = m[1];
+        const fieldKey = m[2];
+        const map = perTestCustom.get(testOrderId) ?? {};
+        map[fieldKey] = value === null || value === undefined ? "" : String(value);
+        perTestCustom.set(testOrderId, map);
+      } else {
+        if (String(key).trim().length === 0) continue;
+        commonExtraFields[key] = value === null || value === undefined ? "" : String(value);
+      }
+    }
+  }
+
   const tests = radiologyTests.map((order) =&gt; ({
     name: order.test.name,
     findings: perTestMap.get(order.id)?.findings ?? activeReportVersion?.findings ?? report?.findings ?? "",
     impression: perTestMap.get(order.id)?.impression ?? activeReportVersion?.impression ?? report?.impression ?? "",
     notes: perTestMap.get(order.id)?.notes ?? activeReportVersion?.notes ?? report?.notes ?? "",
-    extraFields,
+    extraFields: { ...(commonExtraFields ?? {}), ...(perTestCustom.get(order.id) ?? {}) },
   }));
   const imagingFiles = task.imagingFiles.map((file) =&gt; ({
     url: file.fileUrl,
     name: file.fileName,
     fileType: file.fileType,
   }));
-  return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(signOff ? { signOff } : {}) } };
+  // Include imaging layout if present in extra fields (saved from draft)
+  let imagingLayout: any = rawExtraFields ? (rawExtraFields as Record&lt;string, any&gt;)['imagingLayout'] ?? null : null;
+  if (typeof imagingLayout === "string") {
+    try {
+      imagingLayout = JSON.parse(imagingLayout as string);
+    } catch {
+      imagingLayout = null;
+    }
+  }
+  return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(imagingLayout ? { imagingLayout } : {}), ...(signOff ? { signOff } : {}) } };
 }
 
 export async function renderRadiologyReportForPreview(
@@ -45309,8 +45606,30 @@ export async function listReports(
         : {}),
       ...(dateRange ? { updatedAt: dateRange } : {}),
     },
-    include: { visit: { include: { patient: true } } },
+    select: {
+      id: true,
+      reportType: true,
+      department: true,
+      status: true,
+      isReleased: true,
+      releasedAt: true,
+      updatedAt: true,
+      visit: {
+        select: {
+          visitNumber: true,
+          patient: {
+            select: {
+              fullName: true,
+              patientId: true,
+              age: true,
+              sex: true,
+            },
+          },
+        },
+      },
+    },
     orderBy: { updatedAt: "desc" },
+    take: 80,
   });
   return reports;
 }
@@ -45326,6 +45645,7 @@ export async function getReportDetails(actor: ReportActor, reportId: string) {
       versions: {
         include: { editedBy: { select: { id: true, fullName: true } } },
         orderBy: { version: "desc" },
+        take: 10,
       },
     },
   });
