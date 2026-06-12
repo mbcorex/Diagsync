@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     try {
       await syncFullTestCatalogToOrganization(prisma, result.org.id);
     } catch (err) {
-      console.error("[ORG_REGISTER][SYNC_CATALOG]", err?.stack ?? err);
+      console.error("[ORG_REGISTER][SYNC_CATALOG]", (err as any)?.stack ?? err);
     }
 
     // Audit log — super admin creates themselves during registration
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (err) {
-      console.error("[ORG_REGISTER][AUDIT_LOG]", err?.stack ?? err);
+      console.error("[ORG_REGISTER][AUDIT_LOG]", (err as any)?.stack ?? err);
     }
 
     return NextResponse.json(

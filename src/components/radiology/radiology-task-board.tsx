@@ -1555,7 +1555,7 @@ export function RadiologyTaskBoard() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
                 </tbody>
