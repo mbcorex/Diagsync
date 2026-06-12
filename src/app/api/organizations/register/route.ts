@@ -75,44 +75,44 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(data.adminPassword, 12);
     const slug = await ensureUniqueOrganizationSlug(data.orgName);
 
-    // Keep transaction short: create org + admin only
-    const result = await prisma.$transaction(async (tx) => {
-      const org = await tx.organization.create({
-        data: {
-          name: data.orgName,
-          email: data.orgEmail,
-          plan: "TRIAL",
-          status: "EXPIRED",
-          watermarkEnabled: true,
-          billingLockedAt: new Date(),
-          billingLockReason: "No active subscription",
-          phone: data.orgPhone,
-          address: data.orgAddress,
-          city: data.orgCity,
-          state: data.orgState,
-          country: data.orgCountry || "Nigeria",
-          slug,
-          contactInfo: data.orgContactInfo ?? null,
-          website: data.orgWebsite ?? null,
-          logo: data.orgLogo ?? null,
-          letterheadUrl: data.orgLetterheadUrl ?? null,
-        },
-      });
-
-      const admin = await tx.staff.create({
-        data: {
-          organizationId: org.id,
-          fullName: data.adminName,
-          email: data.adminEmail,
-          phone: data.adminPhone,
-          passwordHash,
-          role: Role.SUPER_ADMIN,
-          department: Department.HR_OPERATIONS,
-        },
-      });
-
-      return { org, admin };
+    // NOTE: Supabase pgbouncer (pooled connections) does not support
+    // interactive transactions. Use sequential calls to avoid prepared
+    // statement / transaction errors in serverless environments.
+    const org = await prisma.organization.create({
+      data: {
+        name: data.orgName,
+        email: data.orgEmail,
+        plan: "TRIAL",
+        status: "EXPIRED",
+        watermarkEnabled: true,
+        billingLockedAt: new Date(),
+        billingLockReason: "No active subscription",
+        phone: data.orgPhone,
+        address: data.orgAddress,
+        city: data.orgCity,
+        state: data.orgState,
+        country: data.orgCountry || "Nigeria",
+        slug,
+        contactInfo: data.orgContactInfo ?? null,
+        website: data.orgWebsite ?? null,
+        logo: data.orgLogo ?? null,
+        letterheadUrl: data.orgLetterheadUrl ?? null,
+      },
     });
+
+    const admin = await prisma.staff.create({
+      data: {
+        organizationId: org.id,
+        fullName: data.adminName,
+        email: data.adminEmail,
+        phone: data.adminPhone,
+        passwordHash,
+        role: Role.SUPER_ADMIN,
+        department: Department.HR_OPERATIONS,
+      },
+    });
+
+    const result = { org, admin };
 
     // Sync default test catalog after transaction commits. These
     // follow-up tasks are best-effort: log failures but don't fail
