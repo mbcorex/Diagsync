@@ -71,8 +71,8 @@ const STARTER_FEATURES = [
   { text: "In-app notifications & shareable links", included: true },
   { text: "WhatsApp support", included: true },
   { text: "Radiology / Cardiology department", included: false },
-  { text: "Imaging uploads & custom letterhead", included: false },
-  { text: "Web push notifications", included: false },
+  { text: "Imaging uploads & custom letterhead", included: true },
+  { text: "Web push notifications", included: true },
   { text: "DiagSync watermark on all reports", included: false, warn: true },
 ];
 
@@ -395,7 +395,7 @@ export function BillingOnboarding({ organization, access, paymentRequests }: Bil
           name="Starter Pack"
           price={formatCurrency(planPriceMap.STARTER)}
           priceNote="/ month"
-          desc="For labs focused on laboratory work. Full lab workflow and team tools — DiagSync watermark remains on prints."
+          desc="For labs focused on laboratory work. Full lab workflow, imaging uploads, custom letterhead and web-push — DiagSync watermark remains on prints."
           features={STARTER_FEATURES}
           buttonText={starterButtonText}
           buttonClass="border border-blue-600 text-blue-600 hover:bg-blue-50"

@@ -75,17 +75,17 @@ export function canUseCardiology(organization: OrganizationBillingLike, now = ne
 
 export function canUploadImaging(organization: OrganizationBillingLike, now = new Date()) {
   if (isBillingLocked(organization, now)) return false;
-  return organization.plan === "TRIAL" || organization.plan === "ADVANCED";
+  return organization.plan === "TRIAL" || organization.plan === "ADVANCED" || organization.plan === "STARTER";
 }
 
 export function canUseWebPush(organization: OrganizationBillingLike, now = new Date()) {
   if (isBillingLocked(organization, now)) return false;
-  return organization.plan === "TRIAL" || organization.plan === "ADVANCED";
+  return organization.plan === "TRIAL" || organization.plan === "ADVANCED" || organization.plan === "STARTER";
 }
 
 export function canUseCustomLetterhead(organization: OrganizationBillingLike, now = new Date()) {
   if (isBillingLocked(organization, now)) return false;
-  return organization.plan === "TRIAL" || organization.plan === "ADVANCED";
+  return organization.plan === "TRIAL" || organization.plan === "ADVANCED" || organization.plan === "STARTER";
 }
 
 export function shouldShowWatermark(organization: OrganizationBillingLike) {
