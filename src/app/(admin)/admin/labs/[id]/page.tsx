@@ -12,6 +12,7 @@ import {
   syncLabCatalogAction,
   enrichLabProfileAction,
   forceEnrichLabProfileAction,
+  setOrganizationPlanAction,
 } from "../actions";
 
 function asNumber(value: Decimal | number | null | undefined) {
@@ -50,7 +51,16 @@ export default async function AdminLabDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams?: { ai?: string; confidence?: string; aiReason?: string; aiStatus?: string };
+  searchParams?: {
+    ai?: string;
+    confidence?: string;
+    aiReason?: string;
+    aiStatus?: string;
+    planSet?: string;
+    plan?: string;
+    duration?: string;
+    unit?: string;
+  };
 }) {
   await requireMegaAdmin();
   const detail = await getOrganizationDetail(params.id);
@@ -210,10 +220,7 @@ export default async function AdminLabDetailPage({
               </div>
             )}
 
-            <form action={async (formData: FormData) => {}}
-            className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3"
-            method="post"
-          >
+            <form action={setOrganizationPlanAction} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3" method="post">
             <input type="hidden" name="organizationId" value={organization.id} />
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Plan</label>
@@ -235,7 +242,7 @@ export default async function AdminLabDetailPage({
               </select>
             </div>
             <div className="sm:col-span-3">
-              <button formaction="/admin/labs/actions/setOrganizationPlan" formMethod="post" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+              <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                 Set Plan
               </button>
             </div>
