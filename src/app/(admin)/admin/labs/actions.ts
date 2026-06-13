@@ -227,3 +227,67 @@ export async function rejectPaymentRequestAction(formData: FormData) {
   revalidatePath("/admin/dashboard");
   revalidatePath("/admin/analytics");
 }
+
+export async function setOrganizationPlanAction(formData: FormData) {
+  const admin = await requireMegaAdmin();
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const plan = String(formData.get("plan") ?? "").toUpperCase();
+  const durationRaw = String(formData.get("duration") ?? "").trim();
+  const unit = String(formData.get("unit") ?? "DAYS").toUpperCase();
+  if (!organizationId || !plan) return;
+
+  const duration = Number(durationRaw) || 0;
+  const now = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    const org = await tx.organization.findUnique({ where: { id: organizationId } });
+    if (!org) throw new Error("ORGANIZATION_NOT_FOUND");
+
+    // compute end date if duration provided
+    let endsAt: Date | null = null;
+    if (duration > 0) {
+      const days = unit === "MONTHS" ? duration * 30 : duration;
+      endsAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    }
+
+    const updateData: any = {
+      plan: plan as any,
+      status: plan === "TRIAL" ? "TRIAL_ACTIVE" : "ACTIVE",
+      billingLockedAt: null,
+      billingLockReason: null,
+      lastPaymentAt: plan === "TRIAL" ? org.lastPaymentAt : now,
+    };
+
+    if (plan === "TRIAL") {
+      updateData.trialStartedAt = now;
+      updateData.trialEndsAt = endsAt;
+      updateData.subscriptionStartedAt = null;
+      updateData.subscriptionEndsAt = null;
+    } else {
+      updateData.subscriptionStartedAt = now;
+      updateData.subscriptionEndsAt = endsAt;
+      updateData.trialStartedAt = null;
+      updateData.trialEndsAt = null;
+    }
+
+    // plan-specific defaults
+    updateData.watermarkEnabled = plan === "STARTER";
+    updateData.staffLimit = plan === "STARTER" ? 15 : null;
+
+    await tx.organization.update({ where: { id: organizationId }, data: updateData });
+  });
+
+  revalidatePath("/admin/labs");
+  revalidatePath(`/admin/labs/${organizationId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/analytics");
+  // Redirect back to detail page with a success query string so UI can show confirmation
+  const qs = new URLSearchParams();
+  qs.set("planSet", "success");
+  qs.set("plan", plan);
+  if (duration > 0) {
+    qs.set("duration", String(duration));
+    qs.set("unit", unit);
+  }
+  redirect(`/admin/labs/${organizationId}?${qs.toString()}`);
+}

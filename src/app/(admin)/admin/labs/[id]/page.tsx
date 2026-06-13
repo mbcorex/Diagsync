@@ -60,6 +60,10 @@ export default async function AdminLabDetailPage({
   }
 
   const { organization, users, paymentRequests, stats } = detail;
+  const planSetSuccess = searchParams?.planSet === "success";
+  const planSetName = searchParams?.plan ?? null;
+  const planSetDuration = searchParams?.duration ?? null;
+  const planSetUnit = searchParams?.unit ?? null;
   const aiMsg = getAiMessage(searchParams?.ai, searchParams?.confidence, searchParams?.aiReason, searchParams?.aiStatus);
 
   return (
@@ -194,6 +198,48 @@ export default async function AdminLabDetailPage({
             <p className="text-gray-700">Staff Limit: {organization.staffLimit ?? "Unlimited"}</p>
             <p className="text-gray-700">Last Payment: {organization.lastPaymentAt ? formatDateTime(organization.lastPaymentAt) : "-"}</p>
           </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-800">Set Plan / Duration</h3>
+          <p className="mt-2 text-xs text-gray-500">Assign a plan and optionally set how long it should last.</p>
+            {planSetSuccess && (
+              <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                Plan updated: <strong>{planSetName}</strong>
+                {planSetDuration ? ` for ${planSetDuration} ${planSetUnit?.toLowerCase() || "days"}` : ""}
+              </div>
+            )}
+
+            <form action={async (formData: FormData) => {}}
+            className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3"
+            method="post"
+          >
+            <input type="hidden" name="organizationId" value={organization.id} />
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Plan</label>
+              <select name="plan" className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm">
+                <option value="STARTER">STARTER</option>
+                <option value="ADVANCED">ADVANCED</option>
+                <option value="TRIAL">TRIAL</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Duration</label>
+              <input name="duration" type="number" min={0} placeholder="0" className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Unit</label>
+              <select name="unit" className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm">
+                <option value="DAYS">Days</option>
+                <option value="MONTHS">Months</option>
+              </select>
+            </div>
+            <div className="sm:col-span-3">
+              <button formaction="/admin/labs/actions/setOrganizationPlan" formMethod="post" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                Set Plan
+              </button>
+            </div>
+          </form>
         </div>
         {organization.billingLockReason ? (
           <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
