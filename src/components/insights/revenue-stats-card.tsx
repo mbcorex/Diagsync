@@ -30,7 +30,7 @@ export function RevenueStatsCard({
   alerts,
   staffPerformance,
 }: RevenueStatsCardProps) {
-  const [period, setPeriod] = useState<RevenuePeriod>("thisMonth");
+  const [period, setPeriod] = useState<RevenuePeriod>("today");
   const [stats, setStats] = useState<RevenueStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [customStart, setCustomStart] = useState<Date | undefined>();

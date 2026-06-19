@@ -77,7 +77,7 @@ export function getDateRangeForPeriod(period: RevenuePeriod, customStart?: Date,
   return { rangeStart, rangeEnd, comparisonStart, comparisonEnd };
 }
 
-export async function getRevenueStats(orgId: string, period: RevenuePeriod = "thisMonth", customStart?: Date, customEnd?: Date) {
+export async function getRevenueStats(orgId: string, period: RevenuePeriod = "today", customStart?: Date, customEnd?: Date) {
   const now = new Date();
   const { rangeStart, rangeEnd, comparisonStart, comparisonEnd } = getDateRangeForPeriod(period, customStart, customEnd);
   const monthCurrentStart = monthStart(now);

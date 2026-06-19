@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const user = session.user as any;
     const searchParams = request.nextUrl.searchParams;
-    const period = (searchParams.get("period") as RevenuePeriod) || "thisMonth";
+    const period = (searchParams.get("period") as RevenuePeriod) || "today";
     const customStart = searchParams.get("start");
     const customEnd = searchParams.get("end");
 
