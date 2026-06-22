@@ -2271,7 +2271,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "B10 CHEMISTRY PANEL HBA1C": [
-    { label: "HbA1c", fieldKey: "hba1c", fieldType: FieldType.NUMBER, unit: "%", sortOrder: 1 },
+    { label: "HbA1c", fieldKey: "hba1c", fieldType: FieldType.NUMBER, unit: "%", normalMin: 0.0, normalMax: 6.5, sortOrder: 1 },
     { label: "Interpretation", fieldKey: "interpretation", fieldType: FieldType.DROPDOWN, options: "Normal (<5.7%),Prediabetes (5.7-6.4%),Diabetes (>=6.5%)", isRequired: false, sortOrder: 2 },
     { label: "Estimated Average Glucose", fieldKey: "eag", fieldType: FieldType.NUMBER, unit: "mg/dL", isRequired: false, sortOrder: 3 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 4 },
@@ -3028,7 +3028,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 4 },
   ],
   "MANTOUX TEST": [
-    { label: "Induration Size", fieldKey: "induration", fieldType: FieldType.NUMBER, unit: "mm", normalMin: 0, sortOrder: 1 },
+    { label: "Result", fieldKey: "result", fieldType: FieldType.DROPDOWN, options: "Positive,Negative", normalText: "Negative", sortOrder: 1 },
     { label: "Interpretation", fieldKey: "interpretation", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "SKIN SCRAPING ANALYSIS": [
