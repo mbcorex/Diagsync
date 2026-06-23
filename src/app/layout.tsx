@@ -1,10 +1,8 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+﻿import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppLaunchSplash } from "@/components/app-launch-splash";
 import { StandaloneDashboardRedirect } from "@/components/standalone-dashboard-redirect";
 
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Diagsync - Medical Diagnostic Operations",
@@ -59,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="DiagSync" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className={inter.className}>
+      <body className="antialiased">
         <StandaloneDashboardRedirect />
         <AppLaunchSplash />
         {children}
@@ -67,3 +65,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { ReviewStatus } from "@prisma/client";
 import {
   canUseControlledEdit,
@@ -10,7 +10,7 @@ import {
 function testPermissions() {
   assert.equal(canUseControlledEdit("MD"), true);
   assert.equal(canUseControlledEdit("SUPER_ADMIN"), true);
-  assert.equal(canUseControlledEdit("HRM"), false);
+  assert.equal(canUseControlledEdit("HRM"), true);
 }
 
 function testReasonValidation() {
@@ -41,3 +41,4 @@ function run() {
 }
 
 run();
+

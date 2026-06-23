@@ -28,7 +28,10 @@
     "test:notifications": "ts-node --project tsconfig.test.json src/lib/notifications-core.test.ts",
     "test:audit": "ts-node --project tsconfig.test.json src/lib/audit-core.test.ts",
     "test:customfields": "ts-node --project tsconfig.test.json src/lib/custom-fields-core.test.ts",
-    "test:report-rendering": "ts-node --project tsconfig.test.json src/lib/report-rendering.test.ts"
+    "test:report-rendering": "ts-node --project tsconfig.test.json src/lib/report-rendering.test.ts",
+    "ci": "npm run lint && npm run build && npm run test:all",
+    "db:deploy": "prisma migrate deploy",
+    "test:all": "npm run test:routing && npm run test:lab && npm run test:radiology && npm run test:md && npm run test:edits && npm run test:versioning && npm run test:hrm && npm run test:notifications && npm run test:audit && npm run test:customfields && npm run test:report-rendering"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.1",
@@ -81,6 +84,3 @@
     "typescript": "^5"
   }
 }
-
-
-

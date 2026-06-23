@@ -1,8 +1,8 @@
-import nextPwa from "next-pwa";
+﻿import nextPwa from "next-pwa";
 
 const withPWA = nextPwa({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development" || process.env.CI === "true" || process.platform === "win32",
   register: true,
   skipWaiting: true,
   fallbacks: {
@@ -68,6 +68,8 @@ const withPWA = nextPwa({
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
+    workerThreads: true,
+    cpus: 1,
   },
 };
 
