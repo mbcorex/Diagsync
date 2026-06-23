@@ -536,7 +536,7 @@ export function RadiologyTaskBoard() {
       void loadTasks({ force: true, silent: true });
     };
 
-    const poll = window.setInterval(refreshNow, 60_000);
+    const poll = window.setInterval(refreshNow, 120_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
 

@@ -52,7 +52,7 @@ export function NotificationCenter() {
     const refreshVisible = () => {
       if (document.visibilityState === "visible") void load();
     };
-    const poll = window.setInterval(refreshVisible, 60_000);
+    const poll = window.setInterval(refreshVisible, 120_000);
     window.addEventListener("focus", refreshVisible);
     document.addEventListener("visibilitychange", refreshVisible);
     return () => {

@@ -6,11 +6,13 @@ type ApiMetric = {
 function shouldLog(ms: number, ok: boolean) {
   if (!ok) return true;
   if (ms >= 800) return true;
-  // Allow verbose logging via env var. Otherwise sample a small percentage to reduce volume.
+  // Keep success logging off by default to reduce Vercel observability volume.
   if (process.env.API_METRICS_VERBOSE === "1") return true;
-  const rate = Number(process.env.API_METRICS_SAMPLE_RATE ?? 0.05);
+  const rawRate = process.env.API_METRICS_SAMPLE_RATE;
+  if (!rawRate) return false;
+  const rate = Number(rawRate);
   try {
-    return Math.random() < rate;
+    return Number.isFinite(rate) && rate > 0 && Math.random() < rate;
   } catch {
     return false;
   }

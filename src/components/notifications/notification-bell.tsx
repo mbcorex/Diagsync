@@ -385,7 +385,7 @@ export function NotificationBell({ role }: { role: string }) {
     const refreshVisible = () => {
       if (document.visibilityState === "visible") void load();
     };
-    const poll = window.setInterval(refreshVisible, 45_000);
+    const poll = window.setInterval(refreshVisible, 120_000);
     const onVisibilityOrFocus = () => {
       if (document.visibilityState === "visible") {
         void load(true);

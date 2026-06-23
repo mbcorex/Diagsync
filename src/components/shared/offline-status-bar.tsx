@@ -16,7 +16,7 @@ export function OfflineStatusBar() {
     window.addEventListener("online", sync);
     window.addEventListener("offline", sync);
     window.addEventListener("storage", sync);
-    const timer = window.setInterval(sync, 5000);
+    const timer = window.setInterval(sync, 30000);
     return () => {
       window.removeEventListener("online", sync);
       window.removeEventListener("offline", sync);

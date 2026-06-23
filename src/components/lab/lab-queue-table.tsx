@@ -66,7 +66,7 @@ export function LabQueueTable({ rows }: { rows: QueueRow[] }) {
       }, 1200);
     };
 
-    const poll = window.setInterval(refreshNow, 60_000);
+    const poll = window.setInterval(refreshNow, 120_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
 
