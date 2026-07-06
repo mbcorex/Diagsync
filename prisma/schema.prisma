@@ -224,6 +224,7 @@ model DiagnosticTest {
   organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   resultFields      ResultTemplateField[]
   testOrders        TestOrder[]
+  lastReports       RadiologyTestLastReport[]
   inventoryMappings InventoryConsumptionMapping[]
 
   @@unique([organizationId, code])
@@ -231,6 +232,19 @@ model DiagnosticTest {
   @@map("diagnostic_tests")
 }
 
+model RadiologyTestLastReport {
+  id             String   @id @default(cuid())
+  organizationId String
+  testId         String
+  findings       String
+  impression     String
+  notes          String?
+  updatedAt      DateTime @updatedAt
+  test           DiagnosticTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, testId])
+  @@map("radiology_test_last_reports")
+}
 model ResultTemplateField {
   id            String         @id @default(cuid())
   testId        String
@@ -977,3 +991,4 @@ enum ConsultationStatus {
   CONSULTED
   CANCELLED
 }
+

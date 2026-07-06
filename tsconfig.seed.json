@@ -1,4 +1,4 @@
-{
+﻿{
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
@@ -6,5 +6,5 @@
     "noEmit": false,
     "types": ["node"]
   },
-  "include": ["prisma/seed.ts"]
+  "include": ["prisma/*.ts"]
 }

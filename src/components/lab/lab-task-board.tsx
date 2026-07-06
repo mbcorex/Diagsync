@@ -2305,8 +2305,7 @@ export function LabTaskBoard() {
     const task = tasksRef.current.find((row) => row.id === expandedTask);
     if (!task || task.status === "COMPLETED") return;
     const timer = window.setTimeout(() => {
-      const results = collectTaskDraftResults(task, draftsRef.current);
-      upsertOfflineLabDraft({ taskId: task.id, results });
+      void persistDraft(task, draftsRef.current).catch(() => undefined);
     }, 700);
     return () => window.clearTimeout(timer);
   }, [collectTaskDraftResults, drafts, expandedTask, signOffByTask]);
