@@ -689,70 +689,79 @@ export async function startRadiologyTask(taskId: string, actor: RadiologyActor) 
 
     if (task.staffId === actor.id) return;
 
+    if (!task.staffId) {
+      const claimed = await prisma.routingTask.updateMany({
+        where: {
+          id: task.id,
+          organizationId: actor.organizationId,
+          department: Department.RADIOLOGY,
+          status: RoutingTaskStatus.IN_PROGRESS,
+          staffId: null,
+        },
+        data: { staffId: actor.id },
+      });
+      if (claimed.count > 0) {
+        await createAuditLog({
+          actorId: actor.id,
+          actorRole: Role.RADIOGRAPHER,
+          action: AUDIT_ACTIONS.TEST_STARTED,
+          entityType: "RoutingTask",
+          entityId: task.id,
+          notes: "Radiology task claimed",
+          ...actor.auditMeta,
+        });
+        return;
+      }
+    }
+
     throw new Error("TASK_ALREADY_CLAIMED");
-
   }
-
-
-
-  const now = new Date();
 
   let startedNow = false;
 
   await prisma.$transaction(async (tx) => {
-
-    await tx.radiologyReport.update({
-
-      where: { taskId: task.id },
-
-      data: { staffId: actor.id, isSubmitted: true, submittedAt: now },
-
-    });
-
-
-
-    await tx.routingTask.update({
-
-      where: { id: task.id },
-
-      data: { status: RoutingTaskStatus.COMPLETED },
-
-    });
-
-
-
-    await tx.testOrder.updateMany({
-
-      where: { id: { in: task.testOrderIds }, organizationId: actor.organizationId },
-
-      data: {
-
-        status: OrderStatus.SUBMITTED_FOR_REVIEW,
-
-        submittedAt: now,
-
-      },
-
-    });
-
-    await tx.testOrder.updateMany({
-
+    const claimed = await tx.routingTask.updateMany({
       where: {
-
-        id: { in: task.testOrderIds },
-
+        id: task.id,
         organizationId: actor.organizationId,
-
-        completedAt: null,
-
+        department: Department.RADIOLOGY,
+        status: RoutingTaskStatus.PENDING,
       },
-
-      data: { completedAt: now },
-
+      data: { status: RoutingTaskStatus.IN_PROGRESS, staffId: actor.id },
     });
+    if (claimed.count === 0) {
+      const latest = await tx.routingTask.findFirst({
+        where: {
+          id: task.id,
+          organizationId: actor.organizationId,
+          department: Department.RADIOLOGY,
+        },
+        select: { status: true, staffId: true },
+      });
+      if (latest?.status === RoutingTaskStatus.IN_PROGRESS && latest.staffId === actor.id) {
+        return;
+      }
+      if (latest?.status === RoutingTaskStatus.IN_PROGRESS && !latest.staffId) {
+        const claimedInProgress = await tx.routingTask.updateMany({
+          where: {
+            id: task.id,
+            organizationId: actor.organizationId,
+            department: Department.RADIOLOGY,
+            status: RoutingTaskStatus.IN_PROGRESS,
+            staffId: null,
+          },
+          data: { staffId: actor.id },
+        });
+        if (claimedInProgress.count > 0) {
+          startedNow = true;
+          return;
+        }
+      }
+      throw new Error("TASK_ALREADY_CLAIMED");
+    }
 
+    startedNow = true;
   });
-
 
   if (!startedNow) return;
 
