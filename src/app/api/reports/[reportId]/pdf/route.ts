@@ -23,12 +23,14 @@ export async function GET(
     if (!session?.user) return errorJson(401, "Unauthorized");
     const user = session.user as any;
     const url = new URL(req.url);
-    const includeLetterhead = url.searchParams.get("letterhead") !== "without";
+    const letterheadParam = url.searchParams.get("letterhead");
+    const includeLetterhead = letterheadParam !== "without";
+    const letterheadMode = letterheadParam === "uploaded" ? "uploaded" : includeLetterhead ? "auto" : "none";
 
     const rendered = await renderReportForPreview(
       { id: user.id, role: user.role, organizationId: user.organizationId },
       params.reportId,
-      { includeLetterhead, showPrintButton: false, autoPrint: false, baseUrl: url.origin }
+      { includeLetterhead, letterheadMode, showPrintButton: false, autoPrint: false, baseUrl: url.origin }
     );
 
     const pdfBuffer = await renderHtmlToPdfBuffer(rendered.html);

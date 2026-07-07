@@ -222,6 +222,7 @@ export async function renderRadiologyReportForPreview(
   reportId: string,
   options?: {
     includeLetterhead?: boolean;
+    letterheadMode?: "auto" | "uploaded" | "none";
     showPrintButton?: boolean;
     autoPrint?: boolean;
     baseUrl?: string;
@@ -267,6 +268,7 @@ export async function renderRadiologyReportForPreview(
       phone: organization.phone,
       email: organization.email,
       logo: organization.logo,
+      website: organization.website,
       letterheadUrl: organization.letterheadUrl,
     },
     department: Department.RADIOLOGY,
@@ -276,6 +278,7 @@ export async function renderRadiologyReportForPreview(
     mdName: null,
     watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
     includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,
+    letterheadMode: options?.letterheadMode ?? "auto",
     showPrintButton: options?.showPrintButton === true,
     autoPrint: options?.autoPrint === true,
     baseUrl: options?.baseUrl,
@@ -803,6 +806,7 @@ export async function renderReportForPreview(
   reportId: string,
   options?: {
     includeLetterhead?: boolean;
+    letterheadMode?: "auto" | "uploaded" | "none";
     showPrintButton?: boolean;
     autoPrint?: boolean;
     baseUrl?: string;
@@ -840,6 +844,7 @@ export async function renderReportForPreview(
       phone: report.organization.phone,
       email: report.organization.email,
       logo: report.organization.logo,
+      website: report.organization.website,
       letterheadUrl: report.organization.letterheadUrl,
     },
     department: report.department,
@@ -849,6 +854,7 @@ export async function renderReportForPreview(
     mdName: null,
     watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
     includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,
+    letterheadMode: options?.letterheadMode ?? "auto",
     showPrintButton: options?.showPrintButton === true,
     autoPrint: options?.autoPrint === true,
     baseUrl: options?.baseUrl,
@@ -866,6 +872,7 @@ export async function renderLabTaskReportForPreview(
   taskId: string,
   options?: {
     includeLetterhead?: boolean;
+    letterheadMode?: "auto" | "uploaded" | "none";
     showPrintButton?: boolean;
     autoPrint?: boolean;
     hideWatermark?: boolean;
@@ -889,6 +896,7 @@ export async function renderLabTaskReportForPreview(
       phone: organization.phone,
       email: organization.email,
       logo: organization.logo,
+      website: organization.website,
       letterheadUrl: organization.letterheadUrl,
     },
     department: built.department,
@@ -898,6 +906,7 @@ export async function renderLabTaskReportForPreview(
     mdName: null,
     watermarkUrl: showWatermark ? "/diagsync-watermark.png" : undefined,
     includeLetterhead: (options?.includeLetterhead ?? true) && allowLetterhead,
+    letterheadMode: options?.letterheadMode ?? "auto",
     showPrintButton: options?.showPrintButton === true,
     autoPrint: options?.autoPrint === true,
     baseUrl: options?.baseUrl,

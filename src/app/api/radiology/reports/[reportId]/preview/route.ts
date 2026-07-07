@@ -11,14 +11,16 @@ export async function GET(req: Request, { params }: { params: { reportId: string
     const user = session.user as any;
 
     const url = new URL(req.url);
-    const includeLetterhead = url.searchParams.get("letterhead") !== "without";
+    const letterheadParam = url.searchParams.get("letterhead");
+    const includeLetterhead = letterheadParam !== "without";
+    const letterheadMode = letterheadParam === "uploaded" ? "uploaded" : includeLetterhead ? "auto" : "none";
     const showPrintButton = url.searchParams.get("printButton") === "1";
     const autoPrint = url.searchParams.get("autoPrint") === "1";
 
     const rendered = await renderRadiologyReportForPreview(
       { id: user.id, role: user.role, organizationId: user.organizationId },
       params.reportId,
-      { includeLetterhead, showPrintButton, autoPrint, baseUrl: url.origin }
+      { includeLetterhead, letterheadMode, showPrintButton, autoPrint, baseUrl: url.origin }
     );
 
     return new NextResponse(rendered.html, {

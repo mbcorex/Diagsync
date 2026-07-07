@@ -11,7 +11,9 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
     const user = session.user as any;
 
     const url = new URL(req.url);
-    const includeLetterhead = url.searchParams.get("letterhead") !== "without";
+    const letterheadParam = url.searchParams.get("letterhead");
+    const includeLetterhead = letterheadParam !== "without";
+    const letterheadMode = letterheadParam === "uploaded" ? "uploaded" : includeLetterhead ? "auto" : "none";
     const showPrintButton = url.searchParams.get("printButton") === "1";
     const autoPrint = url.searchParams.get("autoPrint") === "1";
     const hideWatermark = url.searchParams.get("watermark") === "without";

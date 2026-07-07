@@ -708,6 +708,7 @@ type RenderArgs = {
     name: string;
     address: string;
     phone: string;
+    website?: string | null;
     email: string;
     logo?: string | null;
     letterheadUrl?: string | null;
@@ -719,19 +720,60 @@ type RenderArgs = {
   mdName?: string | null;
   watermarkUrl?: string;
   includeLetterhead?: boolean;
+  letterheadMode?: "auto" | "uploaded" | "none";
   showPrintButton?: boolean;
   autoPrint?: boolean;
   baseUrl?: string;
 };
 
+function formatWebsiteForLetterhead(url: string) {
+  const raw = url.trim();
+  if (!raw) return "";
+  try {
+    const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+    const parsed = new URL(normalized);
+    const host = parsed.hostname.replace(/^www\./i, "");
+    const path = parsed.pathname.replace(/\/$/, "");
+    return `${host}${path && path !== "/" ? path : ""}`;
+  } catch {
+    return raw.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+  }
+}
+
+function renderAutoLetterheadLine(label: string, value: string) {
+  const cleaned = value.trim();
+  if (!cleaned) return "";
+  return `<div class="auto-letterhead-line"><span class="auto-letterhead-label">${escapeHtml(label)}</span><span class="auto-letterhead-value">${escapeHtml(cleaned)}</span></div>`;
+}
+
+function renderAutoLetterhead(organization: RenderArgs["organization"]) {
+  const website = organization.website?.trim() ? formatWebsiteForLetterhead(String(organization.website)) : "";
+  return `
+    <div class="auto-letterhead-layer">
+      <div class="auto-letterhead-card">
+        <div class="auto-letterhead-name">${escapeHtml(organization.name)}</div>
+        <div class="auto-letterhead-divider"></div>
+        <div class="auto-letterhead-details">
+          ${renderAutoLetterheadLine("Address", organization.address)}
+          ${renderAutoLetterheadLine("Phone", organization.phone)}
+          ${website ? `<div class="auto-letterhead-line"><span class="auto-letterhead-label">Website</span><span class="auto-letterhead-value">${escapeHtml(website)}</span></div>` : ""}
+        </div>
+      </div>
+    </div>
+  `.trim();
+}
 export function renderReportHtml(args: RenderArgs) {
-  const hasLetterhead = Boolean(args.includeLetterhead !== false && args.organization.letterheadUrl);
+  const allowLetterhead = args.includeLetterhead !== false;
+  const letterheadMode = args.letterheadMode ?? "auto";
+  const useUploadedLetterhead = allowLetterhead && letterheadMode === "uploaded" && Boolean(args.organization.letterheadUrl);
+  const useAutoLetterhead = allowLetterhead && letterheadMode !== "none" && !useUploadedLetterhead;
+  const hasLetterhead = useUploadedLetterhead || useAutoLetterhead;
   const pageHeightPx = 1123;
   const pageWidthPx = 794;
-  const contentTopPx = hasLetterhead ? 188 : 148;
-  const contentBottomPx = hasLetterhead ? 124 : 92;
-  const printMarginTopPx = hasLetterhead ? 188 : 92;
-  const printMarginBottomPx = hasLetterhead ? 124 : 96;
+  const contentTopPx = useUploadedLetterhead ? 188 : useAutoLetterhead ? 160 : 148;
+  const contentBottomPx = useUploadedLetterhead ? 124 : 92;
+  const printMarginTopPx = useUploadedLetterhead ? 188 : useAutoLetterhead ? 160 : 92;
+  const printMarginBottomPx = useUploadedLetterhead ? 124 : 96;
   const printMarginSidePx = 40;
   const patient = args.content.patient ?? {};
   const ageLabel = formatPatientAge(
@@ -910,6 +952,59 @@ export function renderReportHtml(args: RenderArgs) {
       overflow: visible;
       --wm-top-offset: ${hasLetterhead ? "132px" : "82px"};
       --wm-bottom-offset: ${hasLetterhead ? "140px" : "108px"};
+    }
+    .auto-letterhead-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .auto-letterhead-card {
+      margin: 22px 44px 0;
+      padding: 0 0 10px;
+      color: #111827;
+      text-align: center;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    .auto-letterhead-name {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .auto-letterhead-divider {
+      width: 100%;
+      height: 0;
+      margin: 8px auto 6px;
+      border-top: 1.5px solid #111827;
+    }
+    .auto-letterhead-details {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 14px;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #111827;
+      font-family: Arial, sans-serif;
+    }
+    .auto-letterhead-line {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: baseline;
+      justify-content: center;
+    }
+    .auto-letterhead-label {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .auto-letterhead-value {
+      font-weight: 400;
     }
     .letterhead-layer {
       position: absolute;
@@ -1138,6 +1233,13 @@ export function renderReportHtml(args: RenderArgs) {
     }
     @media print {
       .preview-actions { display: none !important; }
+      .auto-letterhead-layer {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 0 !important;
+      }
       .letterhead-layer {
         position: fixed !important;
         top: 0 !important;
@@ -1210,10 +1312,11 @@ export function renderReportHtml(args: RenderArgs) {
   }
   <main class="page">
     ${
-      hasLetterhead && args.organization.letterheadUrl
+      useUploadedLetterhead && args.organization.letterheadUrl
         ? `<div class="letterhead-layer"><img src="${escapeHtml(args.organization.letterheadUrl)}" alt="letterhead" crossorigin="anonymous" /></div>`
         : ""
     }
+    ${useAutoLetterhead ? renderAutoLetterhead(args.organization) : ""}
     ${
       effectiveWatermarkUrl
         ? `<div class="watermark watermark-top-left"><img src="${escapeHtml(effectiveWatermarkUrl)}" alt="watermark" crossorigin="anonymous" /></div>`

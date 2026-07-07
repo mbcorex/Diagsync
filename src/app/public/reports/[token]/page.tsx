@@ -30,6 +30,7 @@ export default async function PublicReportPage({ params }: { params: { token: st
       phone: report.organization.phone,
       email: report.organization.email,
       logo: report.organization.logo,
+      website: report.organization.website,
       letterheadUrl: report.organization.letterheadUrl,
     },
     department: report.department,

@@ -8,6 +8,7 @@ function testRadiologyExtraFieldsRender() {
       name: "DiagSync",
       address: "Address",
       phone: "123",
+      website: "https://example.com",
       email: "test@example.com",
     },
     department: Department.RADIOLOGY,
