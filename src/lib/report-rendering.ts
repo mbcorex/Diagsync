@@ -764,7 +764,7 @@ function renderAutoLetterhead(organization: RenderArgs["organization"]) {
 }
 export function renderReportHtml(args: RenderArgs) {
   const allowLetterhead = args.includeLetterhead !== false;
-  const letterheadMode = args.letterheadMode ?? "auto";
+  const letterheadMode = args.letterheadMode ?? "uploaded";
   const useUploadedLetterhead = allowLetterhead && letterheadMode === "uploaded" && Boolean(args.organization.letterheadUrl);
   const useAutoLetterhead = allowLetterhead && letterheadMode !== "none" && !useUploadedLetterhead;
   const hasLetterhead = useUploadedLetterhead || useAutoLetterhead;

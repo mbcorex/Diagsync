@@ -25,7 +25,8 @@ export async function GET(
     const url = new URL(req.url);
     const letterheadParam = url.searchParams.get("letterhead");
     const includeLetterhead = letterheadParam !== "without";
-    const letterheadMode = letterheadParam === "uploaded" ? "uploaded" : includeLetterhead ? "auto" : "none";
+    const letterheadMode =
+      letterheadParam === "without" ? "none" : letterheadParam === "custom" || letterheadParam === "auto" ? "auto" : "uploaded";
 
     const rendered = await renderReportForPreview(
       { id: user.id, role: user.role, organizationId: user.organizationId },

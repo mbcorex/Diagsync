@@ -13,7 +13,8 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
     const url = new URL(req.url);
     const letterheadParam = url.searchParams.get("letterhead");
     const includeLetterhead = letterheadParam !== "without";
-    const letterheadMode = letterheadParam === "uploaded" ? "uploaded" : includeLetterhead ? "auto" : "none";
+    const letterheadMode =
+      letterheadParam === "without" ? "none" : letterheadParam === "custom" || letterheadParam === "auto" ? "auto" : "uploaded";
     const showPrintButton = url.searchParams.get("printButton") === "1";
     const autoPrint = url.searchParams.get("autoPrint") === "1";
     const hideWatermark = url.searchParams.get("watermark") === "without";
@@ -21,7 +22,7 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
     const rendered = await renderLabTaskReportForPreview(
       { id: user.id, role: user.role, organizationId: user.organizationId },
       params.taskId,
-      { includeLetterhead, showPrintButton, autoPrint, hideWatermark, baseUrl: url.origin }
+      { includeLetterhead, letterheadMode, showPrintButton, autoPrint, hideWatermark, baseUrl: url.origin }
     );
 
     return new NextResponse(rendered.html, {
@@ -42,3 +43,4 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
     return new NextResponse("Internal server error", { status: 500 });
   }
 }
+

@@ -238,32 +238,38 @@ export default async function LabScientistApprovedResultsPage({
                       {row.approvedAt ? formatDateTime(row.approvedAt) : "-"}
                     </td>
                     <td className="px-4 py-2.5">
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          href={`/api/lab/tasks/${row.taskId}/preview?printButton=1`}
-                          target="_blank"
-                          rel="noreferrer"
+                      <form
+                        action={`/api/lab/tasks/${row.taskId}/preview`}
+                        method="GET"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex flex-wrap items-center gap-2"
+                      >
+                        <input type="hidden" name="printButton" value="1" />
+                        <select
+                          name="letterhead"
+                          defaultValue="uploaded"
+                          className="h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                        >
+                          <option value="uploaded">With letterhead</option>
+                          <option value="custom">With custom letterhead</option>
+                          <option value="without">Without letterhead (B/W friendly)</option>
+                        </select>
+                        <button
+                          type="submit"
                           className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
                         >
                           Preview
-                        </Link>
-                        <Link
-                          href={`/api/lab/tasks/${row.taskId}/preview?printButton=1&autoPrint=1`}
-                          target="_blank"
-                          rel="noreferrer"
+                        </button>
+                        <button
+                          type="submit"
+                          name="autoPrint"
+                          value="1"
                           className="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
                         >
                           Print
-                        </Link>
-                        <Link
-                          href={`/api/lab/tasks/${row.taskId}/preview?printButton=1&autoPrint=1&letterhead=without`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
-                        >
-                          Print without letterhead
-                        </Link>
-                      </div>
+                        </button>
+                      </form>
                     </td>
                   </tr>
                 ))}
