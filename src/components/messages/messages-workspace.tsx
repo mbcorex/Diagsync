@@ -174,7 +174,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ counterpartId: staffId }),
       }).catch(() => null);
-      await loadConversations();
+      await loadConversations();`r`n      notifyMessagesChanged();
     } catch {
       setError("Failed to load thread");
     } finally {
@@ -198,7 +198,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
       }
       setMessageBody("");
       await loadThread(selectedStaffId);
-      await loadConversations();
+      await loadConversations();`r`n      notifyMessagesChanged();
     } catch {
       setError("Failed to send message");
     } finally {
@@ -206,7 +206,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
     }
   }
 
-  function startNewMessage(staff: StaffPreview) {
+  function notifyMessagesChanged() {`r`n    window.dispatchEvent(new Event("messages:changed"));`r`n  }`r`n`r`n  function startNewMessage(staff: StaffPreview) {
     setSelectedStaffId(staff.id);
     setCounterpart(staff);
     setMessages([]);
@@ -572,6 +572,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
     </div>
   );
 }
+
 
 
 
