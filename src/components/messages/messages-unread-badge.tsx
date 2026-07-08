@@ -45,7 +45,7 @@ export function MessagesUnreadBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm",
+        "inline-flex min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm",
         className
       )}
     >
@@ -53,3 +53,4 @@ export function MessagesUnreadBadge({ className }: { className?: string }) {
     </span>
   );
 }
+

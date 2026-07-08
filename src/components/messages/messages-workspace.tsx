@@ -252,10 +252,10 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
             threadSelected ? "hidden lg:flex" : "flex"
           )}
         >
-          <div className="border-b border-slate-200 bg-[#f0fdf7] px-4 py-4">
+          <div className="border-b border-slate-200 bg-blue-50 px-4 py-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-600">Messages</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-600">Messages</p>
                 <h1 className="mt-1 text-lg font-semibold text-slate-900">Staff chat</h1>
                 <p className="text-xs text-slate-500">Direct messages across your organization</p>
                 <p className="mt-1 text-[11px] text-slate-400">Signed in as {currentUserName}</p>
@@ -263,7 +263,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
               <button
                 type="button"
                 onClick={() => setShowNewMessage(true)}
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
               >
                 <Plus className="h-4 w-4" />
                 New Message
@@ -285,7 +285,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
               <div className="px-4 py-10 text-center text-sm text-slate-400">Loading conversations...</div>
             ) : conversations.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                   <MessageCircle className="h-8 w-8" />
                 </div>
                 <p className="mt-4 text-sm font-semibold text-slate-800">No conversations yet</p>
@@ -293,7 +293,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                 <button
                   type="button"
                   onClick={() => setShowNewMessage(true)}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   <Plus className="h-4 w-4" />
                   Start Chat
@@ -318,17 +318,17 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                         onClick={() => setSelectedStaffId(item.counterpart.id)}
                         className={cn(
                           "flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors",
-                          active ? "bg-emerald-50/80" : "hover:bg-white"
+                          active ? "bg-blue-50/80" : "hover:bg-white"
                         )}
                       >
                         <div className="relative mt-0.5">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-sm">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white shadow-sm">
                             {initial || "?"}
                           </div>
                           <span
                             className={cn(
                               "absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white",
-                              item.counterpart.availabilityStatus === "AVAILABLE" ? "bg-emerald-500" : "bg-slate-300"
+                              item.counterpart.availabilityStatus === "AVAILABLE" ? "bg-blue-500" : "bg-slate-300"
                             )}
                           />
                         </div>
@@ -345,7 +345,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                           <div className="mt-1 flex items-center justify-between gap-2">
                             <p className="truncate text-xs text-slate-600">{item.lastMessage.body}</p>
                             {item.unreadCount > 0 ? (
-                              <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                              <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-blue-500 px-2 py-0.5 text-[11px] font-bold text-white">
                                 {item.unreadCount > 99 ? "99+" : item.unreadCount}
                               </span>
                             ) : null}
@@ -380,7 +380,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white shadow-sm">
                 {getAvatarLabel(counterpart?.fullName ?? currentConversation?.counterpart.fullName ?? "Chat") || ""}
               </div>
               <div className="min-w-0">
@@ -397,8 +397,8 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
               </div>
             </div>
             <div className="hidden items-center gap-3 md:flex">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                <span className={cn("h-2 w-2 rounded-full", counterpart?.availabilityStatus === "AVAILABLE" ? "bg-emerald-500" : "bg-slate-300")} />
+              <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                <span className={cn("h-2 w-2 rounded-full", counterpart?.availabilityStatus === "AVAILABLE" ? "bg-blue-500" : "bg-slate-300")} />
                 {counterpart ? formatAvailability(counterpart.availabilityStatus) : "Messages"}
               </span>
               <Link
@@ -415,7 +415,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
             {!selectedStaffId ? (
               <div className="flex h-full items-center justify-center">
                 <div className="max-w-md rounded-[28px] border border-white/70 bg-white/90 p-8 text-center shadow-xl backdrop-blur">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                     <MessageCircle className="h-8 w-8" />
                   </div>
                   <h2 className="mt-4 text-lg font-semibold text-slate-900">Choose a conversation</h2>
@@ -425,7 +425,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                   <button
                     type="button"
                     onClick={() => setShowNewMessage(true)}
-                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                   >
                     <Plus className="h-4 w-4" />
                     New message
@@ -444,14 +444,14 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                         className={cn(
                           "max-w-[88%] rounded-3xl px-4 py-2.5 shadow-sm sm:max-w-[72%]",
                           mine
-                            ? "rounded-br-md bg-[#d9fdd3] text-slate-900"
+                            ? "rounded-br-md bg-blue-600 text-white"
                             : "rounded-bl-md bg-white text-slate-900"
                         )}
                       >
                         <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.body}</p>
-                        <div className="mt-1 flex items-center justify-end gap-1 text-[11px] text-slate-500">
+                        <div className={cn("mt-1 flex items-center justify-end gap-1 text-[11px]", mine ? "text-blue-100" : "text-slate-500")}>
                           <span>{formatDateTime(message.createdAt)}</span>
-                          {mine ? <CheckCheck className="h-3.5 w-3.5 text-emerald-500" /> : null}
+                          {mine ? <CheckCheck className="h-3.5 w-3.5 text-blue-100" /> : null}
                         </div>
                       </div>
                     </div>
@@ -467,7 +467,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
               <button
                 type="button"
                 onClick={() => setShowNewMessage(true)}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
                 aria-label="Start new chat"
               >
                 <Plus className="h-4 w-4" />
@@ -490,7 +490,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                 type="button"
                 onClick={() => void sendMessage()}
                 disabled={!selectedStaffId || sending || !messageBody.trim()}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
@@ -507,9 +507,9 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
       {showNewMessage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm">
           <div className="w-full max-w-2xl overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 bg-[#f0fdf7] px-4 py-4">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-blue-50 px-4 py-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600">New message</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600">New message</p>
                 <h3 className="mt-1 text-base font-semibold text-slate-900">Start a staff chat</h3>
               </div>
               <button
@@ -548,7 +548,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                         onClick={() => startNewMessage(staff)}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left hover:bg-slate-50"
                       >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white">
                           {initial || "?"}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -572,4 +572,6 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
     </div>
   );
 }
+
+
 
