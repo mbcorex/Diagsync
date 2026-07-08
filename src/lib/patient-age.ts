@@ -1,4 +1,4 @@
-type AgeDisplayStyle = "compact" | "long";
+﻿type AgeDisplayStyle = "compact" | "long";
 
 type PatientAgeInput = {
   age?: number | null;
@@ -95,7 +95,7 @@ export function formatPatientAge(input: PatientAgeInput, style: AgeDisplayStyle 
   }
 
   const years = Number(input.age);
-  if (Number.isFinite(years) && years >= 0) return `${Math.trunc(years)}y`;
+  if (Number.isFinite(years) && years > 0) return `${Math.trunc(years)}y`;
   return "-";
 }
 
@@ -131,3 +131,5 @@ export function estimateDateOfBirthFromEnteredAge(
   const d = String(base.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+

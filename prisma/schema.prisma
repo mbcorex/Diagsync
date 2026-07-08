@@ -97,6 +97,8 @@ model Staff {
   labSamples                           LabSample[]
   notifications                        Notification[]
   registeredPatients                   Patient[]                    @relation("RegisteredBy")
+  sentMessages                         StaffMessage[]               @relation("MessageSender")
+  receivedMessages                     StaffMessage[]               @relation("MessageRecipient")
   pushSubscriptions                    PushSubscription[]
   editedRadiologyReportVersions        RadiologyReportVersion[]     @relation("RadiologyReportVersionEditedBy")
   radiologyReports                     RadiologyReport[]
@@ -117,6 +119,22 @@ model Staff {
   @@map("staff")
 }
 
+model StaffMessage {
+  id             String   @id @default(cuid())
+  organizationId String
+  senderId       String
+  recipientId    String
+  body           String
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+  sender         Staff    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient      Staff    @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, recipientId, isRead, createdAt])
+  @@index([organizationId, senderId, recipientId, createdAt])
+  @@map("staff_messages")
+}
 model ConsultationQueue {
   id               String             @id @default(cuid())
   organizationId   String
@@ -991,4 +1009,6 @@ enum ConsultationStatus {
   CONSULTED
   CANCELLED
 }
+
+
 

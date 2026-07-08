@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,6 +8,7 @@ import {
   BarChart3,
   Bell,
   ClipboardList,
+  MessageCircle,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Role } from "@prisma/client";
+import { MessagesUnreadBadge } from "@/components/messages/messages-unread-badge";
 
 type NavItem = {
   label: string;
@@ -41,6 +43,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
@@ -63,6 +67,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Reports", href: "/dashboard/hrm/inventory", icon: FileText },
       { label: "Alerts", href: "/dashboard/hrm/inventory", icon: Bell },
       { label: "Stock", href: "/dashboard/hrm/inventory", icon: Activity },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
@@ -75,6 +81,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/hrm/operations", icon: Activity },
       { label: "Reports", href: "/dashboard/hrm/release", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
@@ -96,6 +104,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/receptionist/consultation", icon: ClipboardList },
       { label: "Reports", href: "/dashboard/receptionist/release", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "New Patient", href: "/dashboard/receptionist/new-patient", icon: UserPlus },
@@ -109,6 +119,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/lab-scientist/results", icon: Users },
       { label: "Tasks", href: "/dashboard/lab-scientist/queue", icon: ClipboardList },
       { label: "Reports", href: "/dashboard/lab-scientist/results", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
@@ -121,6 +133,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/radiographer/reports", icon: Users },
       { label: "Tasks", href: "/dashboard/radiographer/queue", icon: Scan },
       { label: "Reports", href: "/dashboard/radiographer/reports", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
@@ -133,6 +147,8 @@ const navByRole: Record<Role, NavConfig> = {
       { label: "Patients", href: "/dashboard/receptionist/patients", icon: Users },
       { label: "Tasks", href: "/dashboard/md/consultation", icon: Stethoscope },
       { label: "Reports", href: "/dashboard/md/reports", icon: FileText },
+      { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
     ],
     more: [
       { label: "Insights", href: "/dashboard", icon: LayoutDashboard },
@@ -166,7 +182,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
     <>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 shadow-[0_-2px_10px_rgba(15,23,42,0.06)] backdrop-blur dark:border-neutral-800 dark:bg-black/95 dark:shadow-[0_-2px_10px_rgba(0,0,0,0.5)] md:hidden">
         <ul
-          className="grid grid-cols-5 pt-1"
+          className="grid grid-cols-6 pt-1"
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)",
           }}
@@ -183,7 +199,10 @@ export function MobileBottomNav({ role }: { role: Role }) {
                   }`}
                 >
                   <Icon className={`h-4 w-4 ${active ? "text-blue-600" : "text-slate-400 dark:text-neutral-500"}`} />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span>{item.label}</span>
+                    {item.href === "/dashboard/messages" ? <MessagesUnreadBadge /> : null}
+                  </span>
                 </Link>
               </li>
             );
@@ -252,3 +271,5 @@ export function MobileBottomNav({ role }: { role: Role }) {
     </>
   );
 }
+
+

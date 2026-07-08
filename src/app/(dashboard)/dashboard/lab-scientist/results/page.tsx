@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+﻿import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import Link from "next/link";
@@ -214,7 +214,7 @@ export default async function LabResultsPage({
                     <td className="px-4 py-2.5">
                       <p className="font-medium text-slate-800">{row.patientName}</p>
                       <p className="font-mono text-slate-400">
-                        {row.patientId} · {row.age}y
+                        {row.patientId} · {row.age > 0 ? `${row.age}y` : "-"}
                       </p>
                     </td>
                     <td className="px-4 py-2.5 font-mono text-slate-400">{row.visitNumber}</td>
@@ -245,3 +245,5 @@ export default async function LabResultsPage({
     </div>
   );
 }
+
+

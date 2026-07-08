@@ -1,10 +1,12 @@
-"use client";
+﻿"use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, MessageCircle } from "lucide-react";
 import { Switch } from "@/components/ui/index";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { MessagesUnreadBadge } from "@/components/messages/messages-unread-badge";
 import { DeviceAccountMenu } from "@/components/device/device-account-menu";
 import { Role } from "@prisma/client";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -92,6 +94,14 @@ export function HeaderBar({
             />
           </div>
         )}
+        <Link
+          href="/dashboard/messages"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+          aria-label="Messages"
+        >
+          <MessageCircle className="h-4 w-4" />
+          <MessagesUnreadBadge className="absolute -right-1 -top-1" />
+        </Link>
         <NotificationBell role={role} />
         <ThemeToggle />
         <DeviceAccountMenu
@@ -112,3 +122,7 @@ function getTimeOfDay() {
   if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
+
+
+
+

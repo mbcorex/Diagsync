@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -14,6 +14,7 @@ import {
   Stethoscope,
   BarChart3,
   Bell,
+  MessageCircle,
   LogOut,
   Activity,
   TestTube2,
@@ -22,6 +23,7 @@ import {
   Package,
 } from "lucide-react";
 import { cn, ROLE_LABELS } from "@/lib/utils";
+import { MessagesUnreadBadge } from "@/components/messages/messages-unread-badge";
 import { Role } from "@prisma/client";
 
 interface NavItem {
@@ -49,6 +51,8 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
     { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
     { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   HRM: [
     { label: "Overview", href: "/dashboard/hrm", icon: LayoutDashboard },
@@ -64,6 +68,8 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Release Center", href: "/dashboard/hrm/release", icon: ClipboardList },
     { label: "Audit Log", href: "/dashboard/hrm/audit", icon: ClipboardList },
     { label: "Analytics", href: "/dashboard/hrm/analytics", icon: BarChart3 },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   RECEPTIONIST: [
     { label: "Dashboard", href: "/dashboard/receptionist", icon: LayoutDashboard },
@@ -71,24 +77,32 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Consultation Queue", href: "/dashboard/receptionist/consultation", icon: Stethoscope },
     { label: "Today's Patients", href: "/dashboard/receptionist/patients", icon: Users },
     { label: "Dispatch Center", href: "/dashboard/receptionist/release", icon: ClipboardList },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   LAB_SCIENTIST: [
     { label: "Dashboard", href: "/dashboard/lab-scientist", icon: LayoutDashboard },
     { label: "My Queue", href: "/dashboard/lab-scientist/queue", icon: ClipboardList },
     { label: "Results", href: "/dashboard/lab-scientist/results", icon: FlaskConical },
     { label: "Approved Results", href: "/dashboard/lab-scientist/approved", icon: Activity },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   INVENTORY_MANAGER: [
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
     { label: "Item Setup", href: "/dashboard/hrm/inventory/items", icon: Package },
     { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
     { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   RADIOGRAPHER: [
     { label: "Dashboard", href: "/dashboard/radiographer", icon: LayoutDashboard },
     { label: "Imaging Queue", href: "/dashboard/radiographer/queue", icon: Scan },
     { label: "Reports", href: "/dashboard/radiographer/reports", icon: ClipboardList },
     { label: "Approved Results", href: "/dashboard/radiographer/approved", icon: Activity },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
   MD: [
     { label: "Review Queue", href: "/dashboard/md/review", icon: Stethoscope },
@@ -101,6 +115,8 @@ const navByRole: Record<string, NavItem[]> = {
     { label: "Inventory", href: "/dashboard/hrm/inventory", icon: Package },
     { label: "Stock Movements", href: "/dashboard/hrm/inventory/movements", icon: ClipboardList },
     { label: "Inventory Analytics", href: "/dashboard/hrm/inventory/analytics", icon: BarChart3 },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+
   ],
 };
 
@@ -176,7 +192,10 @@ export function Sidebar({ user, className, onNavigate }: SidebarProps) {
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2">
+                    <span>{item.label}</span>
+                    {item.href === "/dashboard/messages" ? <MessagesUnreadBadge /> : null}
+                  </span>
                 </Link>
               </li>
             );
@@ -226,4 +245,9 @@ export function Sidebar({ user, className, onNavigate }: SidebarProps) {
     </aside>
   );
 }
+
+
+
+
+
 

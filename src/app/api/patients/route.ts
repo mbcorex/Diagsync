@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -18,9 +18,13 @@ const registerPatientSchema = z.object({
   // Patient details
   patientId: z.string().trim().min(1, "Patient number is required"),
   fullName: z.string().min(2, "Full name required"),
-  age: z.number().int().min(0).max(150),
+  age: z.number().int().min(0).max(150).optional(),
   sex: z.nativeEnum(Sex),
-  phone: z.string().min(7, "Phone number required"),
+  phone: z.preprocess((value) => {
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed === "" ? undefined : trimmed;
+  }, z.string().min(7, "Phone number required").optional()),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -270,9 +274,9 @@ export async function POST(req: NextRequest) {
           organizationId: user.organizationId,
           patientId: patientNumber,
           fullName: data.fullName,
-          age: data.age,
+          age: data.age ?? 0,
           sex: data.sex,
-          phone: data.phone,
+          phone: data.phone ?? "",
           email: data.email || null,
           address: data.address || null,
           dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
@@ -399,3 +403,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
+
+

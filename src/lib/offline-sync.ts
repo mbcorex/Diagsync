@@ -1,13 +1,13 @@
-const OFFLINE_PATIENT_QUEUE = "diag_sync_offline_patients";
+﻿const OFFLINE_PATIENT_QUEUE = "diag_sync_offline_patients";
 const OFFLINE_LAB_DRAFT_QUEUE = "diag_sync_offline_lab_drafts";
 const OFFLINE_RADIOLOGY_DRAFT_QUEUE = "diag_sync_offline_radiology_drafts";
 
 export type OfflinePatientPayload = {
   patientId: string;
   fullName: string;
-  age: number;
+  age?: number;
   sex: "MALE" | "FEMALE" | "OTHER";
-  phone: string;
+  phone?: string;
   email?: string;
   address?: string;
   dateOfBirth?: string;
@@ -152,3 +152,4 @@ export function getOfflinePendingCount() {
     listOfflineRadiologyDraftItems().length
   );
 }
+

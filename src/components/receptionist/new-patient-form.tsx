@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -544,13 +544,13 @@ export function NewPatientForm() {
   }
 
   function buildPayload(): OfflinePatientPayload {
-    const ageYears = toAgeYears(age, ageUnit) ?? 0;
+    const ageYears = toAgeYears(age, ageUnit);
     const resolvedDateOfBirth =
       dateOfBirth ||
       (ageUnit !== "YEARS" ? estimateDateOfBirthFromEnteredAge(age, ageUnit) ?? undefined : undefined);
     return {
       patientId: patientNumber.trim(),
-      fullName: fullName.trim(), age: ageYears, sex, phone: phone.trim(),
+      fullName: fullName.trim(), age: ageYears ?? undefined, sex, phone: phone.trim() || undefined,
       email: email.trim() || undefined, address: address.trim() || undefined,
       dateOfBirth: resolvedDateOfBirth, referringDoctor: referringDoctor.trim() || undefined,
       clinicalNote: clinicalNote.trim() || undefined, priority, paymentStatus,
@@ -581,10 +581,11 @@ export function NewPatientForm() {
   async function handleSubmit() {
     setError("");
     const ageYears = toAgeYears(age, ageUnit);
+    const phoneValue = phone.trim();
     if (!patientNumber.trim()) return setError("Patient number is required.");
     if (!fullName.trim()) return setError("Patient full name is required.");
-    if (ageYears === null) return setError("Valid age is required.");
-    if (!phone.trim()) return setError("Phone number is required.");
+    if (age.trim() && ageYears === null) return setError("Enter a valid age.");
+    if (phoneValue && phoneValue.replace(/\D/g, "").length < 7) return setError("Enter a valid phone number.");
     if (cart.length === 0) return setError("Please add at least one test.");
     if (cart.some((item) => toNumberPrice(item.enteredPrice) <= 0)) return setError("Enter a valid price for each test.");
     const payload = buildPayload();
@@ -671,7 +672,7 @@ export function NewPatientForm() {
                 <input placeholder="e.g. Musa Ibrahim" value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Age *</label>
+                <label className={labelCls}>Age (optional)</label>
                 <div className="grid grid-cols-[1fr_120px] gap-2">
                   <input
                     type="number"
@@ -691,7 +692,7 @@ export function NewPatientForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="mt-1 text-[10px] text-slate-400">For babies, enter months or days.</p>
+                <p className="mt-1 text-[10px] text-slate-400">Leave blank if unknown. For babies, enter months or days.</p>
               </div>
               <div>
                 <label className={labelCls}>Sex *</label>
@@ -705,7 +706,7 @@ export function NewPatientForm() {
                 </Select>
               </div>
               <div>
-                <label className={labelCls}>Phone *</label>
+                <label className={labelCls}>Phone (optional)</label>
                 <input placeholder="+234..." value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
               </div>
               <div>
@@ -1190,3 +1191,5 @@ export function NewPatientForm() {
     </div>
   );
 }
+
+
