@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -174,7 +174,8 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ counterpartId: staffId }),
       }).catch(() => null);
-      await loadConversations();`r`n      notifyMessagesChanged();
+      await loadConversations();
+      notifyMessagesChanged();
     } catch {
       setError("Failed to load thread");
     } finally {
@@ -198,7 +199,6 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
       }
       setMessageBody("");
       await loadThread(selectedStaffId);
-      await loadConversations();`r`n      notifyMessagesChanged();
     } catch {
       setError("Failed to send message");
     } finally {
@@ -206,7 +206,11 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
     }
   }
 
-  function notifyMessagesChanged() {`r`n    window.dispatchEvent(new Event("messages:changed"));`r`n  }`r`n`r`n  function startNewMessage(staff: StaffPreview) {
+  function notifyMessagesChanged() {
+    window.dispatchEvent(new Event("messages:changed"));
+  }
+
+  function startNewMessage(staff: StaffPreview) {
     setSelectedStaffId(staff.id);
     setCounterpart(staff);
     setMessages([]);
@@ -340,7 +344,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                             </span>
                           </div>
                           <p className="mt-0.5 truncate text-[11px] text-slate-500">
-                            {formatRole(item.counterpart.role)} · {item.counterpart.department}
+                            {formatRole(item.counterpart.role)} Â· {item.counterpart.department}
                           </p>
                           <div className="mt-1 flex items-center justify-between gap-2">
                             <p className="truncate text-xs text-slate-600">{item.lastMessage.body}</p>
@@ -389,9 +393,9 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                 </p>
                 <p className="truncate text-xs text-slate-500">
                   {counterpart
-                    ? `${formatRole(counterpart.role)} · ${counterpart.department}`
+                    ? `${formatRole(counterpart.role)} Â· ${counterpart.department}`
                     : currentConversation
-                      ? `${formatRole(currentConversation.counterpart.role)} · ${currentConversation.counterpart.department}`
+                      ? `${formatRole(currentConversation.counterpart.role)} Â· ${currentConversation.counterpart.department}`
                       : "Open a staff chat to start messaging"}
                 </p>
               </div>
@@ -557,7 +561,7 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
                             <span className="shrink-0 text-[11px] text-slate-400">{formatAvailability(staff.availabilityStatus)}</span>
                           </div>
                           <p className="truncate text-xs text-slate-500">
-                            {formatRole(staff.role)} · {staff.department}
+                            {formatRole(staff.role)} Â· {staff.department}
                           </p>
                         </div>
                       </button>
@@ -572,7 +576,3 @@ export function MessagesWorkspace({ currentUserId, currentUserName }: Props) {
     </div>
   );
 }
-
-
-
-

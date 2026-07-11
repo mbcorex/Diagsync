@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,12 +30,15 @@ export function MessagesUnreadBadge({ className }: { className?: string }) {
     const refresh = () => {
       if (document.visibilityState === "visible") void load();
     };
+    const onMessagesChanged = () => void load();
     const interval = window.setInterval(refresh, 120_000);
     window.addEventListener("focus", refresh);
+    window.addEventListener("messages:changed", onMessagesChanged);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("messages:changed", onMessagesChanged);
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
@@ -53,5 +56,3 @@ export function MessagesUnreadBadge({ className }: { className?: string }) {
     </span>
   );
 }
-
-
