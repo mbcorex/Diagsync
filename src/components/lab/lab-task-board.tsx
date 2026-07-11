@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { ResultInsightBox } from "@/components/results/result-insight-box";
 import { buildResultInsights } from "@/lib/result-insights";
 import { listOfflineLabDraftItems, removeOfflineLabDraft, upsertOfflineLabDraft } from "@/lib/offline-sync";
-import { evaluateReferenceFlag, formatReferenceDisplay } from "@/lib/reference-ranges";
+import { evaluateReferenceFlag, formatReferenceDisplay, toDemographicRangeKey, upsertDemographicRange } from "@/lib/reference-ranges";
 import { toCustomFieldKey } from "@/lib/custom-fields-core";
 import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY } from "@/lib/report-signoff";
 import { formatPatientAge } from "@/lib/patient-age";
@@ -70,6 +70,7 @@ type ReferenceUpdatePayload = {
   normalMin?: number | null;
   normalMax?: number | null;
   normalText?: string | null;
+  referenceNote?: string | null;
 };
 
 function createEmptyDraft(): Draft {
@@ -150,7 +151,7 @@ function getDefaultSensitivityAntibiotics(organizationId?: string | null) {
 const LEGACY_CULTURE_RESULT_TEXT =
   "Staphylococcus aureus & Candida albican isolated after 24hours incubation @ 370C";
 const DEFAULT_CULTURE_RESULT_TEXT =
-  "Staphylococcus aureus & Candida albican isolated after 24hours incubation @ 37°C";
+  "Staphylococcus aureus & Candida albican isolated after 24hours incubation @ 37Ã‚Â°C";
 const WIDAL_FIELD_ALIASES = {
   typhiO: ["typhi_o"],
   typhiH: ["typhi_h"],
@@ -310,7 +311,7 @@ function parseSensitivityPattern(raw: unknown): SensitivityCell[] {
       }
 
       return {
-        antibiotic: antibiotic.replace(/[-â€“:,]+$/g, "").trim(),
+        antibiotic: antibiotic.replace(/[-ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“:,]+$/g, "").trim(),
         zone: zone.trim(),
         interpretation,
       };
@@ -626,23 +627,31 @@ const OrderResultCard = memo(function OrderResultCard({
       const nextMax = parseNumericText(draftRef.normalMax);
       if (nextMin === "invalid" || nextMax === "invalid") return;
 
+      const demographicKey = toDemographicRangeKey(task.visit.patient.sex);
+      const nextReferenceNote = upsertDemographicRange(
+        field.referenceNote,
+        demographicKey,
+        nextMin === null || nextMax === null ? null : { min: nextMin, max: nextMax }
+      );
       const payload: ReferenceUpdatePayload = {
         unit: draftRef.unit.trim() || null,
         normalMin: nextMin,
         normalMax: nextMax,
         normalText: draftRef.normalText.trim() || null,
+        referenceNote: nextReferenceNote || null,
       };
 
       const sameAsCurrent =
         (field.unit ?? null) === payload.unit &&
         (field.normalMin ?? null) === payload.normalMin &&
         (field.normalMax ?? null) === payload.normalMax &&
-        (field.normalText ?? null) === payload.normalText;
+        (field.normalText ?? null) === payload.normalText &&
+        (field.referenceNote ?? null) === payload.referenceNote;
       if (sameAsCurrent) return;
 
       await onUpdateFieldReference(order.test.id, field.id, payload);
     },
-    [getReferenceDraft, onUpdateFieldReference, order.test.id]
+    [getReferenceDraft, onUpdateFieldReference, order.test.id, task.visit.patient.sex]
   );
   const renderWidalCell = useCallback(
     (field?: ResultField) => {
@@ -1728,6 +1737,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                       normalMin: patch.normalMin === undefined ? field.normalMin : patch.normalMin,
                       normalMax: patch.normalMax === undefined ? field.normalMax : patch.normalMax,
                       normalText: patch.normalText === undefined ? field.normalText : patch.normalText,
+                      referenceNote: patch.referenceNote === undefined ? field.referenceNote : patch.referenceNote,
                     }
                   : field
               ),
@@ -1751,6 +1761,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
               normalMin: payload.normalMin ?? null,
               normalMax: payload.normalMax ?? null,
               normalText: payload.normalText ?? null,
+              referenceNote: payload.referenceNote ?? null,
             },
           ],
         }),
@@ -2532,7 +2543,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                   <span className="font-semibold text-slate-700">{formatDayLabel(dayKey)}</span>
                   {dayKey === todayDayKey() ? <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-700">Today</span> : null}
                   <span className="text-slate-400">{dayTasks.length} task{dayTasks.length !== 1 ? "s" : ""}</span>
-                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-300">Ã‚Â·</span>
                   <span className="text-slate-400">{dayTasks.filter((t) => t.status === "PENDING").length} pending</span>
                   <span className="text-slate-400">{dayTasks.filter((t) => t.status === "IN_PROGRESS").length} in progress</span>
                   <span className="text-slate-400">{dayTasks.filter((t) => t.status === "COMPLETED").length} completed</span>

@@ -5,6 +5,7 @@ export type ReferenceContext = {
   age?: number | null;
 };
 export type DemographicRangeKey = "male" | "female" | "child";
+export type DemographicRangeValue = { min: number; max: number };
 
 export type ReferenceField = {
   fieldKey: string;
@@ -23,7 +24,7 @@ const DEMOGRAPHIC_META_PREFIX = "[[DIAGSYNC_DEMO:";
 const DEMOGRAPHIC_META_SUFFIX = "]]";
 const NUMERIC_REFERENCE_FALLBACKS: Record<string, { min: number; max: number; unit?: string }> = {
   urea: { min: 1.6, max: 8.3, unit: "mmol/L" },
-  creatinine: { min: 63, max: 130, unit: "µmol/L" },
+  creatinine: { min: 63, max: 130, unit: "Âµmol/L" },
 };
 
 function withNumericFallback(field: ReferenceField): ReferenceField {
@@ -47,7 +48,7 @@ function withNumericFallback(field: ReferenceField): ReferenceField {
 }
 
 function parseRangeFromText(text: string): ParsedRange | null {
-  const match = text.match(/(-?\d+(?:\.\d+)?)\s*[-–—]\s*(-?\d+(?:\.\d+)?)/);
+  const match = text.match(/(-?\d+(?:\.\d+)?)\s*[-â€“â€”]\s*(-?\d+(?:\.\d+)?)/);
   if (!match) return null;
   const min = Number(match[1]);
   const max = Number(match[2]);
@@ -106,6 +107,31 @@ export function buildReferenceNote(plainText: string, demographicRanges: Demogra
     ...(demographicRanges.child ? { child: demographicRanges.child } : {}),
   });
   return `${cleanedText}${cleanedText ? " " : ""}${DEMOGRAPHIC_META_PREFIX}${payload}${DEMOGRAPHIC_META_SUFFIX}`;
+}
+
+export function toDemographicRangeKey(sex?: string | null): DemographicRangeKey | null {
+  const normalized = `${sex ?? ""}`.trim().toLowerCase();
+  if (normalized.startsWith("m")) return "male";
+  if (normalized.startsWith("f")) return "female";
+  if (normalized.startsWith("c")) return "child";
+  return null;
+}
+
+export function upsertDemographicRange(
+  referenceNote: string | null | undefined,
+  demographicKey: DemographicRangeKey | null,
+  range: DemographicRangeValue | null
+) {
+  const { plainText, demographicRanges } = splitReferenceNote(referenceNote);
+  if (!demographicKey) return buildReferenceNote(plainText, demographicRanges);
+
+  const nextRanges = { ...demographicRanges };
+  if (range) {
+    nextRanges[demographicKey] = { min: range.min, max: range.max };
+  } else {
+    delete nextRanges[demographicKey];
+  }
+  return buildReferenceNote(plainText, nextRanges);
 }
 
 function parseDemographicRanges(field: ReferenceField) {
