@@ -107,7 +107,46 @@ const DEFAULT_SENSITIVITY_ANTIBIOTICS = [
 
 const SENSITIVITY_VALUE_OPTIONS = ["+", "2+", "3+", "4+", "5mm", "10mm", "15mm", "20mm", "25mm", "30mm"];
 const SENSITIVITY_INTERPRETATION_OPTIONS = ["S", "R", "I"];
-const SENSITIVITY_MEMORY_KEY = "diag_sync_sensitivity_memory_v1";
+const HOLY_SOULS_ORGANIZATION_ID = "cmqmcob1a000n8rhw063x2dsz";
+const DEFAULT_SENSITIVITY_MEMORY_KEY = "diag_sync_sensitivity_memory_v1";
+const HOLY_SOULS_SENSITIVITY_ANTIBIOTICS = [
+  "AMPICLOX",
+  "CETROXOL",
+  "AMOXIL",
+  "EXACEF",
+  "CIPROXIN",
+  "AUGMENTIN",
+  "VISKOBACT",
+  "TAZOVISK",
+  "LYNCIPRO",
+  "ROCEPHIN",
+  "MEXTIL",
+  "NISETAXIME",
+  "STREPTOMYCIN",
+  "GENTAMYCIN",
+  "AMCLAVIN",
+  "PEFLACINE",
+  "LYNTRIAXONE",
+  "AZITHROMYCIN",
+  "ORNIDAVID",
+  "LEVOFLOXACIN",
+  "LINCOCIN",
+  "ZINNAT",
+  "LYNCIPRO",
+  "COZIMA",
+  "ERTHROMYCIN",
+  "SEPTRIN",
+];
+
+function getSensitivityMemoryKey(organizationId?: string | null) {
+  return organizationId === HOLY_SOULS_ORGANIZATION_ID
+    ? "diag_sync_sensitivity_memory_holy_souls_v1"
+    : DEFAULT_SENSITIVITY_MEMORY_KEY;
+}
+
+function getDefaultSensitivityAntibiotics(organizationId?: string | null) {
+  return organizationId === HOLY_SOULS_ORGANIZATION_ID ? HOLY_SOULS_SENSITIVITY_ANTIBIOTICS : DEFAULT_SENSITIVITY_ANTIBIOTICS;
+}
 const LEGACY_CULTURE_RESULT_TEXT =
   "Staphylococcus aureus & Candida albican isolated after 24hours incubation @ 370C";
 const DEFAULT_CULTURE_RESULT_TEXT =
@@ -1194,7 +1233,11 @@ const OrderResultCard = memo(function OrderResultCard({
   );
 });
 
-export function LabTaskBoard() {
+type LabTaskBoardProps = {
+  organizationId?: string | null;
+};
+
+export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
   const TASK_CACHE_TTL_MS = 20_000;
   const [tasks, setTasks] = useState<LabTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1213,7 +1256,7 @@ export function LabTaskBoard() {
   const [sampleStatusByTask, setSampleStatusByTask] = useState<Record<string, SampleStatus>>({});
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [counts, setCounts] = useState({ pending: 0, inProgress: 0, completed: 0 });
-  const [sensitivityAntibioticOptions, setSensitivityAntibioticOptions] = useState<string[]>(DEFAULT_SENSITIVITY_ANTIBIOTICS);
+  const [sensitivityAntibioticOptions, setSensitivityAntibioticOptions] = useState<string[]>(() => getDefaultSensitivityAntibiotics(organizationId));
   const [sensitivityValueOptions, setSensitivityValueOptions] = useState<string[]>(SENSITIVITY_VALUE_OPTIONS);
   const [sensitivityInterpretationOptions, setSensitivityInterpretationOptions] = useState<string[]>(SENSITIVITY_INTERPRETATION_OPTIONS);
   const signatureInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -1240,7 +1283,7 @@ export function LabTaskBoard() {
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SENSITIVITY_MEMORY_KEY);
+      const raw = window.localStorage.getItem(getSensitivityMemoryKey(organizationId));
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         antibiotics?: unknown;
@@ -1252,7 +1295,7 @@ export function LabTaskBoard() {
         const merged = [...fallback, ...list.filter((item): item is string => typeof item === "string")];
         return Array.from(new Set(merged.map((item) => item.trim()).filter(Boolean)));
       };
-      setSensitivityAntibioticOptions(normalize(parsed.antibiotics, DEFAULT_SENSITIVITY_ANTIBIOTICS));
+      setSensitivityAntibioticOptions(normalize(parsed.antibiotics, getDefaultSensitivityAntibiotics(organizationId)));
       setSensitivityValueOptions(normalize(parsed.values, SENSITIVITY_VALUE_OPTIONS));
       setSensitivityInterpretationOptions(
         normalize(parsed.interpretations, SENSITIVITY_INTERPRETATION_OPTIONS).map((item) => item.toUpperCase())
@@ -1292,7 +1335,7 @@ export function LabTaskBoard() {
 
     try {
       window.localStorage.setItem(
-        SENSITIVITY_MEMORY_KEY,
+        getSensitivityMemoryKey(organizationId),
         JSON.stringify({
           antibiotics: nextAntibiotics,
           values: nextValues,
@@ -2729,3 +2772,6 @@ export function LabTaskBoard() {
     </div>
   );
 }
+
+
+

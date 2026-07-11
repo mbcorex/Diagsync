@@ -1,4 +1,4 @@
-﻿import { config } from "dotenv";
+import { config } from "dotenv";
 config();
 
 import { PrismaClient, Prisma, Department, TestType, FieldType, Role } from "@prisma/client";
@@ -23,6 +23,257 @@ type SeedField = {
   isRequired?: boolean;
   sortOrder: number;
 };
+
+const HOLY_SOULS_ORGANIZATION_ID = "cmqmcob1a000n8rhw063x2dsz";
+
+function formatRangeNote(min: number | string, max: number | string, unit = "") {
+  return `${min}-${max}${unit ? ` ${unit}` : ""}`;
+}
+
+function sameSexRangeNote(min: number | string, max: number | string, unit = "") {
+  const range = formatRangeNote(min, max, unit);
+  return `Male: ${range}; Female: ${range}.`;
+}
+
+function splitSexRangeNote(
+  maleMin: number | string,
+  maleMax: number | string,
+  femaleMin: number | string,
+  femaleMax: number | string,
+  unit = ""
+) {
+  return `Male: ${formatRangeNote(maleMin, maleMax, unit)}; Female: ${formatRangeNote(femaleMin, femaleMax, unit)}.`;
+}
+
+const HOLY_SOULS_LFT_FIELDS: SeedField[] = [
+  {
+    label: "Total Bilirubin",
+    fieldKey: "total_bilirubin",
+    fieldType: FieldType.NUMBER,
+    unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L",
+    normalMin: 3.4,
+    normalMax: 17.1,
+    referenceNote: sameSexRangeNote(3.4, 17.1, "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L"),
+    sortOrder: 1,
+  },
+  {
+    label: "Direct Bilirubin",
+    fieldKey: "direct_bilirubin",
+    fieldType: FieldType.NUMBER,
+    unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L",
+    normalMin: 1.7,
+    normalMax: 6.8,
+    referenceNote: sameSexRangeNote(1.7, 6.8, "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L"),
+    sortOrder: 2,
+  },
+  {
+    label: "ALT",
+    fieldKey: "alt",
+    fieldType: FieldType.NUMBER,
+    unit: "U/L",
+    normalMin: 9,
+    normalMax: 50,
+    referenceNote: splitSexRangeNote(9, 50, 7, 40, "U/L"),
+    sortOrder: 3,
+  },
+  {
+    label: "AST",
+    fieldKey: "ast",
+    fieldType: FieldType.NUMBER,
+    unit: "U/L",
+    normalMin: 0,
+    normalMax: 40,
+    referenceNote: splitSexRangeNote(0, 40, 0, 31, "U/L"),
+    sortOrder: 4,
+  },
+  {
+    label: "ALP",
+    fieldKey: "alp",
+    fieldType: FieldType.NUMBER,
+    unit: "U/L",
+    normalMin: 45,
+    normalMax: 125,
+    referenceNote: splitSexRangeNote(45, 125, 35, 150, "U/L"),
+    sortOrder: 5,
+  },
+  {
+    label: "GGT",
+    fieldKey: "ggt",
+    fieldType: FieldType.NUMBER,
+    unit: "U/L",
+    normalMin: 10,
+    normalMax: 60,
+    referenceNote: splitSexRangeNote(10, 60, 7, 45, "U/L"),
+    sortOrder: 6,
+  },
+  {
+    label: "AST/ALT ratio",
+    fieldKey: "ast_alt_ratio",
+    fieldType: FieldType.NUMBER,
+    unit: "",
+    normalMin: 0.7,
+    normalMax: 1.2,
+    referenceNote: sameSexRangeNote(0.7, 1.2),
+    isRequired: false,
+    sortOrder: 7,
+  },
+];
+
+const HOLY_SOULS_KFT_FIELDS: SeedField[] = [
+  {
+    label: "Urea",
+    fieldKey: "urea",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 1.7,
+    normalMax: 8.3,
+    referenceNote: sameSexRangeNote(1.7, 8.3, "mmol/L"),
+    sortOrder: 1,
+  },
+  {
+    label: "Creatinine",
+    fieldKey: "creatinine",
+    fieldType: FieldType.NUMBER,
+    unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L",
+    normalMin: 59,
+    normalMax: 104,
+    referenceNote: splitSexRangeNote(59, 104, 45, 84, "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L"),
+    sortOrder: 2,
+  },
+  {
+    label: "Uric Acid",
+    fieldKey: "uric_acid",
+    fieldType: FieldType.NUMBER,
+    unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L",
+    normalMin: 200,
+    normalMax: 480,
+    referenceNote: splitSexRangeNote(200, 480, 140, 360, "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L"),
+    sortOrder: 3,
+  },
+  {
+    label: "Total Protein",
+    fieldKey: "total_protein",
+    fieldType: FieldType.NUMBER,
+    unit: "g/L",
+    normalMin: 60,
+    normalMax: 88,
+    referenceNote: sameSexRangeNote(60, 88, "g/L"),
+    sortOrder: 4,
+  },
+  {
+    label: "Albumin",
+    fieldKey: "albumin",
+    fieldType: FieldType.NUMBER,
+    unit: "g/L",
+    normalMin: 35,
+    normalMax: 55,
+    referenceNote: sameSexRangeNote(35, 55, "g/L"),
+    sortOrder: 5,
+  },
+  {
+    label: "Magnesium",
+    fieldKey: "magnesium",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 0.7,
+    normalMax: 1.1,
+    referenceNote: sameSexRangeNote(0.7, 1.1, "mmol/L"),
+    sortOrder: 6,
+  },
+  {
+    label: "Ca (Calcium)",
+    fieldKey: "calcium",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 2.02,
+    normalMax: 2.6,
+    referenceNote: sameSexRangeNote(2.02, 2.6, "mmol/L"),
+    sortOrder: 7,
+  },
+  {
+    label: "IP (Inorganic Phosphate)",
+    fieldKey: "inorganic_phosphate",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 0.87,
+    normalMax: 1.45,
+    referenceNote: sameSexRangeNote(0.87, 1.45, "mmol/L"),
+    sortOrder: 8,
+  },
+];
+
+const HOLY_SOULS_FLP_FIELDS: SeedField[] = [
+  {
+    label: "Total Cholesterol",
+    fieldKey: "cholesterol_total",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 3.5,
+    normalMax: 5.12,
+    referenceNote: sameSexRangeNote(3.5, 5.12, "mmol/L"),
+    sortOrder: 1,
+  },
+  {
+    label: "HDL",
+    fieldKey: "hdl",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 1.04,
+    normalMax: 1.55,
+    referenceNote: sameSexRangeNote(1.04, 1.55, "mmol/L"),
+    sortOrder: 2,
+  },
+  {
+    label: "LDL",
+    fieldKey: "ldl",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 1.57,
+    normalMax: 3.37,
+    referenceNote: sameSexRangeNote(1.57, 3.37, "mmol/L"),
+    sortOrder: 3,
+  },
+  {
+    label: "Triglycerides",
+    fieldKey: "triglycerides",
+    fieldType: FieldType.NUMBER,
+    unit: "mmol/L",
+    normalMin: 0.7,
+    normalMax: 1.7,
+    referenceNote: sameSexRangeNote(0.7, 1.7, "mmol/L"),
+    sortOrder: 4,
+  },
+];
+
+const STOOL_ANALYSIS_PLUS_OPTIONS = "Absent,+,++,+++,++++";
+
+const HOLY_SOULS_STOOL_ANALYSIS_FIELDS: SeedField[] = [
+  { label: "Colour", fieldKey: "colour", fieldType: FieldType.DROPDOWN, options: "Brown,Yellow,Black,Green,Red,Pale", sortOrder: 1 },
+  { label: "Consistency", fieldKey: "consistency", fieldType: FieldType.DROPDOWN, options: "Formed,Semi-formed,Loose,Watery", sortOrder: 2 },
+  { label: "Mucus", fieldKey: "mucus", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 3 },
+  { label: "Blood", fieldKey: "blood", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 4 },
+  { label: "Scolex", fieldKey: "scolex", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 5 },
+  { label: "Trophozoites", fieldKey: "trophozoites", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 6 },
+  { label: "Cyst(s)", fieldKey: "cysts", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 7 },
+  { label: "Ova / Eggs", fieldKey: "ova_cyst", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 8 },
+  { label: "Yeast Cells", fieldKey: "yeast_cells", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 9 },
+  { label: "Starch Granules", fieldKey: "starch_granules", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 10 },
+  { label: "Calcium Oxalate", fieldKey: "calcium_oxalate", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 11 },
+  { label: "Pus Cells (hpf)", fieldKey: "pus_cells", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 12 },
+  { label: "RBCs (hpf)", fieldKey: "rbcs", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 13 },
+  { label: "Occult Blood (FOB)", fieldKey: "occult_blood", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", isRequired: false, sortOrder: 14 },
+  { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 15 },
+];
+
+function getHolySoulsOverride(source: string) {
+  const key = source.trim().toUpperCase();
+  if (!key) return null;
+  if (key === "LFT" || key.includes("LIVER FUNCTION TEST")) return HOLY_SOULS_LFT_FIELDS;
+  if (key === "KFT" || key.includes("KIDNEY FUNCTION TEST") || key.includes("RENAL FUNCTION TEST")) return HOLY_SOULS_KFT_FIELDS;
+    if (key === "FLP" || key.includes("FASTING LIPID PROFILE") || key.includes("LIPID PROFILE")) return HOLY_SOULS_FLP_FIELDS;
+  if (key === "STOOL" || key.includes("STOOL ANALYSIS")) return HOLY_SOULS_STOOL_ANALYSIS_FIELDS;
+  return null;
+}
 
 async function bootstrapMegaAdmin() {
   const megaAdminEmail = (process.env.mega_ADMIN_EMAIL ?? process.env.MEGA_ADMIN_EMAIL ?? "").trim();
@@ -267,7 +518,8 @@ async function main() {
     isDefaultInGroup?: boolean;
     fields: SeedField[];
   }) {
-    const enrichedFields = withReferenceMetadata(data.name, data.type, data.fields);
+    const effectiveFields = getHolySoulsOverride(`${data.code} ${data.name}`) ?? data.fields;
+    const enrichedFields = withReferenceMetadata(data.name, data.type, effectiveFields);
 
     const test = await prisma.diagnosticTest.upsert({
       where: { organizationId_code: { organizationId: orgId, code: data.code } },
@@ -539,7 +791,7 @@ async function main() {
 
   // -- LAB TESTS ----------------------------------------------------------------
 
-  // 1. Full Blood Count — added Basophils field
+  // 1. Full Blood Count ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â added Basophils field
   await seedTest({
     code: "FBC",
     name: "Full Blood Count",
@@ -606,7 +858,7 @@ async function main() {
     ],
   });
 
-  // 3. Urinalysis — added Ascorbic Acid and WBC/HPF fields
+  // 3. Urinalysis ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â added Ascorbic Acid and WBC/HPF fields
   await seedTest({
     code: "URA",
     name: "Urinalysis",
@@ -736,7 +988,7 @@ async function main() {
     ],
   });
 
-  // 7. Liver Function Test — added A/G Ratio
+  // 7. Liver Function Test
   await seedTest({
     code: "LFT",
     name: "Liver Function Test",
@@ -746,22 +998,10 @@ async function main() {
     price: 5000,
     turnaroundMinutes: 180,
     sampleType: "Serum",
-    fields: [
-      { label: "Total Bilirubin", fieldKey: "total_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 3, normalMax: 21, sortOrder: 1 },
-      { label: "Direct Bilirubin (Conjugated)", fieldKey: "direct_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 0, normalMax: 4.5, sortOrder: 2 },
-      { label: "Indirect Bilirubin", fieldKey: "indirect_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 0, normalMax: 17, sortOrder: 3 },
-      { label: "ALT (SGPT)", fieldKey: "alt", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 0, normalMax: 12, sortOrder: 4 },
-      { label: "AST (SGOT)", fieldKey: "ast", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 0, normalMax: 12, sortOrder: 5 },
-      { label: "ALP", fieldKey: "alp", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 44, normalMax: 147, sortOrder: 6 },
-      { label: "Total Protein", fieldKey: "total_protein", fieldType: FieldType.NUMBER, unit: "g/dL", normalMin: 60, normalMax: 84, sortOrder: 7 },
-      { label: "Albumin", fieldKey: "albumin", fieldType: FieldType.NUMBER, unit: "g/dL", normalMin: 30, normalMax: 45, sortOrder: 8 },
-      { label: "Globulin", fieldKey: "globulin", fieldType: FieldType.NUMBER, unit: "g/dL", normalMin: 20, normalMax: 35, sortOrder: 9 },
-      { label: "A/G Ratio", fieldKey: "ag_ratio", fieldType: FieldType.NUMBER, unit: "", normalMin: 1.0, normalMax: 2.5, isRequired: false, sortOrder: 10 },
-      { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 11 },
-    ],
+    fields: HOLY_SOULS_LFT_FIELDS,
   });
 
-  // 8. Kidney Function Test — added Calcium and eGFR
+  // 8. Kidney Function Test
   await seedTest({
     code: "KFT",
     name: "Kidney Function Test",
@@ -771,38 +1011,8 @@ async function main() {
     price: 5000,
     turnaroundMinutes: 180,
     sampleType: "Serum",
-    fields: [
-      { label: "Urea", fieldKey: "urea", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 1.6, normalMax: 8.3, sortOrder: 1 },
-      {
-        label: "Creatinine",
-        fieldKey: "creatinine",
-        fieldType: FieldType.NUMBER,
-        unit: "µmol/L",
-        normalMin: 63,
-        normalMax: 130,
-        referenceNote: "Male: 63-130 µmol/L; Female: 53-106 µmol/L; Children: 27-88 µmol/L.",
-        sortOrder: 2,
-      },
-      { label: "eGFR", fieldKey: "egfr", fieldType: FieldType.NUMBER, unit: "mL/min/1.73m²", normalMin: 90, normalMax: 120, isRequired: false, sortOrder: 3 },
-      {
-        label: "Uric Acid",
-        fieldKey: "uric_acid",
-        fieldType: FieldType.NUMBER,
-        unit: "mg/dL",
-        normalMin: 3.5,
-        normalMax: 7.2,
-        referenceNote: "Adult male template range: 3.5-7.2 mg/dL.",
-        sortOrder: 4,
-      },
-      { label: "Sodium", fieldKey: "sodium", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 134, normalMax: 146, sortOrder: 5 },
-      { label: "Potassium", fieldKey: "potassium", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.6, normalMax: 5.0, sortOrder: 6 },
-      { label: "Chloride", fieldKey: "chloride", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 96, normalMax: 107, sortOrder: 7 },
-      { label: "Bicarbonate", fieldKey: "bicarbonate", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 23, normalMax: 31, sortOrder: 8 },
-      { label: "Calcium", fieldKey: "calcium", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 2.0, normalMax: 2.6, isRequired: false, sortOrder: 9 },
-      { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 10 },
-    ],
+    fields: HOLY_SOULS_KFT_FIELDS,
   });
-
   // 9. HBsAg
   await seedTest({
     code: "HBSAG",
@@ -838,7 +1048,7 @@ async function main() {
     ],
   });
 
-  // 11. Stool Analysis — added Scolex, Yeast Cells, Calcium Oxalate, Occult Blood
+  // 11. Stool Analysis - standard template with plus-scale findings
   await seedTest({
     code: "STOOL",
     name: "Stool Analysis",
@@ -848,25 +1058,10 @@ async function main() {
     price: 1500,
     turnaroundMinutes: 90,
     sampleType: "Stool",
-    fields: [
-      { label: "Colour", fieldKey: "colour", fieldType: FieldType.DROPDOWN, options: "Brown,Yellow,Black,Green,Red,Pale", sortOrder: 1 },
-      { label: "Consistency", fieldKey: "consistency", fieldType: FieldType.DROPDOWN, options: "Formed,Semi-formed,Loose,Watery", sortOrder: 2 },
-      { label: "Mucus", fieldKey: "mucus", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 3 },
-      { label: "Blood", fieldKey: "blood", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 4 },
-      { label: "Scolex", fieldKey: "scolex", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 5 },
-      { label: "Trophozoites", fieldKey: "trophozoites", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 6 },
-      { label: "Cyst(s)", fieldKey: "cysts", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 7 },
-      { label: "Ova / Eggs", fieldKey: "ova_cyst", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 8 },
-      { label: "Yeast Cells", fieldKey: "yeast_cells", fieldType: FieldType.DROPDOWN, options: "Absent,+,++,+++", isRequired: false, sortOrder: 9 },
-      { label: "Calcium Oxalate", fieldKey: "calcium_oxalate", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 10 },
-      { label: "Pus Cells (hpf)", fieldKey: "pus_cells", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 11 },
-      { label: "RBCs (hpf)", fieldKey: "rbcs", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 12 },
-      { label: "Occult Blood (FOB)", fieldKey: "occult_blood", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", isRequired: false, sortOrder: 13 },
-      { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 14 },
-    ],
+    fields: HOLY_SOULS_STOOL_ANALYSIS_FIELDS,
   });
 
-  // 12. Faecal Occult Blood (FOB) — standalone test from docx
+  // 12. Faecal Occult Blood (FOB) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â standalone test from docx
   await seedTest({
     code: "FOB",
     name: "Faecal Occult Blood (FOB)",
@@ -1050,7 +1245,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.9,
         normalMax: 5.6,
-        referenceNote: "Normal: <5.6 mmol/L; Impaired Fasting Glucose: 5.6-6.9 mmol/L; Diabetes: ≥7.0 mmol/L",
+        referenceNote: "Normal: <5.6 mmol/L; Impaired Fasting Glucose: 5.6-6.9 mmol/L; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥7.0 mmol/L",
         sortOrder: 1,
       },
       {
@@ -1061,7 +1256,7 @@ async function main() {
         normalMin: 70,
         normalMax: 100,
         isRequired: false,
-        referenceNote: "Normal: <100 mg/dL; Impaired Fasting Glucose: 100-125 mg/dL; Diabetes: ≥126 mg/dL",
+        referenceNote: "Normal: <100 mg/dL; Impaired Fasting Glucose: 100-125 mg/dL; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥126 mg/dL",
         sortOrder: 2,
       },
       {
@@ -1071,7 +1266,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.9,
         normalMax: 8.9,
-        referenceNote: "Normal: <8.9 mmol/L; Impaired: 8.9-11.0 mmol/L; Diabetes: ≥11.1 mmol/L",
+        referenceNote: "Normal: <8.9 mmol/L; Impaired: 8.9-11.0 mmol/L; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥11.1 mmol/L",
         sortOrder: 3,
       },
       {
@@ -1082,7 +1277,7 @@ async function main() {
         normalMin: 70,
         normalMax: 160,
         isRequired: false,
-        referenceNote: "Normal: <160 mg/dL; Impaired: 160-199 mg/dL; Diabetes: ≥200 mg/dL",
+        referenceNote: "Normal: <160 mg/dL; Impaired: 160-199 mg/dL; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥200 mg/dL",
         sortOrder: 4,
       },
       {
@@ -1092,7 +1287,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.9,
         normalMax: 7.8,
-        referenceNote: "Normal: <7.8 mmol/L; Impaired Glucose Tolerance: 7.8-11.0 mmol/L; Diabetes: ≥11.1 mmol/L",
+        referenceNote: "Normal: <7.8 mmol/L; Impaired Glucose Tolerance: 7.8-11.0 mmol/L; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥11.1 mmol/L",
         sortOrder: 5,
       },
       {
@@ -1103,7 +1298,7 @@ async function main() {
         normalMin: 70,
         normalMax: 140,
         isRequired: false,
-        referenceNote: "Normal: <140 mg/dL; Impaired Glucose Tolerance: 140-199 mg/dL; Diabetes: ≥200 mg/dL",
+        referenceNote: "Normal: <140 mg/dL; Impaired Glucose Tolerance: 140-199 mg/dL; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥200 mg/dL",
         sortOrder: 6,
       },
       {
@@ -1187,7 +1382,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.3,
         normalMax: 5.3,
-        referenceNote: "Abnormal if ≥5.3 mmol/L (≥95 mg/dL)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥5.3 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥95 mg/dL)",
         sortOrder: 1,
       },
       {
@@ -1198,7 +1393,7 @@ async function main() {
         normalMin: 59,
         normalMax: 95,
         isRequired: false,
-        referenceNote: "Abnormal if ≥95 mg/dL (≥5.3 mmol/L)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥95 mg/dL (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥5.3 mmol/L)",
         sortOrder: 2,
       },
       {
@@ -1208,7 +1403,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.3,
         normalMax: 10.0,
-        referenceNote: "Abnormal if ≥10.0 mmol/L (≥180 mg/dL)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥10.0 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥180 mg/dL)",
         sortOrder: 3,
       },
       {
@@ -1219,7 +1414,7 @@ async function main() {
         normalMin: 59,
         normalMax: 180,
         isRequired: false,
-        referenceNote: "Abnormal if ≥180 mg/dL (≥10.0 mmol/L)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥180 mg/dL (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥10.0 mmol/L)",
         sortOrder: 4,
       },
       {
@@ -1229,7 +1424,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.3,
         normalMax: 8.6,
-        referenceNote: "Abnormal if ≥8.6 mmol/L (≥155 mg/dL)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥8.6 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥155 mg/dL)",
         sortOrder: 5,
       },
       {
@@ -1240,7 +1435,7 @@ async function main() {
         normalMin: 59,
         normalMax: 155,
         isRequired: false,
-        referenceNote: "Abnormal if ≥155 mg/dL (≥8.6 mmol/L)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥155 mg/dL (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥8.6 mmol/L)",
         sortOrder: 6,
       },
       {
@@ -1250,7 +1445,7 @@ async function main() {
         unit: "mmol/L",
         normalMin: 3.3,
         normalMax: 7.8,
-        referenceNote: "Abnormal if ≥7.8 mmol/L (≥140 mg/dL)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥7.8 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥140 mg/dL)",
         sortOrder: 7,
       },
       {
@@ -1261,7 +1456,7 @@ async function main() {
         normalMin: 59,
         normalMax: 140,
         isRequired: false,
-        referenceNote: "Abnormal if ≥140 mg/dL (≥7.8 mmol/L)",
+        referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥140 mg/dL (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥7.8 mmol/L)",
         sortOrder: 8,
       },
       {
@@ -2299,6 +2494,23 @@ async function main() {
     { label: "Glucose Level (Conventional)", fieldKey: "glucose_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 74, normalMax: 131, isRequired: false, referenceNote: "SI equivalent range: 4.1-7.2 mmol/L.", sortOrder: 2 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
+  "STOOL ANALYSIS": [
+    { label: "Colour", fieldKey: "colour", fieldType: FieldType.DROPDOWN, options: "Brown,Yellow,Black,Green,Red,Pale", sortOrder: 1 },
+    { label: "Consistency", fieldKey: "consistency", fieldType: FieldType.DROPDOWN, options: "Formed,Semi-formed,Loose,Watery", sortOrder: 2 },
+    { label: "Mucus", fieldKey: "mucus", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 3 },
+    { label: "Blood", fieldKey: "blood", fieldType: FieldType.DROPDOWN, options: "Absent,Present", sortOrder: 4 },
+    { label: "Scolex", fieldKey: "scolex", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 5 },
+    { label: "Trophozoites", fieldKey: "trophozoites", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 6 },
+    { label: "Cyst(s)", fieldKey: "cysts", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 7 },
+    { label: "Ova / Eggs", fieldKey: "ova_cyst", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 8 },
+    { label: "Yeast Cells", fieldKey: "yeast_cells", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 9 },
+    { label: "Starch Granules", fieldKey: "starch_granules", fieldType: FieldType.DROPDOWN, options: STOOL_ANALYSIS_PLUS_OPTIONS, isRequired: false, sortOrder: 10 },
+    { label: "Calcium Oxalate", fieldKey: "calcium_oxalate", fieldType: FieldType.DROPDOWN, options: "Absent,Present", isRequired: false, sortOrder: 11 },
+    { label: "Pus Cells (hpf)", fieldKey: "pus_cells", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 12 },
+    { label: "RBCs (hpf)", fieldKey: "rbcs", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 13 },
+    { label: "Occult Blood (FOB)", fieldKey: "occult_blood", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", isRequired: false, sortOrder: 14 },
+    { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 15 },
+  ],
   "LIPID PROFILE": [
     { label: "Cholesterol (Total) - SI", fieldKey: "cholesterol_total_mmol_l", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.0, normalMax: 5.2, referenceNote: "Conventional equivalent: <200 mg/dL.", sortOrder: 1 },
     { label: "Cholesterol (Total) - Conventional", fieldKey: "cholesterol_total_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMax: 200, normalText: "<200 mg/dL", isRequired: false, referenceNote: "SI equivalent: 3.0-5.2 mmol/L.", sortOrder: 2 },
@@ -2337,11 +2549,11 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "TOTAL BILIRUBIN": [
-    { label: "Total Bilirubin", fieldKey: "total_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 3, normalMax: 21, sortOrder: 1 },
+    { label: "Total Bilirubin", fieldKey: "total_bilirubin", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 3, normalMax: 21, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "DIRECT BILIRUBIN": [
-    { label: "Direct Bilirubin", fieldKey: "direct_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 0, normalMax: 4.5, sortOrder: 1 },
+    { label: "Direct Bilirubin", fieldKey: "direct_bilirubin", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 0, normalMax: 4.5, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "LDL-C": [
@@ -2376,7 +2588,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "THYROXINE (T4 TOTAL)": [
-    { label: "Total T4", fieldKey: "total_t4", fieldType: FieldType.NUMBER, unit: "µg/dL", normalMin: 5.0, normalMax: 12.0, sortOrder: 1 },
+    { label: "Total T4", fieldKey: "total_t4", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµg/dL", normalMin: 5.0, normalMax: 12.0, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "TRIIODOTHYRONINE (T3 TOTAL)": [
@@ -2419,8 +2631,8 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
   "CREATININE": [
-    { label: "Creatinine (SI)", fieldKey: "creatinine", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 63, normalMax: 130, referenceNote: "Conventional equivalent range: 0.7-1.5 mg/dL.", sortOrder: 1 },
-    { label: "Creatinine (Conventional)", fieldKey: "creatinine_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 0.7, normalMax: 1.5, isRequired: false, referenceNote: "SI equivalent range: 63-130 µmol/L.", sortOrder: 2 },
+    { label: "Creatinine (SI)", fieldKey: "creatinine", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 63, normalMax: 130, referenceNote: "Conventional equivalent range: 0.7-1.5 mg/dL.", sortOrder: 1 },
+    { label: "Creatinine (Conventional)", fieldKey: "creatinine_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 0.7, normalMax: 1.5, isRequired: false, referenceNote: "SI equivalent range: 63-130 ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L.", sortOrder: 2 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
   "BLOOD GASES": [
@@ -2498,10 +2710,10 @@ async function main() {
     { label: "ALP", fieldKey: "alp", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 40, normalMax: 129, sortOrder: 9 },
     { label: "ALT", fieldKey: "alt", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 0, normalMax: 12, sortOrder: 10 },
     { label: "AST", fieldKey: "ast", fieldType: FieldType.NUMBER, unit: "U/L", normalMin: 0, normalMax: 12, sortOrder: 11 },
-    { label: "Total Bilirubin", fieldKey: "total_bilirubin", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 3, normalMax: 21, sortOrder: 12 },
+    { label: "Total Bilirubin", fieldKey: "total_bilirubin", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 3, normalMax: 21, sortOrder: 12 },
     { label: "Urea", fieldKey: "urea", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 1.6, normalMax: 8.3, sortOrder: 13 },
-    { label: "Creatinine", fieldKey: "creatinine", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 63, normalMax: 130, sortOrder: 14 },
-    { label: "eGFR", fieldKey: "egfr", fieldType: FieldType.NUMBER, unit: "mL/min/1.73m²", normalMin: 90, normalMax: 120, isRequired: false, sortOrder: 15 },
+    { label: "Creatinine", fieldKey: "creatinine", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 63, normalMax: 130, sortOrder: 14 },
+    { label: "eGFR", fieldKey: "egfr", fieldType: FieldType.NUMBER, unit: "mL/min/1.73mÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â²", normalMin: 90, normalMax: 120, isRequired: false, sortOrder: 15 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 16 },
   ],
   "PROTEIN ELECTROPHORESIS": [
@@ -2540,7 +2752,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "CD4 T CELL COUNT": [
-    { label: "CD4 Count", fieldKey: "cd4_count", fieldType: FieldType.NUMBER, unit: "cells/µL", normalMin: 500, normalMax: 1500, sortOrder: 1 },
+    { label: "CD4 Count", fieldKey: "cd4_count", fieldType: FieldType.NUMBER, unit: "cells/ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂµL", normalMin: 500, normalMax: 1500, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "CD4 T CELL PERCENTAGE": [
@@ -2548,7 +2760,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "CD8 T CELL COUNT": [
-    { label: "CD8 Count", fieldKey: "cd8_count", fieldType: FieldType.NUMBER, unit: "cells/µL", normalMin: 150, normalMax: 1000, sortOrder: 1 },
+    { label: "CD8 Count", fieldKey: "cd8_count", fieldType: FieldType.NUMBER, unit: "cells/ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂµL", normalMin: 150, normalMax: 1000, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "HIV 1 & II CONFIRMATORY TEST": [
@@ -2618,11 +2830,11 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
   "SERUM IRON": [
-    { label: "Serum Iron", fieldKey: "serum_iron", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 9, normalMax: 30, sortOrder: 1 },
+    { label: "Serum Iron", fieldKey: "serum_iron", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 9, normalMax: 30, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "TOTAL IRON BINDING CAPACITY (TIBC)": [
-    { label: "TIBC", fieldKey: "tibc", fieldType: FieldType.NUMBER, unit: "µmol/L", normalMin: 45, normalMax: 72, sortOrder: 1 },
+    { label: "TIBC", fieldKey: "tibc", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµmol/L", normalMin: 45, normalMax: 72, sortOrder: 1 },
     { label: "Transferrin Saturation", fieldKey: "transferrin_sat", fieldType: FieldType.NUMBER, unit: "%", normalMin: 20, normalMax: 55, isRequired: false, sortOrder: 2 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
@@ -2631,7 +2843,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "DEHYDROEPIANDROSTERONE SULFATE (DHEA-S)": [
-    { label: "DHEA-S", fieldKey: "dhea_s", fieldType: FieldType.NUMBER, unit: "µg/dL", sortOrder: 1 },
+    { label: "DHEA-S", fieldKey: "dhea_s", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµg/dL", sortOrder: 1 },
     { label: "Sex / Age Group", fieldKey: "sex_age_group", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 2 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
@@ -2682,7 +2894,7 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "TROPONIN T": [
-    { label: "Troponin T", fieldKey: "troponin_t", fieldType: FieldType.NUMBER, unit: "µg/L", normalMin: 0, normalMax: 0.1, sortOrder: 1 },
+    { label: "Troponin T", fieldKey: "troponin_t", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµg/L", normalMin: 0, normalMax: 0.1, sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
   "TROPONIN I": [
@@ -2738,7 +2950,7 @@ async function main() {
     { label: "HBcAb", fieldKey: "hbcab", fieldType: FieldType.DROPDOWN, options: "Reactive,Non-Reactive", sortOrder: 1 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 2 },
   ],
-  // Semen Analysis — expanded with all docx fields
+  // Semen Analysis ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â expanded with all docx fields
   "SEMEN ANALYSIS": [
     { label: "Time Produced", fieldKey: "time_produced", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 1 },
     { label: "Time Examined", fieldKey: "time_examined", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 2 },
@@ -2747,7 +2959,7 @@ async function main() {
     { label: "pH", fieldKey: "ph", fieldType: FieldType.NUMBER, unit: "pH", normalMin: 7.2, normalMax: 8.0, sortOrder: 5 },
     { label: "Appearance", fieldKey: "appearance", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 6 },
     { label: "Liquefaction Time", fieldKey: "liquefaction_time", fieldType: FieldType.TEXT, isRequired: false, sortOrder: 7 },
-    { label: "Sperm Count (Total)", fieldKey: "sperm_count", fieldType: FieldType.NUMBER, unit: "×106", normalMin: 39, isRequired: false, sortOrder: 8 },
+    { label: "Sperm Count (Total)", fieldKey: "sperm_count", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â106", normalMin: 39, isRequired: false, sortOrder: 8 },
     { label: "Sperm Concentration", fieldKey: "sperm_concentration", fieldType: FieldType.NUMBER, unit: "million/mL", normalMin: 15, sortOrder: 9 },
     { label: "Progressively Motile", fieldKey: "progressive_motility", fieldType: FieldType.NUMBER, unit: "%", normalMin: 32, normalMax: 100, sortOrder: 10 },
     { label: "Non-Progressively Motile", fieldKey: "non_progressive_motility", fieldType: FieldType.NUMBER, unit: "%", isRequired: false, sortOrder: 11 },
@@ -2817,7 +3029,7 @@ async function main() {
   ],
   "RETICULOCYTE COUNT": [
     { label: "Reticulocyte Count", fieldKey: "reticulocyte", fieldType: FieldType.NUMBER, unit: "%", normalMin: 0.5, normalMax: 2.5, sortOrder: 1 },
-    { label: "Absolute Reticulocyte Count", fieldKey: "abs_reticulocyte", fieldType: FieldType.NUMBER, unit: "×10?/L", normalMin: 25, normalMax: 100, isRequired: false, sortOrder: 2 },
+    { label: "Absolute Reticulocyte Count", fieldKey: "abs_reticulocyte", fieldType: FieldType.NUMBER, unit: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â10?/L", normalMin: 25, normalMax: 100, isRequired: false, sortOrder: 2 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 3 },
   ],
   "PERIPHERAL BLOOD FILM": [
@@ -3065,7 +3277,7 @@ async function main() {
     { label: "Amphetamines", fieldKey: "amphetamines", fieldType: FieldType.DROPDOWN, options: "Positive,Negative", isRequired: false, sortOrder: 4 },
     { label: "Benzodiazepines", fieldKey: "benzodiazepines", fieldType: FieldType.DROPDOWN, options: "Positive,Negative", isRequired: false, sortOrder: 5 },
     { label: "Methamphetamine", fieldKey: "methamphetamine", fieldType: FieldType.DROPDOWN, options: "Positive,Negative", isRequired: false, sortOrder: 6 },
-    { label: "Overall Interpretation", fieldKey: "overall", fieldType: FieldType.DROPDOWN, options: "Negative for all substances,Positive — see details", sortOrder: 7 },
+    { label: "Overall Interpretation", fieldKey: "overall", fieldType: FieldType.DROPDOWN, options: "Negative for all substances,Positive ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â see details", sortOrder: 7 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 8 },
   ],
 };
@@ -3221,7 +3433,7 @@ async function main() {
     { label: "Impression", fieldKey: "impression", fieldType: FieldType.TEXTAREA, sortOrder: 2 },
   ],
   "ORAL GLUCOSE TOLERANCE TEST (OGTT)": [
-    { label: "Fasting Glucose", fieldKey: "glucose_fasting", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.9, normalMax: 5.6, referenceNote: "Normal: <5.6 mmol/L; Diabetes: ≥7.0 mmol/L", sortOrder: 1 },
+    { label: "Fasting Glucose", fieldKey: "glucose_fasting", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.9, normalMax: 5.6, referenceNote: "Normal: <5.6 mmol/L; Diabetes: ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥7.0 mmol/L", sortOrder: 1 },
     { label: "Fasting Glucose (mg/dL)", fieldKey: "glucose_fasting_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 70, normalMax: 100, isRequired: false, sortOrder: 2 },
     { label: "1 Hour Glucose", fieldKey: "glucose_1hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.9, normalMax: 8.9, sortOrder: 3 },
     { label: "1 Hour Glucose (mg/dL)", fieldKey: "glucose_1hr_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 70, normalMax: 160, isRequired: false, sortOrder: 4 },
@@ -3234,13 +3446,13 @@ async function main() {
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 11 },
   ],
   "GESTATIONAL OGTT (100g)": [
-    { label: "Fasting Glucose", fieldKey: "glucose_fasting", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 5.3, referenceNote: "Abnormal if ≥5.3 mmol/L (≥95 mg/dL)", sortOrder: 1 },
+    { label: "Fasting Glucose", fieldKey: "glucose_fasting", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 5.3, referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥5.3 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥95 mg/dL)", sortOrder: 1 },
     { label: "Fasting Glucose (mg/dL)", fieldKey: "glucose_fasting_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 59, normalMax: 95, isRequired: false, sortOrder: 2 },
-    { label: "1 Hour Glucose", fieldKey: "glucose_1hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 10.0, referenceNote: "Abnormal if ≥10.0 mmol/L (≥180 mg/dL)", sortOrder: 3 },
+    { label: "1 Hour Glucose", fieldKey: "glucose_1hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 10.0, referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥10.0 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥180 mg/dL)", sortOrder: 3 },
     { label: "1 Hour Glucose (mg/dL)", fieldKey: "glucose_1hr_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 59, normalMax: 180, isRequired: false, sortOrder: 4 },
-    { label: "2 Hour Glucose", fieldKey: "glucose_2hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 8.6, referenceNote: "Abnormal if ≥8.6 mmol/L (≥155 mg/dL)", sortOrder: 5 },
+    { label: "2 Hour Glucose", fieldKey: "glucose_2hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 8.6, referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥8.6 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥155 mg/dL)", sortOrder: 5 },
     { label: "2 Hour Glucose (mg/dL)", fieldKey: "glucose_2hr_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 59, normalMax: 155, isRequired: false, sortOrder: 6 },
-    { label: "3 Hour Glucose", fieldKey: "glucose_3hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 7.8, referenceNote: "Abnormal if ≥7.8 mmol/L (≥140 mg/dL)", sortOrder: 7 },
+    { label: "3 Hour Glucose", fieldKey: "glucose_3hr", fieldType: FieldType.NUMBER, unit: "mmol/L", normalMin: 3.3, normalMax: 7.8, referenceNote: "Abnormal if ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥7.8 mmol/L (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥140 mg/dL)", sortOrder: 7 },
     { label: "3 Hour Glucose (mg/dL)", fieldKey: "glucose_3hr_mg_dl", fieldType: FieldType.NUMBER, unit: "mg/dL", normalMin: 59, normalMax: 140, isRequired: false, sortOrder: 8 },
     { label: "GDM Diagnosis", fieldKey: "gdm_diagnosis", fieldType: FieldType.DROPDOWN, options: "Not Diagnosed,Diagnosed (2 or more values abnormal)", isRequired: false, sortOrder: 9 },
     { label: "Comments", fieldKey: "comments", fieldType: FieldType.TEXTAREA, isRequired: false, sortOrder: 10 },
@@ -3260,6 +3472,11 @@ async function main() {
   function buildLabMainFields(testName: string) {
     if (isCultureTest(testName)) {
       return makeCultureFields();
+    }
+
+    if (orgId === HOLY_SOULS_ORGANIZATION_ID) {
+      const override = getHolySoulsOverride(testName);
+      if (override) return override;
     }
 
     const mapped = LAB_FIELD_LIBRARY[testName];
@@ -3415,9 +3632,11 @@ async function main() {
   for (const test of existingLabTestsForTemplateSync) {
     const key = normalizeName(test.name).toUpperCase();
     const mapped = LAB_FIELD_LIBRARY[key];
-    if (!mapped) continue;
+    const override = orgId === HOLY_SOULS_ORGANIZATION_ID ? getHolySoulsOverride(test.name) : null;
+    const effectiveFields = override ?? mapped;
+    if (!effectiveFields) continue;
 
-    const enriched = withReferenceMetadata(key, TestType.LAB, mapped);
+    const enriched = withReferenceMetadata(key, TestType.LAB, effectiveFields);
     await replaceResultTemplateFields(
       test.id,
       mapTemplateFields(test.id, enriched),
@@ -3641,5 +3860,8 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
+
+
 
 

@@ -18,6 +18,7 @@
     "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "db:seed:blood-counts": "ts-node --project tsconfig.seed.json prisma/seed-blood-counts.ts",
     "db:patch:templates": "ts-node --project tsconfig.seed.json prisma/apply-template-fixes.ts",
+    "db:seed:holy-souls-templates": "ts-node --project tsconfig.seed.json prisma/seed-holy-souls-template-patch.ts",
     "unlock:trials": "ts-node --project tsconfig.seed.json prisma/unlock-free-trials.ts",
     "test:routing": "ts-node --project tsconfig.test.json src/lib/routing-core.test.ts",
     "test:lab": "ts-node --project tsconfig.test.json src/lib/lab-workflow-core.test.ts",
@@ -85,6 +86,3 @@
     "typescript": "^5"
   }
 }
-
-
-
