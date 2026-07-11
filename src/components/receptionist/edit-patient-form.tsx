@@ -153,7 +153,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
 
   const [patientNumber, setPatientNumber] = useState(patient.patientId);
   const [fullName, setFullName] = useState(patient.fullName);
-  const [age, setAge] = useState(String(patient.age));
+  const [age, setAge] = useState(patient.age > 0 ? String(patient.age) : "");
   const [sex, setSex] = useState<Sex>(patient.sex);
   const [phone, setPhone] = useState(patient.phone);
   const [email, setEmail] = useState(patient.email ?? "");
@@ -408,8 +408,8 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
 
     if (!patientNumber.trim()) return setError("Patient number is required.");
     if (!fullName.trim()) return setError("Patient full name is required.");
-    if (!age.trim() || Number.isNaN(Number(age))) return setError("Valid age is required.");
-    if (!phone.trim()) return setError("Phone number is required.");
+    if (age.trim() && Number.isNaN(Number(age))) return setError("Enter a valid age.");
+    if (phone.trim() && phone.trim().replace(/\D/g, "").length < 7) return setError("Enter a valid phone number.");
     if (cart.length === 0) return setError("At least one test is required.");
     if (cart.some((item) => toNumber(item.enteredPrice) <= 0)) return setError("Each test must have a valid price.");
 
@@ -419,9 +419,9 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
         patient: {
           patientId: patientNumber.trim(),
           fullName: fullName.trim(),
-          age: Math.trunc(Number(age)),
+          age: age.trim() ? Math.trunc(Number(age)) : undefined,
           sex,
-          phone: phone.trim(),
+          phone: phone.trim() || undefined,
           email: email.trim() || undefined,
           address: address.trim() || undefined,
           dateOfBirth: dateOfBirth || undefined,
@@ -490,7 +490,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
                 <input className={inputCls} value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </div>
               <div>
-                <label className={labelCls}>Age *</label>
+                <label className={labelCls}>Age</label>
                 <input className={inputCls} type="number" min="0" max="150" value={age} onChange={(e) => setAge(e.target.value)} />
               </div>
               <div>
@@ -505,7 +505,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
                 </Select>
               </div>
               <div>
-                <label className={labelCls}>Phone *</label>
+                <label className={labelCls}>Phone</label>
                 <input className={inputCls} value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div>
@@ -817,3 +817,4 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
     </div>
   );
 }
+

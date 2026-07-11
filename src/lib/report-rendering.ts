@@ -776,10 +776,12 @@ export function renderReportHtml(args: RenderArgs) {
   const printMarginBottomPx = useUploadedLetterhead ? 124 : 96;
   const printMarginSidePx = 40;
   const patient = args.content.patient ?? {};
-  const ageLabel = formatPatientAge(
-    { age: patient.age, dateOfBirth: patient.dateOfBirth },
-    "long"
-  );
+  const patientAge = patient.age ?? null;
+  const hasPatientAge = Number.isFinite(Number(patientAge)) && Number(patientAge) > 0;
+  const hasPatientDob = Boolean(String(patient.dateOfBirth ?? "").trim());
+  const ageLabel = hasPatientAge || hasPatientDob
+    ? formatPatientAge({ age: patientAge, dateOfBirth: patient.dateOfBirth }, "long")
+    : "";
   const meta = args.content.meta ?? {};
   const visitDateLabel = formatReportDateTime(meta.visitDate);
   const reportDateLabel = formatReportDateTime(meta.reportDate);
@@ -1328,7 +1330,7 @@ export function renderReportHtml(args: RenderArgs) {
       <div class="meta-grid">
         <p><strong>Patient:</strong> ${escapeHtml(String(patient.fullName ?? "-"))}</p>
         <p><strong>Patient ID:</strong> ${escapeHtml(String(patient.patientId ?? "-"))}</p>
-        <p><strong>Age:</strong> ${escapeHtml(ageLabel)}</p>
+        ${ageLabel ? `<p><strong>Age:</strong> ${escapeHtml(ageLabel)}</p>` : ""}
         <p><strong>Sex:</strong> ${escapeHtml(String(patient.sex ?? "-"))}</p>
         <p><strong>Visit Date:</strong> ${escapeHtml(visitDateLabel)}</p>
         <p><strong>Report Date:</strong> ${escapeHtml(reportDateLabel)}</p>
@@ -1375,3 +1377,4 @@ ${
 </html>
   `.trim();
 }
+

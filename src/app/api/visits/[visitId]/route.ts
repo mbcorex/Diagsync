@@ -14,9 +14,9 @@ const updateVisitSchema = z.object({
   patient: z.object({
     patientId: z.string().trim().min(1, "Patient number is required"),
     fullName: z.string().min(2, "Patient full name is required"),
-    age: z.number().int().min(0).max(150),
+    age: z.number().int().min(0).max(150).optional(),
     sex: z.nativeEnum(Sex),
-    phone: z.string().min(7, "Phone number is required"),
+    phone: z.string().min(7, "Phone number is required").optional(),
     email: z.string().email().optional().or(z.literal("")),
     address: z.string().optional(),
     dateOfBirth: z.string().optional(),
@@ -230,9 +230,9 @@ export async function PATCH(
         data: {
           patientId: nextPatientNumber,
           fullName: data.patient.fullName.trim(),
-          age: data.patient.age,
+          age: data.patient.age ?? 0,
           sex: data.patient.sex,
-          phone: data.patient.phone.trim(),
+          phone: data.patient.phone?.trim() || "",
           email: data.patient.email?.trim() || null,
           address: data.patient.address?.trim() || null,
           dateOfBirth: data.patient.dateOfBirth ? new Date(data.patient.dateOfBirth) : null,
@@ -569,3 +569,4 @@ export async function DELETE(
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
+

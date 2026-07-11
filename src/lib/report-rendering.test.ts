@@ -34,11 +34,33 @@ function testRadiologyExtraFieldsRender() {
   assert.equal(html.includes("PA view"), true);
   assert.equal(html.includes("comparison"), true);
   assert.equal(html.includes("signature-name"), true);
+  assert.equal(html.includes("<strong>Age:</strong>"), true);
   assert.equal(html.includes("__signature_name"), false);
+}
+
+function testReportHidesBlankAge() {
+  const html = renderReportHtml({
+    organization: {
+      name: "DiagSync",
+      address: "Address",
+      phone: "123",
+      website: "https://example.com",
+      email: "test@example.com",
+    },
+    department: Department.LABORATORY,
+    content: {
+      patient: { fullName: "Jane Doe", patientId: "P001", age: 0, sex: "F" },
+      meta: { visitNumber: "V001", visitDate: new Date().toISOString(), reportDate: new Date().toISOString() },
+      tests: [],
+    },
+  });
+
+  assert.equal(html.includes("<strong>Age:</strong>"), false);
 }
 
 function run() {
   testRadiologyExtraFieldsRender();
+  testReportHidesBlankAge();
   console.log("report-rendering tests passed");
 }
 
