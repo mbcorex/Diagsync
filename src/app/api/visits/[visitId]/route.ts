@@ -40,14 +40,6 @@ const updateVisitSchema = z.object({
     .min(1, "At least one test is required"),
 });
 
-const NON_REMOVABLE_ORDER_STATUSES = new Set<OrderStatus>([
-  OrderStatus.SUBMITTED_FOR_REVIEW,
-  OrderStatus.EDIT_REQUESTED,
-  OrderStatus.RESUBMITTED,
-  OrderStatus.APPROVED,
-  OrderStatus.RELEASED,
-]);
-
 function computePaymentStatus(totalAmount: number, amountPaid: number): PaymentStatus {
   if (totalAmount <= 0) return PaymentStatus.PAID;
   if (amountPaid >= totalAmount) return PaymentStatus.PAID;
@@ -204,19 +196,6 @@ export async function PATCH(
     const existingByTestId = new Map(visit.testOrders.map((row) => [row.testId, row]));
     const requestedTestIds = new Set(data.tests.map((row) => row.testId));
     const removedOrders = visit.testOrders.filter((row) => !requestedTestIds.has(row.testId));
-    const blockedOrders = removedOrders.filter((row) => NON_REMOVABLE_ORDER_STATUSES.has(row.status));
-    if (blockedOrders.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Some tests cannot be removed because results were already submitted to MD review.",
-          data: {
-            blockedTests: blockedOrders.map((row) => ({ testName: row.test.name, status: row.status })),
-          },
-        },
-        { status: 409 }
-      );
-    }
 
     const keptOrders = visit.testOrders.filter((row) => requestedTestIds.has(row.testId));
     const addedTestIds = Array.from(requestedTestIds).filter((testId) => !existingByTestId.has(testId));
@@ -569,4 +548,5 @@ export async function DELETE(
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
+
 

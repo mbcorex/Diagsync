@@ -14,14 +14,6 @@ type FieldType = "NUMBER" | "TEXT" | "TEXTAREA" | "DROPDOWN" | "CHECKBOX";
 type TestType = "LAB" | "RADIOLOGY";
 type Department = "LABORATORY" | "RADIOLOGY";
 
-const NON_REMOVABLE_STATUSES = new Set([
-  "SUBMITTED_FOR_REVIEW",
-  "EDIT_REQUESTED",
-  "RESUBMITTED",
-  "APPROVED",
-  "RELEASED",
-]);
-
 interface TestResult {
   id: string;
   name: string;
@@ -294,11 +286,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
   }
 
   function removeFromCart(item: CartItem) {
-    if (item.status && NON_REMOVABLE_STATUSES.has(item.status)) {
-      setError(`Cannot remove ${item.name} because result was already submitted to MD.`);
-      return;
-    }
-    setCart((prev) => prev.filter((row) => row.id !== item.id));
+        setCart((prev) => prev.filter((row) => row.id !== item.id));
   }
 
   function updatePrice(testId: string, value: string) {
@@ -461,7 +449,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
   return (
     <div className="space-y-4">
       <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
-        Remove test is allowed only before result submission to MD. Added tests are routed to lab automatically.
+        You can add or remove tests here, including approved or released ones. Added tests are routed to the lab automatically.
       </div>
 
       {error ? (
@@ -711,7 +699,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {cart.map((item) => {
-                      const isLocked = !!item.status && NON_REMOVABLE_STATUSES.has(item.status);
+                      const isLocked = !!item.status && ["SUBMITTED_FOR_REVIEW", "EDIT_REQUESTED", "RESUBMITTED", "APPROVED", "RELEASED"].includes(item.status);
                       return (
                         <tr key={item.id}>
                           <td className="py-2 text-slate-700">
@@ -727,7 +715,7 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
                             <input className="h-7 w-24 rounded border border-slate-200 px-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" type="number" min="0" value={item.enteredPrice} onChange={(e) => updatePrice(item.id, e.target.value)} />
                           </td>
                           <td className="py-2 text-right">
-                            <button type="button" onClick={() => removeFromCart(item)} className="text-slate-300 hover:text-red-600" title={isLocked ? "Cannot remove after MD submission" : "Remove test"}>
+                            <button type="button" onClick={() => removeFromCart(item)} className="text-slate-300 hover:text-red-600" title={isLocked ? "Remove test from an already processed order" : "Remove test"}>
                               <X className="h-3.5 w-3.5" />
                             </button>
                           </td>
@@ -817,4 +805,6 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
     </div>
   );
 }
+
+
 
