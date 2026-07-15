@@ -19,7 +19,7 @@ import { renderReportHtml } from "@/lib/report-rendering";
 import { requireOrganizationCoreAccess } from "@/lib/billing-service";
 import { Department, NotificationType, OrderStatus, ReportStatus, Role, ReviewStatus, ReportType, VisitStatus } from "@prisma/client";
 import { formatReferenceDisplay } from "./reference-ranges";
-import { extractSignOffFromMap, stripSignOffKeys } from "./report-signoff";
+import { extractSignOffEntriesFromMap, stripSignOffKeys } from "./report-signoff";
 import { canUseCustomLetterhead, shouldShowWatermark } from "./billing-access";
 import { parseRadiologyPerTestSections } from "./radiology-report-sections";
 
@@ -121,15 +121,17 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   };
 
   if (task.department === Department.LABORATORY) {
-    let signOff: { signatureImage: string; signatureName: string } | null = null;
+    let signOffEntries: Array<{ signatureImage: string; signatureName: string }> = [];
     const tests = task.results
       .filter((result) => result.testOrder.test.department === Department.LABORATORY)
       .map((result) => {
         const currentData = (result.versions[0]?.resultData ?? result.resultData ?? {}) as Record<string, any>;
-        if (!signOff) {
+        if (signOffEntries.length === 0) {
           const activeVersionData = (result.versions[0]?.resultData ?? {}) as Record<string, unknown>;
           const baseResultData = (result.resultData ?? {}) as Record<string, unknown>;
-          signOff = extractSignOffFromMap(activeVersionData) ?? extractSignOffFromMap(baseResultData);
+          const activeEntries = extractSignOffEntriesFromMap(activeVersionData);
+          const baseEntries = extractSignOffEntriesFromMap(baseResultData);
+          signOffEntries = activeEntries.length > 0 ? activeEntries : baseEntries;
         }
         const rows = result.testOrder.test.resultFields.map((field) => ({
           name: field.label,
@@ -150,7 +152,12 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
           rows,
         };
       });
-    return { department: task.department, reportType, content: { ...common, tests, ...(signOff ? { signOff } : {}) } };
+
+    return {
+      department: task.department,
+      reportType,
+      content: { ...common, tests, ...(signOffEntries.length > 0 ? { signOffEntries } : {}) },
+    };
   }
 
   const radiologyTests = await prisma.testOrder.findMany({
@@ -169,10 +176,9 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   const reportExtraFields = report ? (report as Record<string, unknown>)["extraFields"] : null;
   const rawExtraFields = pickExtraFields(activeVersionExtraFields ?? reportExtraFields);
   const parsedPerTest = parseRadiologyPerTestSections((rawExtraFields ?? {}) as Record<string, string>);
+  const signOffEntries = extractSignOffEntriesFromMap(rawExtraFields);
   const perTestMap = new Map(parsedPerTest.map((row) => [row.testOrderId, row]));
-  const signOff = extractSignOffFromMap(rawExtraFields);
 
-  // Split raw extra fields into common report-level fields and per-test custom fields
   const commonExtraFields: Record<string, string> = {};
   const perTestCustom = new Map<string, Record<string, string>>();
   if (rawExtraFields) {
@@ -205,8 +211,7 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     name: file.fileName,
     fileType: file.fileType,
   }));
-  // Include imaging layout if present in extra fields (saved from draft)
-  let imagingLayout: any = rawExtraFields ? (rawExtraFields as Record<string, any>)['imagingLayout'] ?? null : null;
+  let imagingLayout: any = rawExtraFields ? (rawExtraFields as Record<string, any>)["imagingLayout"] ?? null : null;
   if (typeof imagingLayout === "string") {
     try {
       imagingLayout = JSON.parse(imagingLayout as string);
@@ -214,7 +219,17 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
       imagingLayout = null;
     }
   }
-  return { department: task.department, reportType, content: { ...common, tests, imagingFiles, ...(imagingLayout ? { imagingLayout } : {}), ...(signOff ? { signOff } : {}) } };
+  return {
+    department: task.department,
+    reportType,
+    content: {
+      ...common,
+      tests,
+      imagingFiles,
+      ...(imagingLayout ? { imagingLayout } : {}),
+      ...(signOffEntries.length > 0 ? { signOffEntries } : {}),
+    },
+  };
 }
 
 export async function renderRadiologyReportForPreview(

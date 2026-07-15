@@ -1,4 +1,4 @@
-﻿type AgeDisplayStyle = "compact" | "long";
+﻿type AgeDisplayStyle = "compact" | "long" | "yrs";
 
 type PatientAgeInput = {
   age?: number | null;
@@ -85,12 +85,20 @@ function longAgeLabel(parts: { years: number; months: number; days: number }) {
   return `${parts.days} day${parts.days === 1 ? "" : "s"}`;
 }
 
+function yrsAgeLabel(parts: { years: number; months: number; days: number }) {
+  if (parts.years >= 1) return `${parts.years} YRS`;
+  if (parts.months >= 1) return `${parts.months} MTHS`;
+  return `${parts.days} DAYS`;
+}
+
 export function formatPatientAge(input: PatientAgeInput, style: AgeDisplayStyle = "compact") {
   const dob = parseDateOnlyInput(input.dateOfBirth);
   if (dob) {
     const parts = computeAgeParts(dob, new Date());
     if (parts) {
-      return style === "long" ? longAgeLabel(parts) : compactAgeLabel(parts);
+      if (style === "long") return longAgeLabel(parts);
+    if (style === "yrs") return yrsAgeLabel(parts);
+    return compactAgeLabel(parts);
     }
   }
 

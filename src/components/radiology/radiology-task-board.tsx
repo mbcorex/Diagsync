@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/index";
 import { formatDateTime } from "@/lib/utils";
 import { toCustomFieldKey } from "@/lib/custom-fields-core";
-import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY } from "@/lib/report-signoff";
+import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, SIGNOFF_ENTRIES_KEY, extractSignOffEntriesFromMap } from "@/lib/report-signoff";
 import { formatPatientAge } from "@/lib/patient-age";
 import {
   listOfflineRadiologyDraftItems,
@@ -25,7 +25,7 @@ import {
   type RadiologyPerTestSection,
 } from "@/lib/radiology-report-sections";
 import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
-import { ImagePlus, X, Download } from "lucide-react";
+import { ImagePlus, X, Download, Plus } from "lucide-react";
 import React from "react";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
@@ -68,23 +68,48 @@ type Task = {
   }>;
 };
 
-interface ImagingFile {
-  id: string;
-  fileUrl: string;
-  fileName: string;
-  fileType: string;
-  fileSizeBytes: number;
-  createdAt: string;
-}
+interface ImagingFile {
+
+  id: string;
+
+  fileUrl: string;
+
+  fileName: string;
+
+  fileType: string;
+
+  fileSizeBytes: number;
+
+  createdAt: string;
+
+}
+
+type SignatureEntry = {
+
+  signatureName: string;
+
+  signatureImage: string;
+
+};
 
-type Draft = {
-  findings: string;
-  impression: string;
-  notes: string;
-  testReports: Record<string, { findings: string; impression: string; notes: string }>;
-  extraFields: Record<string, string>;
-  signatureName: string;
-  signatureImage: string;
+type Draft = {
+
+  findings: string;
+
+  impression: string;
+
+  notes: string;
+
+  testReports: Record<string, { findings: string; impression: string; notes: string }>;
+
+  extraFields: Record<string, string>;
+
+  signatureName: string;
+
+  signatureImage: string;
+
+  extraSignatures: SignatureEntry[];
+
 };
 
 const EMPTY_DRAFT: Draft = {
@@ -93,8 +118,9 @@ const EMPTY_DRAFT: Draft = {
   notes: "",
   testReports: {},
   extraFields: {},
-  signatureName: "",
-  signatureImage: "",
+    signatureName: "",
+  signatureImage: "",
+  extraSignatures: [],
 };
 
 function sanitizeDraftExtraFields(
@@ -457,24 +483,26 @@ export function RadiologyTaskBoard() {
           notes: perTest?.notes ?? task.radiologyReport?.notes ?? order.test.lastReport?.notes ?? "",
         };
       }
-      const firstOrderLastReport = task.testOrders[0]?.test.lastReport;
-      const baselineDraft: Draft = {
-        findings: offline?.findings ?? task.radiologyReport?.findings ?? firstOrderLastReport?.findings ?? "",
-        impression: offline?.impression ?? task.radiologyReport?.impression ?? firstOrderLastReport?.impression ?? "",
-        notes: offline?.notes ?? task.radiologyReport?.notes ?? firstOrderLastReport?.notes ?? "",
-        testReports: offline?.testReports ?? testReports,
-        extraFields: offline?.extraFields
-          ? sanitizeDraftExtraFields(offline.extraFields)
-          : sanitizeDraftExtraFields(task.radiologyReport?.extraFields),
-        signatureName:
-          offline?.signatureName ?? task.radiologyReport?.extraFields?.[SIGNOFF_NAME_KEY] ?? "",
-        signatureImage:
-          offline?.signatureImage ?? task.radiologyReport?.extraFields?.[SIGNOFF_IMAGE_KEY] ?? "",
-      };
-      const shouldPreserveLocalDraft =
-        dirtyDraftTaskIdsRef.current.has(task.id) && Boolean(draftsRef.current[task.id]);
-      nextDrafts[task.id] = shouldPreserveLocalDraft
-        ? (draftsRef.current[task.id] as Draft)
+            const firstOrderLastReport = task.testOrders[0]?.test.lastReport;
+      const signOffEntries = extractSignOffEntriesFromMap(offline?.extraFields ?? task.radiologyReport?.extraFields);
+      const baselineDraft: Draft = {
+        findings: offline?.findings ?? task.radiologyReport?.findings ?? firstOrderLastReport?.findings ?? "",
+        impression: offline?.impression ?? task.radiologyReport?.impression ?? firstOrderLastReport?.impression ?? "",
+        notes: offline?.notes ?? task.radiologyReport?.notes ?? firstOrderLastReport?.notes ?? "",
+        testReports: offline?.testReports ?? testReports,
+        extraFields: offline?.extraFields
+          ? sanitizeDraftExtraFields(offline.extraFields)
+          : sanitizeDraftExtraFields(task.radiologyReport?.extraFields),
+        signatureName:
+          offline?.signatureName ?? signOffEntries[0]?.signatureName ?? task.radiologyReport?.extraFields?.[SIGNOFF_NAME_KEY] ?? "",
+        signatureImage:
+          offline?.signatureImage ?? signOffEntries[0]?.signatureImage ?? task.radiologyReport?.extraFields?.[SIGNOFF_IMAGE_KEY] ?? "",
+        extraSignatures: offline?.extraSignatures ?? signOffEntries.slice(1),
+      };
+      const shouldPreserveLocalDraft =
+        dirtyDraftTaskIdsRef.current.has(task.id) && Boolean(draftsRef.current[task.id]);
+      nextDrafts[task.id] = shouldPreserveLocalDraft
+        ? (draftsRef.current[task.id] as Draft)
         : baselineDraft;
     }
     draftsRef.current = nextDrafts;
@@ -696,10 +724,38 @@ export function RadiologyTaskBoard() {
     setError("");
   }
 
-  function resetExtraFields(taskId: string) {
-    updateDraft(taskId, { extraFields: {} });
-  }
-
+  function resetExtraFields(taskId: string) {
+    updateDraft(taskId, { extraFields: {} });
+  }
+
+  function addExtraSignature(taskId: string) {
+    const current = drafts[taskId] ?? EMPTY_DRAFT;
+    updateDraft(taskId, {
+      extraSignatures: [...(current.extraSignatures ?? []), { signatureName: "", signatureImage: "" }],
+    });
+  }
+
+  function updateExtraSignature(taskId: string, index: number, patch: Partial<SignatureEntry>) {
+    const current = drafts[taskId] ?? EMPTY_DRAFT;
+    const nextExtras = (current.extraSignatures ?? []).map((entry, i) => (i === index ? { ...entry, ...patch } : entry));
+    updateDraft(taskId, { extraSignatures: nextExtras });
+  }
+
+  function removeExtraSignature(taskId: string, index: number) {
+    const current = drafts[taskId] ?? EMPTY_DRAFT;
+    updateDraft(taskId, { extraSignatures: (current.extraSignatures ?? []).filter((_, i) => i !== index) });
+  }
+
+  async function uploadExtraSignature(taskId: string, index: number, file: File) {
+    const readAsDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(new Error("Unable to read file"));
+      reader.readAsDataURL(file);
+    });
+    updateExtraSignature(taskId, index, { signatureImage: readAsDataUrl });
+  }
+
   function applySignaturePreset(taskId: string, presetId: string) {
     const preset = signatureLibrary.find((item) => item.id === presetId);
     if (!preset) return;
@@ -754,9 +810,21 @@ export function RadiologyTaskBoard() {
       notes: value.notes ?? "",
     }));
 
+    const signOffEntries = [
+      { signatureName: draft.signatureName ?? "", signatureImage: draft.signatureImage ?? "" },
+      ...(draft.extraSignatures ?? []),
+    ].filter((entry) => entry.signatureName.trim() || entry.signatureImage.trim());
+
+    const extraFields = sanitizeDraftExtraFields(draft.extraFields);
+    if (signOffEntries.length > 0) {
+      extraFields[SIGNOFF_ENTRIES_KEY] = JSON.stringify(signOffEntries);
+      extraFields[SIGNOFF_NAME_KEY] = signOffEntries[0].signatureName;
+      extraFields[SIGNOFF_IMAGE_KEY] = signOffEntries[0].signatureImage;
+    }
+
     const payload = {
       ...draft,
-      extraFields: sanitizeDraftExtraFields(draft.extraFields),
+      extraFields,
       testReports,
     };
 
@@ -770,6 +838,7 @@ export function RadiologyTaskBoard() {
         extraFields: draft.extraFields ?? {},
         signatureName: draft.signatureName ?? "",
         signatureImage: draft.signatureImage ?? "",
+        extraSignatures: draft.extraSignatures ?? [],
       },
     });
 
@@ -798,15 +867,7 @@ export function RadiologyTaskBoard() {
         findings: draft.findings,
         impression: draft.impression,
         notes: draft.notes,
-        extraFields: {
-          ...sanitizeDraftExtraFields(draft.extraFields),
-          ...(draft.signatureName && draft.signatureImage
-            ? {
-                [SIGNOFF_NAME_KEY]: draft.signatureName,
-                [SIGNOFF_IMAGE_KEY]: draft.signatureImage,
-              }
-            : {}),
-        },
+        extraFields,
         isSubmitted: false,
       },
     });
@@ -1537,25 +1598,94 @@ export function RadiologyTaskBoard() {
                                         Remove
                                       </button>
                                     ) : null}
-                                    <button
-                                      type="button"
-                                      onClick={() => saveCurrentSignatureToLibrary(task.id)}
-                                      className="rounded border border-blue-200 px-2.5 py-1 text-xs text-blue-700 hover:bg-blue-50 transition-colors"
-                                    >
-                                      Save Signature
-                                    </button>
-                                  </div>
-                                  {drafts[task.id]?.signatureImage ? (
-                                    <img
-                                      src={drafts[task.id].signatureImage}
-                                      alt="Signature preview"
-                                      className="h-16 w-auto max-w-[220px] object-contain border border-slate-200 rounded bg-white p-1"
-                                    />
-                                  ) : (
-                                    <p className="text-[11px] text-slate-400">No signature image selected.</p>
-                                  )}
-                                </div>
-                              </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => saveCurrentSignatureToLibrary(task.id)}
+                                      className="rounded border border-blue-200 px-2.5 py-1 text-xs text-blue-700 hover:bg-blue-50 transition-colors"
+                                    >
+                                      Save Signature
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => addExtraSignature(task.id)}
+                                      className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                    >
+                                      <Plus className="h-3.5 w-3.5" />
+                                      Add Signature
+                                    </button>
+                                  </div>
+                                  {drafts[task.id]?.signatureImage ? (
+                                    <img
+                                      src={drafts[task.id].signatureImage}
+                                      alt="Signature preview"
+                                      className="h-16 w-auto max-w-[220px] object-contain border border-slate-200 rounded bg-white p-1"
+                                    />
+                                  ) : (
+                                    <p className="text-[11px] text-slate-400">No signature image selected.</p>
+                                  )}
+                                  <div className="space-y-2">
+                                    {(drafts[task.id]?.extraSignatures ?? []).map((entry, idx) => (
+                                      <div key={idx} className="rounded border border-slate-100 bg-slate-50 p-2 space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <p className="text-[11px] font-medium text-slate-500">Additional Signature {idx + 1}</p>
+                                          <button
+                                            type="button"
+                                            onClick={() => removeExtraSignature(task.id, idx)}
+                                            className="rounded border border-red-200 px-2 py-0.5 text-[11px] text-red-600 hover:bg-red-50"
+                                          >
+                                            Remove
+                                          </button>
+                                        </div>
+                                        <input
+                                          type="text"
+                                          value={entry.signatureName}
+                                          onChange={(e) => updateExtraSignature(task.id, idx, { signatureName: e.target.value })}
+                                          placeholder="Signature name"
+                                          className="h-8 w-full rounded border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          id={`radiology-extra-signature-${task.id}-${idx}`}
+                                          className="hidden"
+                                          onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            await uploadExtraSignature(task.id, idx, file);
+                                            e.target.value = "";
+                                          }}
+                                        />
+                                        <div className="flex flex-wrap gap-2">
+                                          <label
+                                            htmlFor={`radiology-extra-signature-${task.id}-${idx}`}
+                                            className="cursor-pointer rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                          >
+                                            Upload Signature
+                                          </label>
+                                          {entry.signatureImage ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => updateExtraSignature(task.id, idx, { signatureImage: "" })}
+                                              className="rounded border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors"
+                                            >
+                                              Remove Image
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                        {entry.signatureImage ? (
+                                          <img
+                                            src={entry.signatureImage}
+                                            alt="Additional signature preview"
+                                            className="h-14 w-auto max-w-[220px] object-contain border border-slate-200 rounded bg-white p-1"
+                                          />
+                                        ) : (
+                                          <p className="text-[11px] text-slate-400">No additional signature image selected.</p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
                               <div className="flex gap-2 pt-1">
                                 <button disabled={busyTaskId === task.id} onClick={() => saveReport(task.id)}
                                   className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors">
@@ -1589,3 +1719,11 @@ export function RadiologyTaskBoard() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

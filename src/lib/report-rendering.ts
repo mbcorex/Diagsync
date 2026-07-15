@@ -1,6 +1,6 @@
 // src/lib/report-rendering.ts
 import { Department } from "@prisma/client";
-import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY } from "./report-signoff";
+import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, extractSignOffEntriesFromMap } from "./report-signoff";
 import { formatPatientAge } from "./patient-age";
 
 function escapeHtml(input: string) {
@@ -780,7 +780,7 @@ export function renderReportHtml(args: RenderArgs) {
   const hasPatientAge = Number.isFinite(Number(patientAge)) && Number(patientAge) > 0;
   const hasPatientDob = Boolean(String(patient.dateOfBirth ?? "").trim());
   const ageLabel = hasPatientAge || hasPatientDob
-    ? formatPatientAge({ age: patientAge, dateOfBirth: patient.dateOfBirth }, "long")
+    ? formatPatientAge({ age: patientAge, dateOfBirth: patient.dateOfBirth }, "yrs")
     : "";
   const meta = args.content.meta ?? {};
   const visitDateLabel = formatReportDateTime(meta.visitDate);
@@ -790,13 +790,30 @@ export function renderReportHtml(args: RenderArgs) {
   const safeLabTests = tests.filter((test: any) => Array.isArray(test?.rows));
   const safeRadiologyTests = tests.filter((test: any) => !Array.isArray(test?.rows));
   const imagingFiles = Array.isArray(args.content.imagingFiles) ? args.content.imagingFiles : [];
-  const signOff =
-    args.content?.signOff &&
-    typeof args.content.signOff === "object" &&
-    typeof args.content.signOff.signatureImage === "string" &&
-    typeof args.content.signOff.signatureName === "string"
-      ? args.content.signOff
-      : null;
+  const signOffEntries = (() => {
+    const fromArray = Array.isArray(args.content?.signOffEntries)
+      ? (args.content.signOffEntries as Array<{
+          signatureImage: string;
+          signatureName: string;
+        }>)
+          .map((entry) => {
+            if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+            const row = entry as Record<string, unknown>;
+            const signatureImage = String(row.signatureImage ?? "").trim();
+            const signatureName = String(row.signatureName ?? "").trim();
+            if (!signatureImage || !signatureName) return null;
+            if (!/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(signatureImage)) return null;
+            return { signatureImage, signatureName };
+          })
+          .filter(
+            (item): item is { signatureImage: string; signatureName: string } =>
+              Boolean(item)
+          )
+      : [];
+    if (fromArray.length > 0) return fromArray;
+    const legacy = extractSignOffEntriesFromMap(args.content?.signOff ?? null);
+    return legacy;
+  })();
 
   const testsHtml =
     args.department === Department.LABORATORY
@@ -845,7 +862,7 @@ export function renderReportHtml(args: RenderArgs) {
                   <p class="rad-label">Findings</p>
                   ${renderNarrativeBlock(normalized.findingsText, { preferList: true })}
                 </div>
-                <div class="rad-field">
+                <div class="rad-field rad-field-impression">
                   <p class="rad-label">Impression</p>
                   ${renderNarrativeBlock(normalized.impressionText)}
                 </div>
@@ -1072,6 +1089,12 @@ export function renderReportHtml(args: RenderArgs) {
       line-height: 1.45;
       color: #1f2937;
     }
+    .rad-field-impression .rad-label,
+    .rad-field-impression .rad-paragraph,
+    .rad-field-impression .rad-list li {
+      font-weight: 700;
+      color: #111827;
+    }
     .rad-list {
       margin: 0 0 4px 18px;
       padding: 0;
@@ -1126,8 +1149,14 @@ export function renderReportHtml(args: RenderArgs) {
     .sensitivity-table .sens-result { font-weight: 700; color: #b91c1c; }
     .sensitivity-note { margin-top: 6px; font-size: 11px; }
     .footer-note { margin-top: 18px; font-size: 12px; }
-    .signature-block {
+    .signature-grid {
       margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 20px;
+      align-items: flex-start;
+    }
+    .signature-block {
       break-inside: avoid;
       display: inline-flex;
       flex-direction: column;
@@ -1144,7 +1173,7 @@ export function renderReportHtml(args: RenderArgs) {
     }
     .signature-name {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       line-height: 1.2;
       word-break: break-word;
       max-width: 220px;
@@ -1354,11 +1383,13 @@ export function renderReportHtml(args: RenderArgs) {
           : ""
       }
       ${
-        signOff
-          ? `<section class="signature-block">
+        signOffEntries.length > 0
+          ? `<div class="signature-grid">${signOffEntries
+              .map((signOff) => `<section class="signature-block">
               <img class="signature-image" src="${escapeHtml(String(signOff.signatureImage))}" alt="Signature" crossorigin="anonymous" />
               <p class="signature-name">${escapeHtml(String(signOff.signatureName))}</p>
-            </section>`
+            </section>`)
+              .join("")}</div>`
           : ""
       }
     </div>
@@ -1377,4 +1408,6 @@ ${
 </html>
   `.trim();
 }
+
+
 

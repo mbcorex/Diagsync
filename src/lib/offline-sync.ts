@@ -55,6 +55,10 @@ export type OfflineRadiologyDraftItem = {
     extraFields: Record<string, string>;
     signatureName: string;
     signatureImage: string;
+    extraSignatures?: Array<{
+      signatureName: string;
+      signatureImage: string;
+    }>;
   };
 };
 

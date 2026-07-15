@@ -10,7 +10,7 @@ import { buildResultInsights } from "@/lib/result-insights";
 import { listOfflineLabDraftItems, removeOfflineLabDraft, upsertOfflineLabDraft } from "@/lib/offline-sync";
 import { evaluateReferenceFlag, formatReferenceDisplay, toDemographicRangeKey, upsertDemographicRange } from "@/lib/reference-ranges";
 import { toCustomFieldKey } from "@/lib/custom-fields-core";
-import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY } from "@/lib/report-signoff";
+import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, SIGNOFF_ENTRIES_KEY, extractSignOffEntriesFromMap } from "@/lib/report-signoff";
 import { formatPatientAge } from "@/lib/patient-age";
 import {
   SignaturePreset,
@@ -19,6 +19,7 @@ import {
   saveSignaturePresets,
   upsertSignaturePreset,
 } from "@/lib/signature-presets";
+import { Plus } from "lucide-react";
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -63,7 +64,8 @@ type LabTask = {
 };
 
 type Draft = { values: Record<string, unknown>; notes: string; removedDefaultFieldKeys: string[] };
-type TaskSignOff = { signatureName: string; signatureImage: string };
+type SignatureEntry = { signatureName: string; signatureImage: string };
+type TaskSignOff = SignatureEntry & { extraSignatures: SignatureEntry[] };
 type SensitivityCell = { antibiotic: string; zone: string; interpretation: string };
 type ReferenceUpdatePayload = {
   unit?: string | null;
@@ -1413,40 +1415,39 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
       for (const task of rows) {
         if (next[task.id]) continue;
         const offline = offlineByTask.get(task.id);
-        let signatureName = "";
-        let signatureImage = "";
-
-        const loadSignOffFromMap = (resultData: Record<string, unknown> | undefined) => {
-          if (!resultData) return null;
-          const maybeName = typeof resultData[SIGNOFF_NAME_KEY] === "string" ? resultData[SIGNOFF_NAME_KEY] : "";
-          const maybeImage = typeof resultData[SIGNOFF_IMAGE_KEY] === "string" ? resultData[SIGNOFF_IMAGE_KEY] : "";
-          return maybeName && maybeImage ? { signatureName: maybeName, signatureImage: maybeImage } : null;
+        const loadSignOffEntries = (resultData: Record<string, unknown> | undefined) => {
+          if (!resultData) return [] as SignatureEntry[];
+          const entries = extractSignOffEntriesFromMap(resultData);
+          return entries.length > 0 ? entries : [];
         };
 
+        let signOffEntries: SignatureEntry[] = [];
         if (offline?.results) {
           for (const entry of offline.results) {
-            const signOff = loadSignOffFromMap(entry.resultData as Record<string, unknown> | undefined);
-            if (signOff) {
-              signatureName = signOff.signatureName;
-              signatureImage = signOff.signatureImage;
+            const entries = loadSignOffEntries(entry.resultData as Record<string, unknown> | undefined);
+            if (entries.length > 0) {
+              signOffEntries = entries;
               break;
             }
           }
         }
 
-        if (!signatureName || !signatureImage) {
+        if (signOffEntries.length === 0) {
           for (const order of task.testOrders) {
             const resultData = order.labResults[0]?.resultData as Record<string, unknown> | undefined;
-            const signOff = loadSignOffFromMap(resultData);
-            if (signOff) {
-              signatureName = signOff.signatureName;
-              signatureImage = signOff.signatureImage;
+            const entries = loadSignOffEntries(resultData);
+            if (entries.length > 0) {
+              signOffEntries = entries;
               break;
             }
           }
         }
 
-        next[task.id] = { signatureName, signatureImage };
+        next[task.id] = {
+          signatureName: signOffEntries[0]?.signatureName ?? "",
+          signatureImage: signOffEntries[0]?.signatureImage ?? "",
+          extraSignatures: signOffEntries.slice(1),
+        };
       }
       return next;
     });
@@ -2245,6 +2246,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
       [taskId]: {
         signatureName: prev[taskId]?.signatureName ?? "",
         signatureImage: readAsDataUrl,
+        extraSignatures: prev[taskId]?.extraSignatures ?? [],
       },
     }));
   }
@@ -2257,6 +2259,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
       [taskId]: {
         signatureName: preset.name,
         signatureImage: preset.image,
+        extraSignatures: prev[taskId]?.extraSignatures ?? [],
       },
     }));
     setSelectedSignatureByTask((prev) => ({ ...prev, [taskId]: presetId }));
@@ -2284,9 +2287,62 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
     );
   }
 
+  function addExtraSignature(taskId: string) {
+    setSignOffByTask((prev) => {
+      const current = prev[taskId] ?? { signatureName: "", signatureImage: "", extraSignatures: [] };
+      return {
+        ...prev,
+        [taskId]: {
+          ...current,
+          extraSignatures: [...(current.extraSignatures ?? []), { signatureName: "", signatureImage: "" }],
+        },
+      };
+    });
+  }
+
+  function updateExtraSignature(taskId: string, index: number, patch: Partial<SignatureEntry>) {
+    setSignOffByTask((prev) => {
+      const current = prev[taskId] ?? { signatureName: "", signatureImage: "", extraSignatures: [] };
+      const nextExtras = (current.extraSignatures ?? []).map((entry, i) => (i === index ? { ...entry, ...patch } : entry));
+      return {
+        ...prev,
+        [taskId]: { ...current, extraSignatures: nextExtras },
+      };
+    });
+  }
+
+  function removeExtraSignature(taskId: string, index: number) {
+    setSignOffByTask((prev) => {
+      const current = prev[taskId] ?? { signatureName: "", signatureImage: "", extraSignatures: [] };
+      return {
+        ...prev,
+        [taskId]: {
+          ...current,
+          extraSignatures: (current.extraSignatures ?? []).filter((_, i) => i !== index),
+        },
+      };
+    });
+  }
+
+  async function uploadExtraSignature(taskId: string, index: number, file: File) {
+    const readAsDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(new Error("SIGNATURE_READ_FAILED"));
+      reader.readAsDataURL(file);
+    });
+    updateExtraSignature(taskId, index, { signatureImage: readAsDataUrl });
+  }
+
   function collectTaskDraftResults(task: LabTask, draftsSnapshot: Record<string, Draft> = draftsRef.current) {
     const sharedSensitivity = getSharedSensitivity(task, draftsSnapshot);
     const signOff = signOffByTask[task.id];
+    const signOffEntries = signOff
+      ? [
+          { signatureName: signOff.signatureName, signatureImage: signOff.signatureImage },
+          ...(signOff.extraSignatures ?? []),
+        ].filter((entry) => entry.signatureName.trim() || entry.signatureImage.trim())
+      : [];
     return task.testOrders.map((order) => ({
       testOrderId: order.id,
       resultData: (() => {
@@ -2311,10 +2367,11 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
           : withSharedSensitivity;
         return {
           ...valuesForSubmit,
-          ...(signOff?.signatureImage && signOff?.signatureName
+          ...(signOffEntries.length > 0
             ? {
-                [SIGNOFF_IMAGE_KEY]: signOff.signatureImage,
-                [SIGNOFF_NAME_KEY]: signOff.signatureName,
+                [SIGNOFF_ENTRIES_KEY]: JSON.stringify(signOffEntries),
+                [SIGNOFF_IMAGE_KEY]: signOffEntries[0].signatureImage,
+                [SIGNOFF_NAME_KEY]: signOffEntries[0].signatureName,
               }
             : {}),
         };
@@ -2661,6 +2718,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                                       [task.id]: {
                                         signatureImage: prev[task.id]?.signatureImage ?? "",
                                         signatureName: e.target.value,
+                                        extraSignatures: prev[task.id]?.extraSignatures ?? [],
                                       },
                                     }))
                                   }
@@ -2698,6 +2756,7 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                                           [task.id]: {
                                             signatureName: prev[task.id]?.signatureName ?? "",
                                             signatureImage: "",
+                                            extraSignatures: prev[task.id]?.extraSignatures ?? [],
                                           },
                                         }))
                                       }
@@ -2713,6 +2772,14 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                                   >
                                     Save Signature
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => addExtraSignature(task.id)}
+                                    className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Add Signature
+                                  </button>
                                 </div>
                                 {signOffByTask[task.id]?.signatureImage ? (
                                   <img
@@ -2723,6 +2790,55 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
                                 ) : (
                                   <p className="text-[11px] text-slate-400">No signature image selected.</p>
                                 )}
+                                <div className="space-y-2">
+                                  {(signOffByTask[task.id]?.extraSignatures ?? []).map((entry, idx) => (
+                                    <div key={idx} className="rounded border border-slate-100 bg-slate-50 p-2 space-y-2">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <p className="text-[11px] font-medium text-slate-500">Additional Signature {idx + 1}</p>
+                                        <button
+                                          type="button"
+                                          onClick={() => removeExtraSignature(task.id, idx)}
+                                          className="rounded border border-red-200 px-2 py-0.5 text-[11px] text-red-600 hover:bg-red-50"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                      <input
+                                        value={entry.signatureName}
+                                        onChange={(e) => updateExtraSignature(task.id, idx, { signatureName: e.target.value })}
+                                        placeholder="Signer name"
+                                        className="h-7 w-full rounded border border-slate-200 bg-white px-2.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      />
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          id={`lab-extra-signature-${task.id}-${idx}`}
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            await uploadExtraSignature(task.id, idx, file);
+                                            e.target.value = "";
+                                          }}
+                                        />
+                                        <label
+                                          htmlFor={`lab-extra-signature-${task.id}-${idx}`}
+                                          className="cursor-pointer rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                                        >
+                                          Upload Signature
+                                        </label>
+                                        {entry.signatureImage ? (
+                                          <img
+                                            src={entry.signatureImage}
+                                            alt={"Additional signature " + (idx + 1) + " preview"}
+                                            className="h-12 w-auto max-w-[180px] object-contain border border-slate-200 rounded bg-white p-1"
+                                          />
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                             {shouldUseSharedMcsPanel ? renderSharedMcsPanel(task) : null}
@@ -2783,6 +2899,10 @@ export function LabTaskBoard({ organizationId }: LabTaskBoardProps) {
     </div>
   );
 }
+
+
+
+
 
 
 
