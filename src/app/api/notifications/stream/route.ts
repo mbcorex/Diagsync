@@ -80,7 +80,7 @@ export async function GET() {
         } finally {
           inFlight = false;
         }
-      }, 15000);
+      }, 5000);
 
       const timeout = setTimeout(() => {
         clearInterval(interval);

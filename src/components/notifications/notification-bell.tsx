@@ -10,6 +10,7 @@ import {
   subscribeToDevicePush,
   syncPushSubscriptionWithServer,
 } from "@/lib/push-client";
+import { useNotificationStream } from "@/lib/notification-stream-client";
 
 type NotificationItem = {
   id: string; type: string; title: string; message: string;
@@ -412,6 +413,12 @@ export function NotificationBell({ role }: { role: string }) {
       document.removeEventListener("visibilitychange", visibilityHandler);
     };
   }, []);
+
+  // Real-time push over the notification SSE stream: fires within seconds of
+  // a new call/task notification instead of waiting for the visibility poll.
+  useNotificationStream(() => {
+    void load(true);
+  });
 
   const unreadBadge = useMemo(() => {
     if (data.unreadCount <= 0) return null;

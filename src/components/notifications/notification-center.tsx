@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatDateTime } from "@/lib/utils";
+import { useNotificationStream } from "@/lib/notification-stream-client";
 
 type NotificationItem = {
   id: string;
@@ -47,6 +48,10 @@ export function NotificationCenter() {
   }
 
   useEffect(() => { void load(); }, []);
+
+  useNotificationStream(() => {
+    void load();
+  });
 
   useEffect(() => {
     const refreshVisible = () => {
