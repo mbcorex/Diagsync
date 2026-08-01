@@ -7,7 +7,6 @@ import { formatDateTime } from "@/lib/utils";
 import { toCustomFieldKey } from "@/lib/custom-fields-core";
 import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, SIGNOFF_ENTRIES_KEY, extractSignOffEntriesFromMap } from "@/lib/report-signoff";
 import { formatPatientAge } from "@/lib/patient-age";
-import { useNotificationStream } from "@/lib/notification-stream-client";
 import {
   listOfflineRadiologyDraftItems,
   removeOfflineRadiologyDraft,
@@ -567,7 +566,7 @@ export function RadiologyTaskBoard() {
       void loadTasks({ force: true, silent: true });
     };
 
-    const poll = window.setInterval(refreshNow, 120_000);
+    const poll = window.setInterval(refreshNow, 30_000);
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", refreshNow);
 
@@ -577,12 +576,6 @@ export function RadiologyTaskBoard() {
       document.removeEventListener("visibilitychange", refreshNow);
     };
   }, [statusFilter, sort, searchFilter, dateFilter]);
-
-  // A new/updated task shows up as a notification for this staff member;
-  // react to it immediately instead of waiting for the 2-minute poll.
-  useNotificationStream(() => {
-    void loadTasks({ force: true, silent: true });
-  });
 
   useEffect(() => {
     setSignatureLibrary(loadSignaturePresets("reporting"));

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { formatDateTime } from "@/lib/utils";
-import { useNotificationStream } from "@/lib/notification-stream-client";
 
 type NotificationItem = {
   id: string;
@@ -49,15 +48,11 @@ export function NotificationCenter() {
 
   useEffect(() => { void load(); }, []);
 
-  useNotificationStream(() => {
-    void load();
-  });
-
   useEffect(() => {
     const refreshVisible = () => {
       if (document.visibilityState === "visible") void load();
     };
-    const poll = window.setInterval(refreshVisible, 120_000);
+    const poll = window.setInterval(refreshVisible, 30_000);
     window.addEventListener("focus", refreshVisible);
     document.addEventListener("visibilitychange", refreshVisible);
     return () => {

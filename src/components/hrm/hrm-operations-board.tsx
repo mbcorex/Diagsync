@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/index";
 import { formatDateTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNotificationStream } from "@/lib/notification-stream-client";
 
 type TaskRow = {
   taskId: string;
@@ -91,16 +90,9 @@ export function HrmOperationsBoard({ staffOptions }: { staffOptions: StaffOption
     const timer = window.setInterval(() => {
       if (busyTaskId) return;
       void loadData();
-    }, 120_000);
+    }, 30_000);
     return () => window.clearInterval(timer);
   }, [busyTaskId, department, status, priority]);
-
-  // A department task assignment/update shows up as a notification for this
-  // HRM user; react to it immediately instead of waiting for the 2-minute poll.
-  useNotificationStream(() => {
-    if (busyTaskId) return;
-    void loadData();
-  });
 
   const delayedCount = useMemo(() => tasks.filter((t) => t.delayed).length, [tasks]);
 
