@@ -165,6 +165,14 @@ function parseDemographicRanges(field: ReferenceField) {
   return parsed;
 }
 
+export function hasResolvedDemographicContext(context?: ReferenceContext) {
+  if (!context) return false;
+  const sex = `${context.sex ?? ""}`.trim();
+  if (sex.length > 0) return true;
+  const age = context.age;
+  return typeof age === "number" && Number.isFinite(age);
+}
+
 function chooseRangeForContext(field: ReferenceField, context?: ReferenceContext) {
   const parsed = parseDemographicRanges(field);
   if (!parsed) return null;
@@ -175,6 +183,10 @@ function chooseRangeForContext(field: ReferenceField, context?: ReferenceContext
   const sex = `${context?.sex ?? ""}`.trim().toLowerCase();
   if (sex.startsWith("m") && parsed.male) return { ...parsed.male, label: "Male" as const };
   if (sex.startsWith("f") && parsed.female) return { ...parsed.female, label: "Female" as const };
+
+  // The patient demographic is known but this field has no range configured for it.
+  // Fall back to the field's own normalMin/normalMax instead of quoting the other sex's range.
+  if (hasResolvedDemographicContext(context)) return null;
 
   if (parsed.male) return { ...parsed.male, label: "Male" as const };
   if (parsed.female) return { ...parsed.female, label: "Female" as const };
@@ -237,10 +249,14 @@ export function evaluateReferenceFlag(field: ReferenceField, value: unknown, con
   return null;
 }
 
-export function computeAbnormalFlags(fields: ReferenceField[], resultData: Record<string, unknown>) {
+export function computeAbnormalFlags(
+  fields: ReferenceField[],
+  resultData: Record<string, unknown>,
+  context?: ReferenceContext
+) {
   const flags: Record<string, ReferenceFlag> = {};
   for (const field of fields) {
-    const flag = evaluateReferenceFlag(field, resultData[field.fieldKey]);
+    const flag = evaluateReferenceFlag(field, resultData[field.fieldKey], context);
     if (flag) flags[field.fieldKey] = flag;
   }
   return flags;
@@ -252,7 +268,10 @@ export function formatReferenceDisplay(field: ReferenceField, context?: Referenc
   const min = contextual?.min ?? toDecimalCompatibleNumber(effectiveField.normalMin);
   const max = contextual?.max ?? toDecimalCompatibleNumber(effectiveField.normalMax);
   const unit = effectiveField.unit?.trim() ? ` ${effectiveField.unit.trim()}` : "";
-  const prefix = contextual?.label ? `Normal (${contextual.label})` : "Normal";
+  // When the patient demographic is known the displayed range is already theirs, so the
+  // "(Male)" / "(Female)" qualifier is noise (and misleading on the report).
+  const prefix =
+    contextual?.label && !hasResolvedDemographicContext(context) ? `Normal (${contextual.label})` : "Normal";
   if (min !== null && max !== null) {
     return `${prefix}: ${min} - ${max}${unit}`;
   }

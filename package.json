@@ -31,9 +31,10 @@
     "test:audit": "ts-node --project tsconfig.test.json src/lib/audit-core.test.ts",
     "test:customfields": "ts-node --project tsconfig.test.json src/lib/custom-fields-core.test.ts",
     "test:report-rendering": "ts-node --project tsconfig.test.json src/lib/report-rendering.test.ts",
+    "test:visit-billing": "ts-node --project tsconfig.test.json src/lib/visit-billing-core.test.ts",
     "ci": "npm run lint && npm run build && npm run test:all",
     "db:deploy": "prisma migrate deploy",
-    "test:all": "npm run test:routing && npm run test:lab && npm run test:radiology && npm run test:md && npm run test:edits && npm run test:versioning && npm run test:hrm && npm run test:notifications && npm run test:audit && npm run test:customfields && npm run test:report-rendering"
+    "test:all": "npm run test:routing && npm run test:lab && npm run test:radiology && npm run test:md && npm run test:edits && npm run test:versioning && npm run test:hrm && npm run test:notifications && npm run test:audit && npm run test:customfields && npm run test:report-rendering && npm run test:visit-billing"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.1",

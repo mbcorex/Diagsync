@@ -7,6 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrency } from "@/lib/utils";
 import { UpgradeHint } from "@/components/billing/upgrade-hint";
 import { enqueueOfflinePatient, listOfflinePatientItems, removeOfflinePatient, type OfflinePatientPayload } from "@/lib/offline-sync";
+import {
+  PAYMENT_METHOD_KEYS,
+  PAYMENT_METHOD_LABELS,
+  paymentMethodLabel,
+  type PaymentMethodKey,
+} from "@/lib/payment-methods";
+import { MAX_BACKDATE_DAYS, toDayKey } from "@/lib/visit-dating";
 import { buildReferenceNote, splitReferenceNote } from "@/lib/reference-ranges";
 import { estimateDateOfBirthFromEnteredAge } from "@/lib/patient-age";
 
@@ -140,6 +147,12 @@ function toNullableNumber(value: unknown): number | null {
   return null;
 }
 
+type PaymentEntryDraft = {
+  key: string;
+  amount: string;
+  method: PaymentMethodKey;
+};
+
 export function NewPatientForm() {
   const router = useRouter();
   const [patientNumber, setPatientNumber] = useState("");
@@ -155,10 +168,15 @@ export function NewPatientForm() {
   const [clinicalNote, setClinicalNote] = useState("");
   const [priority, setPriority] = useState<Priority>("ROUTINE");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("PENDING");
-  const [amountPaid, setAmountPaid] = useState("");
   const [discount, setDiscount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
   const [visitNotes, setVisitNotes] = useState("");
+  const [paymentEntries, setPaymentEntries] = useState<PaymentEntryDraft[]>([]);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey>("CASH");
+  const [isBackdated, setIsBackdated] = useState(false);
+  const [showBackdateDialog, setShowBackdateDialog] = useState(false);
+  const [visitDate, setVisitDate] = useState("");
+  const [backdateDraft, setBackdateDraft] = useState("");
   const [testSearch, setTestSearch] = useState("");
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -322,8 +340,12 @@ export function NewPatientForm() {
   const subtotal = cart.reduce((s, t) => s + toNumberPrice(t.enteredPrice), 0);
   const discountAmount = parseFloat(discount) || 0;
   const totalAmount = Math.max(0, subtotal - discountAmount);
-  const amountPaidNum = parseFloat(amountPaid) || 0;
+  const amountPaidNum = paymentEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
   const balance = Math.max(0, totalAmount - amountPaidNum);
+  const todayKey = toDayKey(new Date());
+  const earliestBackdateKey = toDayKey(
+    new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - MAX_BACKDATE_DAYS)
+  );
 
   useEffect(() => {
     if (totalAmount === 0) return;
@@ -555,7 +577,12 @@ export function NewPatientForm() {
       dateOfBirth: resolvedDateOfBirth, referringDoctor: referringDoctor.trim() || undefined,
       clinicalNote: clinicalNote.trim() || undefined, priority, paymentStatus,
       amountPaid: amountPaidNum, discount: discountAmount,
-      paymentMethod: paymentMethod || undefined, notes: visitNotes.trim() || undefined,
+      payments: paymentEntries.map((entry) => ({
+        amount: parseFloat(entry.amount) || 0,
+        method: entry.method,
+      })),
+      ...(isBackdated && visitDate ? { visitDate } : {}),
+      notes: visitNotes.trim() || undefined,
       testIds: cart.map((item) => item.id),
       testPrices: cart.map((item) => ({ testId: item.id, price: toNumberPrice(item.enteredPrice) })),
     };
@@ -608,7 +635,9 @@ export function NewPatientForm() {
   function resetForm() {
     setPatientNumber(""); setFullName(""); setAge(""); setAgeUnit("YEARS"); setPhone(""); setEmail(""); setAddress(""); setDateOfBirth("");
     setReferringDoctor(""); setClinicalNote(""); setPriority("ROUTINE"); setPaymentStatus("PENDING");
-    setAmountPaid(""); setDiscount(""); setPaymentMethod(""); setVisitNotes(""); setCart([]);
+    setDiscount(""); setVisitNotes(""); setCart([]);
+    setPaymentEntries([]); setPaymentAmount(""); setPaymentMethod("CASH");
+    setIsBackdated(false); setVisitDate(""); setBackdateDraft(""); setShowBackdateDialog(false);
     setRangeDraftByTest({});
     setRangeSavingByTest({});
     setExpandedRangeByTest({});
@@ -1135,23 +1164,113 @@ export function NewPatientForm() {
                 </div>
               </div>
 
-              <div>
-                <label className={labelCls}>Amount Paid (₦)</label>
-                <input type="number" min="0" placeholder="0" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} className={inputCls} />
+              <div className="rounded border border-slate-200 bg-white p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Payments</span>
+                  <span className="text-xs font-semibold text-slate-800">{formatCurrency(amountPaidNum)}</span>
+                </div>
+
+                {paymentEntries.length > 0 ? (
+                  <ul className="space-y-1">
+                    {paymentEntries.map((entry) => (
+                      <li key={entry.key} className="flex items-center justify-between gap-2 text-[11px] text-slate-600">
+                        <span>{paymentMethodLabel(entry.method)}</span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-slate-800">{formatCurrency(parseFloat(entry.amount) || 0)}</span>
+                          <button
+                            type="button"
+                            className="text-slate-400 hover:text-red-600"
+                            onClick={() => setPaymentEntries((prev) => prev.filter((row) => row.key !== entry.key))}
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[11px] text-slate-400">No payment recorded yet.</p>
+                )}
+
+                <div className="flex flex-wrap gap-1.5 border-t border-slate-100 pt-2">
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Amount"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className={`${inputCls} flex-1 min-w-[90px]`}
+                  />
+                  <div className="min-w-[120px] flex-1">
+                    <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethodKey)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_KEYS.map((method) => (
+                          <SelectItem key={method} value={method}>{PAYMENT_METHOD_LABELS[method]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <button
+                    type="button"
+                    className="h-8 rounded bg-slate-800 px-3 text-xs font-medium text-white hover:bg-slate-900 disabled:opacity-40"
+                    disabled={(parseFloat(paymentAmount) || 0) <= 0}
+                    onClick={() => {
+                      const amount = parseFloat(paymentAmount) || 0;
+                      if (amount <= 0) return;
+                      setPaymentEntries((prev) => [
+                        ...prev,
+                        { key: `${Date.now()}-${prev.length}`, amount: String(amount), method: paymentMethod },
+                      ]);
+                      setPaymentAmount("");
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Add one entry per method. A part payment in cash and the balance by transfer are recorded separately.
+                </p>
               </div>
 
-              <div>
-                <label className={labelCls}>Payment Method</label>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CASH">Cash</SelectItem>
-                    <SelectItem value="TRANSFER">Bank Transfer</SelectItem>
-                    <SelectItem value="POS">POS / Card</SelectItem>
-                    <SelectItem value="HMO">HMO / Insurance</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="rounded border border-slate-200 bg-white p-2.5 space-y-2">
+                <label className="flex items-start gap-2 text-xs text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={isBackdated}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setBackdateDraft(visitDate || todayKey);
+                        setShowBackdateDialog(true);
+                      } else {
+                        setIsBackdated(false);
+                        setVisitDate("");
+                      }
+                    }}
+                  />
+                  <span>
+                    This is not today&apos;s patient
+                    <span className="block text-[11px] text-slate-400">
+                      Register the patient under the day they were actually seen. Tests still go to the lab now.
+                    </span>
+                  </span>
+                </label>
+                {isBackdated && visitDate ? (
+                  <div className="flex items-center justify-between rounded bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
+                    <span>Registering for {new Date(`${visitDate}T12:00:00`).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+                    <button
+                      type="button"
+                      className="font-medium underline"
+                      onClick={() => {
+                        setBackdateDraft(visitDate);
+                        setShowBackdateDialog(true);
+                      }}
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-between">
@@ -1188,6 +1307,60 @@ export function NewPatientForm() {
           </div>
         </div>
       </div>
+
+      {showBackdateDialog ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg">
+            <h3 className="text-sm font-semibold text-slate-800">Which day was this patient seen?</h3>
+            <p className="mt-1 text-[11px] text-slate-500">
+              The patient, their revenue and their payments are recorded on this day. The tests are still sent to the
+              lab now.
+            </p>
+            <input
+              type="date"
+              className={`${inputCls} mt-3`}
+              value={backdateDraft}
+              max={todayKey}
+              min={earliestBackdateKey}
+              onChange={(e) => setBackdateDraft(e.target.value)}
+            />
+            {backdateDraft && backdateDraft > todayKey ? (
+              <p className="mt-1.5 text-[11px] text-red-600">The visit date cannot be in the future.</p>
+            ) : null}
+            {backdateDraft && backdateDraft < earliestBackdateKey ? (
+              <p className="mt-1.5 text-[11px] text-red-600">
+                The visit date cannot be more than {MAX_BACKDATE_DAYS} days in the past.
+              </p>
+            ) : null}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+                onClick={() => {
+                  setShowBackdateDialog(false);
+                  if (!visitDate) setIsBackdated(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+                disabled={
+                  !backdateDraft || backdateDraft > todayKey || backdateDraft < earliestBackdateKey
+                }
+                onClick={() => {
+                  setVisitDate(backdateDraft);
+                  setIsBackdated(true);
+                  setShowBackdateDialog(false);
+                }}
+              >
+                Use this date
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

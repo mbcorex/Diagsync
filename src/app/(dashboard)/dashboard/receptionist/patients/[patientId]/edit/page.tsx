@@ -35,6 +35,10 @@ export default async function EditReceptionPatientPage({
               },
             },
           },
+          payments: {
+            orderBy: { createdAt: "asc" },
+            include: { recordedBy: { select: { fullName: true } } },
+          },
         },
       },
     },
@@ -97,6 +101,15 @@ export default async function EditReceptionPatientPage({
           paymentMethod: latestVisit.paymentMethod,
           notes: latestVisit.notes,
         }}
+        payments={latestVisit.payments.map((entry) => ({
+          id: entry.id,
+          amount: Number(entry.amount),
+          paymentMethod: entry.paymentMethod,
+          paymentType: entry.paymentType,
+          notes: entry.notes,
+          createdAt: entry.createdAt.toISOString(),
+          recordedByName: entry.recordedBy.fullName,
+        }))}
         tests={latestVisit.testOrders.map((order) => ({
           orderId: order.id,
           status: order.status,

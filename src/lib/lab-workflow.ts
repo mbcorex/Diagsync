@@ -261,8 +261,10 @@ export async function getLabTasks(actor: LabActor, opts?: {
               normalMin: field.normalMin,
               normalMax: field.normalMax,
               normalText: (field as any).normalText ?? null,
+              referenceNote: (field as any).referenceNote ?? null,
             })),
-            (result.resultData ?? {}) as Record<string, unknown>
+            (result.resultData ?? {}) as Record<string, unknown>,
+            { sex: task.visit.patient.sex, age: task.visit.patient.age }
           ),
         })),
       })),
@@ -488,6 +490,7 @@ export async function saveLabResults(taskId: string, actor: LabActor, inputs: Sa
         normalMin: field.normalMin,
         normalMax: field.normalMax,
         normalText: (field as any).normalText ?? null,
+        referenceNote: (field as any).referenceNote ?? null,
       })),
     ])
   );
@@ -526,7 +529,8 @@ export async function saveLabResults(taskId: string, actor: LabActor, inputs: Sa
       }
       const flags = computeAbnormalFlags(
         orderFieldMap.get(input.testOrderId) ?? [],
-        (input.resultData ?? {}) as Record<string, unknown>
+        (input.resultData ?? {}) as Record<string, unknown>,
+        { sex: task.visit.patient.sex, age: task.visit.patient.age }
       );
       const flagged = Object.entries(flags)
         .filter(([, status]) => status === "LOW" || status === "HIGH" || status === "ABNORMAL")

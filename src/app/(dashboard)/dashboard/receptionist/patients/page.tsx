@@ -7,6 +7,13 @@ import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { DayRolloverRefresh } from "@/components/receptionist/day-rollover-refresh";
 import { DeletePatientButton } from "@/components/receptionist/delete-patient-button";
 import { formatPatientAge } from "@/lib/patient-age";
+import {
+  PAYMENT_METHOD_BREAKDOWN_KEYS,
+  PAYMENT_METHOD_LABELS,
+  collectedByPaymentMethod,
+  normalizePaymentMethodKey,
+  paymentMethodLabel,
+} from "@/lib/payment-methods";
 
 type DaySummary = {
   key: string;
@@ -26,6 +33,7 @@ type DaySummary = {
           priority: string;
           paymentStatus: string;
           paymentMethod: string | null;
+          paymentMethodSummary: string;
           totalAmount: number;
           amountPaid: number;
           testOrders: Array<{ id: string; test: { name: string } }>;
@@ -77,20 +85,14 @@ function formatDayLabel(dayKey: string) {
   });
 }
 
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  CASH: "Cash",
-  TRANSFER: "Transfer",
-  POS: "POS / Card",
-  HMO: "HMO / Insurance",
-  OTHER: "Other",
-  UNKNOWN: "Unknown",
-};
-
-const PAYMENT_METHOD_KEYS = ["CASH", "TRANSFER", "POS", "HMO", "OTHER", "UNKNOWN"] as const;
-
-function normalizePaymentMethodKey(value?: string | null) {
-  const key = `${value ?? ""}`.trim().toUpperCase();
-  return PAYMENT_METHOD_KEYS.includes(key as (typeof PAYMENT_METHOD_KEYS)[number]) ? key : "UNKNOWN";
+/** "Cash", or "Cash + Transfer" when a visit was settled with more than one method. */
+function summarizeMethodsForRow(perMethod: Record<string, number>, visitMethod?: string | null) {
+  const used = Object.entries(perMethod)
+    .filter(([, amount]) => Math.abs(amount) > 0.0001)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key]) => PAYMENT_METHOD_LABELS[key] ?? PAYMENT_METHOD_LABELS.UNKNOWN);
+  if (used.length === 0) return paymentMethodLabel(visitMethod);
+  return used.join(" + ");
 }
 
 export default async function PatientsListPage({
@@ -139,6 +141,10 @@ export default async function PatientsListPage({
           take: 1,
           include: {
             testOrders: { select: { id: true, test: { select: { name: true } } } },
+            payments: {
+              select: { amount: true, paymentMethod: true, paymentType: true },
+              orderBy: { createdAt: "asc" },
+            },
           },
         },
       },
@@ -168,7 +174,7 @@ export default async function PatientsListPage({
       totalBilled: 0,
       totalPaid: 0,
       totalTests: 0,
-      collectedByMethod: { CASH: 0, TRANSFER: 0, POS: 0, HMO: 0, OTHER: 0, UNKNOWN: 0 },
+      collectedByMethod: Object.fromEntries(PAYMENT_METHOD_BREAKDOWN_KEYS.map((method) => [method, 0])),
     });
   }
 
@@ -181,11 +187,20 @@ export default async function PatientsListPage({
     const billed = Number(visit.totalAmount);
     const paid = Number(visit.amountPaid);
     const testCount = visit?.testOrders.length ?? 0;
-    const paymentMethodKey = normalizePaymentMethodKey(visit.paymentMethod);
+    const perMethod = collectedByPaymentMethod(
+      visit.payments.map((row) => ({
+        amount: Number(row.amount),
+        paymentMethod: row.paymentMethod,
+        paymentType: row.paymentType,
+      })),
+      { amountPaid: paid, paymentMethod: visit.paymentMethod }
+    );
     bucket.totalBilled += billed;
     bucket.totalPaid += paid;
     bucket.totalTests += testCount;
-    bucket.collectedByMethod[paymentMethodKey] = (bucket.collectedByMethod[paymentMethodKey] ?? 0) + paid;
+    for (const [methodKey, methodAmount] of Object.entries(perMethod)) {
+      bucket.collectedByMethod[methodKey] = (bucket.collectedByMethod[methodKey] ?? 0) + methodAmount;
+    }
     bucket.rows.push({
       id: patient.id,
       fullName: patient.fullName,
@@ -201,6 +216,7 @@ export default async function PatientsListPage({
         priority: visit.priority,
         paymentStatus: visit.paymentStatus,
         paymentMethod: visit.paymentMethod ?? null,
+        paymentMethodSummary: summarizeMethodsForRow(perMethod, visit.paymentMethod),
         totalAmount: Number(visit.totalAmount),
         amountPaid: Number(visit.amountPaid),
         testOrders: visit.testOrders,
@@ -380,10 +396,11 @@ export default async function PatientsListPage({
                           {row.latestVisit ? (
                             <span
                               className={`rounded px-1.5 py-0.5 font-medium ${
-                                paymentMethodStyle[normalizePaymentMethodKey(row.latestVisit.paymentMethod)] ?? "bg-slate-100 text-slate-500"
+                                paymentMethodStyle[normalizePaymentMethodKey(row.latestVisit.paymentMethod)] ??
+                                "bg-slate-100 text-slate-700"
                               }`}
                             >
-                              {PAYMENT_METHOD_LABELS[normalizePaymentMethodKey(row.latestVisit.paymentMethod)]}
+                              {row.latestVisit.paymentMethodSummary}
                             </span>
                           ) : "-"}
                         </td>
@@ -436,23 +453,13 @@ export default async function PatientsListPage({
                       <td colSpan={canEditPatient || canDeletePatient ? 6 : 5} className="px-4 py-2.5 text-slate-500">
                         <div className="flex flex-wrap items-center gap-2">
                           <span>{section.totalTests} test{section.totalTests !== 1 ? "s" : ""} registered</span>
-                          {(["CASH", "TRANSFER", "POS", "HMO"] as const).map((method) =>
-                            section.collectedByMethod[method] > 0 ? (
+                          {PAYMENT_METHOD_BREAKDOWN_KEYS.map((method) =>
+                            Math.abs(section.collectedByMethod[method] ?? 0) > 0.0001 ? (
                               <span key={`${section.key}-${method}`} className="rounded bg-white px-2 py-0.5 text-slate-600 border border-slate-200">
                                 {PAYMENT_METHOD_LABELS[method]}: {formatCurrency(section.collectedByMethod[method])}
                               </span>
                             ) : null
                           )}
-                          {section.collectedByMethod.OTHER > 0 ? (
-                            <span className="rounded bg-white px-2 py-0.5 text-slate-600 border border-slate-200">
-                              Other: {formatCurrency(section.collectedByMethod.OTHER)}
-                            </span>
-                          ) : null}
-                          {section.collectedByMethod.UNKNOWN > 0 ? (
-                            <span className="rounded bg-white px-2 py-0.5 text-slate-600 border border-slate-200">
-                              Unknown: {formatCurrency(section.collectedByMethod.UNKNOWN)}
-                            </span>
-                          ) : null}
                         </div>
                       </td>
                     </tr>

@@ -18,6 +18,13 @@ export type OfflinePatientPayload = {
   amountPaid: number;
   discount: number;
   paymentMethod?: string;
+  payments?: Array<{
+    amount: number;
+    method: "CASH" | "TRANSFER" | "POS" | "HMO" | "OTHER";
+    notes?: string;
+  }>;
+  /** YYYY-MM-DD when the patient was actually seen on an earlier day. */
+  visitDate?: string;
   notes?: string;
   testIds: string[];
   testPrices: Array<{

@@ -6,6 +6,14 @@ import { Search, Plus, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/index";
 import { formatCurrency } from "@/lib/utils";
 import { UpgradeHint } from "@/components/billing/upgrade-hint";
+import {
+  PAYMENT_METHOD_BREAKDOWN_KEYS,
+  PAYMENT_METHOD_KEYS,
+  PAYMENT_METHOD_LABELS,
+  collectedByPaymentMethod,
+  paymentMethodLabel,
+  type PaymentMethodKey,
+} from "@/lib/payment-methods";
 
 type Sex = "MALE" | "FEMALE" | "OTHER";
 type Priority = "ROUTINE" | "URGENT" | "EMERGENCY";
@@ -65,6 +73,15 @@ interface Props {
     paymentMethod?: string | null;
     notes?: string | null;
   };
+  payments: Array<{
+    id: string;
+    amount: number;
+    paymentMethod?: string | null;
+    paymentType: string;
+    notes?: string | null;
+    createdAt: string;
+    recordedByName: string;
+  }>;
   tests: Array<{
     orderId: string;
     status: string;
@@ -135,11 +152,29 @@ function isUpgradeRelatedMessage(message: string) {
   );
 }
 
+const paymentEntryLabel: Record<string, string> = {
+  PAYMENT: "Payment",
+  REFUND: "Refund",
+  ADJUSTMENT: "Adjustment",
+};
+
+/** REFUND and ADJUSTMENT rows are only ever written to reduce what the patient has paid. */
+function signedPaymentAmount(entry: { amount: number; paymentType: string }) {
+  return entry.paymentType === "PAYMENT" ? entry.amount : -Math.abs(entry.amount);
+}
+
 const inputCls =
   "h-8 w-full rounded border border-slate-200 bg-white px-2.5 text-xs text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelCls = "block text-[11px] font-medium text-slate-500 mb-1";
 
-export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
+type NewPaymentDraft = {
+  key: string;
+  amount: string;
+  method: PaymentMethodKey;
+  entryType: "PAYMENT" | "REFUND";
+};
+
+export function EditPatientForm({ visitId, patient, visit, payments, tests }: Props) {
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -155,10 +190,12 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
   const [clinicalNote, setClinicalNote] = useState(patient.clinicalNote ?? "");
 
   const [priority, setPriority] = useState<Priority>(visit.priority);
-  const [amountPaid, setAmountPaid] = useState(String(visit.amountPaid));
   const [discount, setDiscount] = useState(String(visit.discount));
-  const [paymentMethod, setPaymentMethod] = useState(visit.paymentMethod ?? "");
   const [visitNotes, setVisitNotes] = useState(visit.notes ?? "");
+  const [newPayments, setNewPayments] = useState<NewPaymentDraft[]>([]);
+  const [newPaymentAmount, setNewPaymentAmount] = useState("");
+  const [newPaymentMethod, setNewPaymentMethod] = useState<PaymentMethodKey>("CASH");
+  const [newPaymentType, setNewPaymentType] = useState<"PAYMENT" | "REFUND">("PAYMENT");
 
   const [testSearch, setTestSearch] = useState("");
   const [testResults, setTestResults] = useState<TestResult[]>([]);
@@ -201,8 +238,32 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + toNumber(item.enteredPrice), 0), [cart]);
   const discountAmount = toNumber(discount);
   const totalAmount = Math.max(0, subtotal - discountAmount);
-  const amountPaidNumber = toNumber(amountPaid);
+  const alreadyPaid = visit.amountPaid;
+  const pendingDelta = useMemo(
+    () =>
+      newPayments.reduce(
+        (sum, entry) => sum + (entry.entryType === "REFUND" ? -toNumber(entry.amount) : toNumber(entry.amount)),
+        0
+      ),
+    [newPayments]
+  );
+  const amountPaidNumber = Math.max(0, alreadyPaid + pendingDelta);
   const balance = Math.max(0, totalAmount - amountPaidNumber);
+  const paidByMethod = useMemo(() => {
+    const totals = collectedByPaymentMethod(
+      payments.map((entry) => ({
+        amount: entry.amount,
+        paymentMethod: entry.paymentMethod,
+        paymentType: entry.paymentType,
+      })),
+      { amountPaid: alreadyPaid, paymentMethod: visit.paymentMethod }
+    );
+    for (const entry of newPayments) {
+      const amount = toNumber(entry.amount);
+      totals[entry.method] = (totals[entry.method] ?? 0) + (entry.entryType === "REFUND" ? -amount : amount);
+    }
+    return totals;
+  }, [payments, newPayments, alreadyPaid, visit.paymentMethod]);
 
   const paymentStatus: PaymentStatus = useMemo(() => {
     if (totalAmount <= 0) return "PAID";
@@ -420,8 +481,12 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
           priority,
           amountPaid: amountPaidNumber,
           discount: discountAmount,
-          paymentMethod: paymentMethod || undefined,
           notes: visitNotes.trim() || undefined,
+          newPayments: newPayments.map((entry) => ({
+            amount: toNumber(entry.amount),
+            method: entry.method,
+            entryType: entry.entryType,
+          })),
         },
         tests: cart.map((item) => ({ testId: item.id, price: toNumber(item.enteredPrice) })),
       };
@@ -437,7 +502,12 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
         return;
       }
 
-      setSuccess("Patient updates saved. Added tests were routed to lab automatically.");
+      setSuccess(
+        newPayments.length > 0
+          ? `Patient updates saved. ${newPayments.length} payment entr${newPayments.length === 1 ? "y" : "ies"} recorded. Added tests were routed to lab automatically.`
+          : "Patient updates saved. Added tests were routed to lab automatically."
+      );
+      setNewPayments([]);
       router.refresh();
     } catch {
       setError("Network error while saving patient updates.");
@@ -751,22 +821,123 @@ export function EditPatientForm({ visitId, patient, visit, tests }: Props) {
                 <label className={labelCls}>Discount (N)</label>
                 <input className={inputCls} type="number" min="0" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               </div>
-              <div>
-                <label className={labelCls}>Amount Paid (N)</label>
-                <input className={inputCls} type="number" min="0" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} />
-              </div>
-              <div>
-                <label className={labelCls}>Payment Method</label>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CASH">Cash</SelectItem>
-                    <SelectItem value="TRANSFER">Transfer</SelectItem>
-                    <SelectItem value="POS">POS / Card</SelectItem>
-                    <SelectItem value="HMO">HMO / Insurance</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="rounded border border-slate-200 bg-white p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Payments</span>
+                  <span className="text-xs font-semibold text-slate-800">{formatCurrency(amountPaidNumber)} paid</span>
+                </div>
+
+                {payments.length === 0 && newPayments.length === 0 ? (
+                  <p className="text-[11px] text-slate-400">
+                    {alreadyPaid > 0
+                      ? `${formatCurrency(alreadyPaid)} recorded before payments were itemised${visit.paymentMethod ? ` (${paymentMethodLabel(visit.paymentMethod)})` : ""}.`
+                      : "No payment recorded yet."}
+                  </p>
+                ) : (
+                  <ul className="space-y-1">
+                    {payments.map((entry) => (
+                      <li key={entry.id} className="flex items-center justify-between gap-2 text-[11px] text-slate-600">
+                        <span className="truncate">
+                          {paymentMethodLabel(entry.paymentMethod)}
+                          <span className="text-slate-400"> · {paymentEntryLabel[entry.paymentType] ?? entry.paymentType}</span>
+                          <span className="text-slate-400"> · {new Date(entry.createdAt).toLocaleDateString()}</span>
+                        </span>
+                        <span className={signedPaymentAmount(entry) < 0 ? "text-red-600" : "text-slate-800"}>
+                          {formatCurrency(signedPaymentAmount(entry))}
+                        </span>
+                      </li>
+                    ))}
+                    {newPayments.map((entry) => (
+                      <li key={entry.key} className="flex items-center justify-between gap-2 rounded bg-blue-50 px-1.5 py-1 text-[11px] text-blue-700">
+                        <span className="truncate">
+                          {paymentMethodLabel(entry.method)}
+                          <span className="text-blue-400"> · {paymentEntryLabel[entry.entryType]} · unsaved</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span>
+                            {formatCurrency(entry.entryType === "REFUND" ? -toNumber(entry.amount) : toNumber(entry.amount))}
+                          </span>
+                          <button
+                            type="button"
+                            className="text-blue-400 hover:text-red-600"
+                            onClick={() => setNewPayments((prev) => prev.filter((row) => row.key !== entry.key))}
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="border-t border-slate-100 pt-2">
+                  <label className={labelCls}>Record a payment</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    <input
+                      className={`${inputCls} flex-1 min-w-[90px]`}
+                      type="number"
+                      min="0"
+                      placeholder="Amount"
+                      value={newPaymentAmount}
+                      onChange={(e) => setNewPaymentAmount(e.target.value)}
+                    />
+                    <div className="min-w-[110px] flex-1">
+                      <Select value={newPaymentMethod} onValueChange={(v) => setNewPaymentMethod(v as PaymentMethodKey)}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_METHOD_KEYS.map((method) => (
+                            <SelectItem key={method} value={method}>{PAYMENT_METHOD_LABELS[method]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="min-w-[100px] flex-1">
+                      <Select value={newPaymentType} onValueChange={(v) => setNewPaymentType(v as "PAYMENT" | "REFUND")}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PAYMENT">Payment</SelectItem>
+                          <SelectItem value="REFUND">Refund</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <button
+                      type="button"
+                      className="h-8 rounded bg-slate-800 px-3 text-xs font-medium text-white hover:bg-slate-900 disabled:opacity-40"
+                      disabled={toNumber(newPaymentAmount) <= 0}
+                      onClick={() => {
+                        const amount = toNumber(newPaymentAmount);
+                        if (amount <= 0) return;
+                        setNewPayments((prev) => [
+                          ...prev,
+                          {
+                            key: `${Date.now()}-${prev.length}`,
+                            amount: String(amount),
+                            method: newPaymentMethod,
+                            entryType: newPaymentType,
+                          },
+                        ]);
+                        setNewPaymentAmount("");
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Each entry keeps its own method, so a part payment in cash and the balance by transfer are both recorded. Entries are saved when you save changes.
+                  </p>
+                </div>
+
+                {Object.entries(paidByMethod).some(([, amount]) => Math.abs(amount) > 0.0001) ? (
+                  <div className="flex flex-wrap gap-1.5 border-t border-slate-100 pt-2">
+                    {PAYMENT_METHOD_BREAKDOWN_KEYS.map((method) =>
+                      Math.abs(paidByMethod[method] ?? 0) > 0.0001 ? (
+                        <span key={method} className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] text-slate-600">
+                          {PAYMENT_METHOD_LABELS[method]}: {formatCurrency(paidByMethod[method])}
+                        </span>
+                      ) : null
+                    )}
+                  </div>
+                ) : null}
               </div>
               <div>
                 <label className={labelCls}>Visit Notes</label>

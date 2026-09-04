@@ -22,6 +22,7 @@ import { formatReferenceDisplay } from "./reference-ranges";
 import { extractSignOffEntriesFromMap, stripSignOffKeys } from "./report-signoff";
 import { canUseCustomLetterhead, shouldShowWatermark } from "./billing-access";
 import { parseRadiologyPerTestSections } from "./radiology-report-sections";
+import { mergeReportContent } from "./report-merge-core";
 
 export type ReportActor = {
   id: string;
@@ -120,6 +121,11 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     },
   };
 
+  const patientReferenceContext = {
+    sex: task.visit.patient.sex as string,
+    age: task.visit.patient.age,
+  };
+
   if (task.department === Department.LABORATORY) {
     let signOffEntries: Array<{ signatureImage: string; signatureName: string }> = [];
     const tests = task.results
@@ -137,17 +143,21 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
           name: field.label,
           value: currentData[field.fieldKey] ?? "",
           unit: field.unit ?? "",
-          reference: formatReferenceDisplay({
-            fieldKey: field.fieldKey,
-            fieldType: field.fieldType,
-            unit: field.unit,
-            normalMin: field.normalMin as any,
-            normalMax: field.normalMax as any,
-            normalText: (field as any).normalText ?? null,
-            referenceNote: (field as any).referenceNote ?? null,
-          }),
+          reference: formatReferenceDisplay(
+            {
+              fieldKey: field.fieldKey,
+              fieldType: field.fieldType,
+              unit: field.unit,
+              normalMin: field.normalMin as any,
+              normalMax: field.normalMax as any,
+              normalText: (field as any).normalText ?? null,
+              referenceNote: (field as any).referenceNote ?? null,
+            },
+            patientReferenceContext
+          ),
         }));
         return {
+          testOrderId: result.testOrderId,
           name: result.testOrder.test.name,
           rows,
         };
@@ -200,6 +210,7 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
   }
 
   const tests = radiologyTests.map((order) => ({
+    testOrderId: order.id,
     name: order.test.name,
     findings: perTestMap.get(order.id)?.findings ?? activeReportVersion?.findings ?? report?.findings ?? "",
     impression: perTestMap.get(order.id)?.impression ?? activeReportVersion?.impression ?? report?.impression ?? "",
@@ -315,6 +326,26 @@ export async function ensureDraftReportForTask(taskId: string, actor: ReportActo
   });
   if (!task) throw new Error("TASK_NOT_FOUND");
 
+  const existingReport = await prisma.diagnosticReport.findUnique({
+    where: {
+      visitId_department: {
+        visitId: task.visitId,
+        department: built.department,
+      },
+    },
+    select: { id: true, reportContent: true, isReleased: true, status: true },
+  });
+
+  // A report that was already released must absorb the newly approved test and drop back to
+  // draft, so HRM releases one combined report holding both the old and the new tests.
+  const wasReleased = Boolean(
+    existingReport && (existingReport.isReleased || existingReport.status === ReportStatus.RELEASED)
+  );
+  const mergedContent = existingReport
+    ? mergeReportContent(existingReport.reportContent, built.content as Record<string, any>)
+    : (built.content as Record<string, any>);
+  assertContentMatchesDepartment(mergedContent, built.department);
+
   const report = await prisma.diagnosticReport.upsert({
     where: {
       visitId_department: {
@@ -340,21 +371,25 @@ export async function ensureDraftReportForTask(taskId: string, actor: ReportActo
       sourceTaskId: task.id,
       department: built.department,
       reportType: built.reportType,
-      reportContent: built.content as any,
+      reportContent: mergedContent as any,
       lastEditedById: actor.id,
       lastEditedAt: new Date(),
       lastActionAt: new Date(),
+      status: ReportStatus.DRAFT,
+      isReleased: false,
+      releasedAt: null,
+      releasedById: null,
+      ...(wasReleased ? { releaseInstructions: null } : {}),
     },
     include: { visit: { include: { patient: true } } },
   });
 
-  const existingVersions = await prisma.diagnosticReportVersion.findMany({
+  const latestVersion = await prisma.diagnosticReportVersion.findFirst({
     where: { reportId: report.id },
     orderBy: { version: "desc" },
-    take: 1,
   });
 
-  if (existingVersions.length === 0) {
+  if (!latestVersion) {
     await prisma.diagnosticReportVersion.create({
       data: {
         reportId: report.id,
@@ -368,17 +403,52 @@ export async function ensureDraftReportForTask(taskId: string, actor: ReportActo
         editReason: "Initial report draft from approved case",
       },
     });
+  } else if (JSON.stringify(latestVersion.content ?? null) !== JSON.stringify(report.reportContent ?? null)) {
+    const activeVersion = await prisma.diagnosticReportVersion.findFirst({
+      where: { reportId: report.id, isActive: true },
+      orderBy: { version: "desc" },
+    });
+    await prisma.$transaction(async (tx) => {
+      await tx.diagnosticReportVersion.updateMany({
+        where: { reportId: report.id, isActive: true },
+        data: { isActive: false },
+      });
+      await tx.diagnosticReportVersion.create({
+        data: {
+          reportId: report.id,
+          version: latestVersion.version + 1,
+          content: report.reportContent as any,
+          comments: report.comments,
+          prescription: report.prescription,
+          isActive: true,
+          parentId: (activeVersion ?? latestVersion).id,
+          editedById: actor.id,
+          editReason: wasReleased
+            ? "Newly approved test merged into an already released report"
+            : "Newly approved test merged into report draft",
+        },
+      });
+    });
+  }
+
+  if (wasReleased) {
+    await prisma.visit.updateMany({
+      where: { id: task.visitId, organizationId: actor.organizationId, status: VisitStatus.COMPLETED },
+      data: { status: VisitStatus.ACTIVE },
+    });
   }
 
   await sendNotificationToRoles({
     organizationId: actor.organizationId,
     roles: [Role.HRM, Role.SUPER_ADMIN],
     type: NotificationType.REPORT_READY_FOR_REVIEW,
-    title: "Report ready for HRM review",
-    message: `${getReportLabel(report.department)} for ${report.visit.patient.fullName} is ready.`,
+    title: wasReleased ? "Released report reopened with a new test" : "Report ready for HRM review",
+    message: wasReleased
+      ? `${getReportLabel(report.department)} for ${report.visit.patient.fullName} now includes a newly approved test and must be released again.`
+      : `${getReportLabel(report.department)} for ${report.visit.patient.fullName} is ready.`,
     entityId: report.id,
     entityType: "DiagnosticReport",
-    dedupeKeyPrefix: `report-ready:${report.id}`,
+    dedupeKeyPrefix: `report-ready:${report.id}:${task.id}`,
   });
 
   return report;

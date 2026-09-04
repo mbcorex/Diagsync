@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { OrderStatus, PaymentEntryType, PaymentStatus, Priority, Role, Sex } from "@prisma/client";
+import { OrderStatus, PaymentEntryType, PaymentStatus, Priority, Role, Sex, VisitStatus } from "@prisma/client";
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/audit";
 import { assignTasksForVisit } from "@/lib/routing-engine";
 import { canUseCardiology, canUseRadiology } from "@/lib/billing-access";
 import { requireOrganizationCoreAccess } from "@/lib/billing-service";
+import { PAYMENT_METHOD_KEYS, summarizeVisitPaymentMethod } from "@/lib/payment-methods";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,19 @@ const updateVisitSchema = z.object({
     discount: z.number().min(0),
     paymentMethod: z.string().optional(),
     notes: z.string().optional(),
+    // Each instalment carries its own method, so a visit part-paid in cash and completed by
+    // transfer records two entries instead of one method overwriting the other.
+    newPayments: z
+      .array(
+        z.object({
+          amount: z.number().positive("Payment amount must be greater than zero"),
+          method: z.enum(PAYMENT_METHOD_KEYS),
+          entryType: z.enum(["PAYMENT", "REFUND"]).default("PAYMENT"),
+          notes: z.string().optional(),
+        })
+      )
+      .max(20)
+      .optional(),
   }),
   tests: z
     .array(
@@ -191,7 +205,31 @@ export async function PATCH(
     const priceMap = new Map(data.tests.map((row) => [row.testId, row.price]));
     const subtotal = data.tests.reduce((sum, row) => sum + row.price, 0);
     const totalAmount = Math.max(0, subtotal - data.visit.discount);
-    const paymentStatus = computePaymentStatus(totalAmount, data.visit.amountPaid);
+
+    const newPayments = data.visit.newPayments ?? [];
+    const oldAmountPaidValue = Number(visit.amountPaid);
+    const newPaymentsDelta = newPayments.reduce(
+      (sum, entry) => sum + (entry.entryType === "REFUND" ? -entry.amount : entry.amount),
+      0
+    );
+    // Itemised instalments are authoritative when present; otherwise fall back to the plain
+    // "amount paid" figure so older clients keep working.
+    const nextAmountPaid =
+      newPayments.length > 0
+        ? Math.max(0, oldAmountPaidValue + newPaymentsDelta)
+        : data.visit.amountPaid;
+    const paymentStatus = computePaymentStatus(totalAmount, nextAmountPaid);
+
+    const priorPayments = await prisma.visitPayment.findMany({
+      where: { visitId: visit.id, organizationId: user.organizationId },
+      select: { paymentMethod: true },
+    });
+    const nextVisitPaymentMethod = summarizeVisitPaymentMethod([
+      ...priorPayments.map((row) => row.paymentMethod),
+      ...(priorPayments.length === 0 && oldAmountPaidValue > 0 ? [visit.paymentMethod] : []),
+      ...newPayments.map((entry) => entry.method),
+      ...(newPayments.length === 0 ? [data.visit.paymentMethod?.trim() || null] : []),
+    ]);
 
     const existingByTestId = new Map(visit.testOrders.map((row) => [row.testId, row]));
     const requestedTestIds = new Set(data.tests.map((row) => row.testId));
@@ -200,8 +238,8 @@ export async function PATCH(
     const keptOrders = visit.testOrders.filter((row) => requestedTestIds.has(row.testId));
     const addedTestIds = Array.from(requestedTestIds).filter((testId) => !existingByTestId.has(testId));
     const removedOrderIds = removedOrders.map((row) => row.id);
-    const oldAmountPaid = Number(visit.amountPaid);
-    const paymentDelta = data.visit.amountPaid - oldAmountPaid;
+    const oldAmountPaid = oldAmountPaidValue;
+    const paymentDelta = nextAmountPaid - oldAmountPaid;
 
     const updated = await prisma.$transaction(async (tx) => {
       await tx.patient.update({
@@ -301,14 +339,37 @@ export async function PATCH(
           priority: data.visit.priority,
           discount: data.visit.discount,
           totalAmount,
-          amountPaid: data.visit.amountPaid,
-          paymentMethod: data.visit.paymentMethod?.trim() || null,
+          amountPaid: nextAmountPaid,
+          paymentMethod: nextVisitPaymentMethod,
           notes: data.visit.notes?.trim() || null,
           paymentStatus,
+          // Adding tests to a visit that was closed out puts it back in play.
+          ...(addedTestIds.length > 0 && visit.status === VisitStatus.COMPLETED
+            ? { status: VisitStatus.ACTIVE }
+            : {}),
         },
       });
 
-      if (Math.abs(paymentDelta) > 0.0001) {
+      if (newPayments.length > 0) {
+        for (const entry of newPayments) {
+          await tx.visitPayment.create({
+            data: {
+              organizationId: user.organizationId,
+              visitId: visit.id,
+              recordedById: user.id,
+              amount: entry.amount,
+              paymentType:
+                entry.entryType === "REFUND" ? PaymentEntryType.REFUND : PaymentEntryType.PAYMENT,
+              paymentMethod: entry.method,
+              notes:
+                entry.notes?.trim() ||
+                (entry.entryType === "REFUND"
+                  ? "Refund recorded from receptionist edit page"
+                  : "Payment recorded from receptionist edit page"),
+            },
+          });
+        }
+      } else if (Math.abs(paymentDelta) > 0.0001) {
         await tx.visitPayment.create({
           data: {
             organizationId: user.organizationId,
@@ -356,7 +417,13 @@ export async function PATCH(
         tests: visit.testOrders.map((row) => ({ id: row.testId, name: row.test.name, status: row.status })),
       },
       newValue: {
-        amountPaid: data.visit.amountPaid,
+        amountPaid: nextAmountPaid,
+        paymentMethod: nextVisitPaymentMethod,
+        recordedPayments: newPayments.map((entry) => ({
+          amount: entry.amount,
+          method: entry.method,
+          entryType: entry.entryType,
+        })),
         paymentStatus,
         addedTests: updated.addedTestIds
           .map((id) => testMap.get(id)?.name ?? null)

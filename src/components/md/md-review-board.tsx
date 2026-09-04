@@ -542,7 +542,12 @@ export function MdReviewBoard({
                                               (field) => field.fieldKey === fieldKey
                                             );
                                             const valueText = String(rawValue);
-                                            const referenceText = fieldMeta ? formatReferenceDisplay(fieldMeta) : "";
+                                            const referenceText = fieldMeta
+                                              ? formatReferenceDisplay(fieldMeta, {
+                                                  sex: item.visit.patient.sex,
+                                                  age: item.visit.patient.age,
+                                                })
+                                              : "";
                                             return {
                                               fieldKey,
                                               label: fieldMeta?.label ?? fieldKey,

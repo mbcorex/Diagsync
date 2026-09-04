@@ -7,6 +7,8 @@ import { createAuditLog, AUDIT_ACTIONS } from "@/lib/audit";
 import { assignTasksForVisit } from "@/lib/routing-engine";
 import { canUseCardiology, canUseRadiology } from "@/lib/billing-access";
 import { requireOrganizationCoreAccess } from "@/lib/billing-service";
+import { PAYMENT_METHOD_KEYS, summarizeVisitPaymentMethod } from "@/lib/payment-methods";
+import { resolveBackdatedVisitDate } from "@/lib/visit-dating";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,24 @@ const registerPatientSchema = z.object({
   discount: z.number().min(0).default(0),
   paymentMethod: z.string().optional(),
   notes: z.string().optional(),
+  // Set when the patient was actually seen on an earlier day and is only being entered now.
+  // Revenue and the day the patient is listed under follow this date; the tests still route
+  // to the lab immediately.
+  visitDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Visit date must be in YYYY-MM-DD format")
+    .optional(),
+  // Registration can already be split across methods (e.g. part cash, part transfer).
+  payments: z
+    .array(
+      z.object({
+        amount: z.number().positive("Payment amount must be greater than zero"),
+        method: z.enum(PAYMENT_METHOD_KEYS),
+        notes: z.string().optional(),
+      })
+    )
+    .max(20)
+    .optional(),
 
   // Test orders
   testIds: z.array(z.string()).min(1, "At least one test is required"),
@@ -265,6 +285,23 @@ export async function POST(req: NextRequest) {
     const subtotal = data.testIds.reduce((sum, testId) => sum + (submittedPrices.get(testId) ?? 0), 0);
     const totalAmount = Math.max(0, subtotal - data.discount);
 
+    let backdatedAt: Date | null = null;
+    if (data.visitDate) {
+      const resolved = resolveBackdatedVisitDate(data.visitDate);
+      if (!resolved.ok) {
+        return NextResponse.json({ success: false, error: resolved.error }, { status: 400 });
+      }
+      backdatedAt = resolved.date;
+    }
+
+    const payments = data.payments ?? [];
+    const itemisedPaid = payments.reduce((sum, entry) => sum + entry.amount, 0);
+    const amountPaid = payments.length > 0 ? itemisedPaid : data.amountPaid;
+    const visitPaymentMethod =
+      payments.length > 0
+        ? summarizeVisitPaymentMethod(payments.map((entry) => entry.method))
+        : data.paymentMethod || null;
+
     const result = await prisma.$transaction(async (tx) => {
       const orgAbbr = user.organizationId.slice(0, 3).toUpperCase();
 
@@ -283,6 +320,7 @@ export async function POST(req: NextRequest) {
           referringDoctor: data.referringDoctor || null,
           clinicalNote: data.clinicalNote || null,
           registeredById: user.id,
+          ...(backdatedAt ? { createdAt: backdatedAt } : {}),
         },
       });
 
@@ -300,10 +338,11 @@ export async function POST(req: NextRequest) {
           priority: data.priority,
           paymentStatus: data.paymentStatus,
           totalAmount,
-          amountPaid: data.amountPaid,
+          amountPaid,
           discount: data.discount,
-          paymentMethod: data.paymentMethod || null,
+          paymentMethod: visitPaymentMethod,
           notes: data.notes || null,
+          ...(backdatedAt ? { registeredAt: backdatedAt } : {}),
         },
       });
 
@@ -318,6 +357,9 @@ export async function POST(req: NextRequest) {
               status: "REGISTERED",
               defaultPrice: Number(test.price ?? 0),
               price: submittedPrices.get(test.id) ?? 0,
+              // Revenue is attributed to the day the patient was seen; the workflow
+              // timestamps (assignedAt, completedAt, ...) stay on real time.
+              ...(backdatedAt ? { registeredAt: backdatedAt } : {}),
               ...(Math.abs((submittedPrices.get(test.id) ?? 0) - Number(test.price ?? 0)) > 0.0001
                 ? {
                     priceOverriddenById: user.id,
@@ -329,16 +371,32 @@ export async function POST(req: NextRequest) {
         )
       );
 
-      if (data.amountPaid > 0) {
+      if (payments.length > 0) {
+        for (const entry of payments) {
+          await tx.visitPayment.create({
+            data: {
+              organizationId: user.organizationId,
+              visitId: visit.id,
+              recordedById: user.id,
+              amount: entry.amount,
+              paymentType: PaymentEntryType.PAYMENT,
+              paymentMethod: entry.method,
+              notes: entry.notes?.trim() || "Payment at registration",
+              ...(backdatedAt ? { createdAt: backdatedAt } : {}),
+            },
+          });
+        }
+      } else if (amountPaid > 0) {
         await tx.visitPayment.create({
           data: {
             organizationId: user.organizationId,
             visitId: visit.id,
             recordedById: user.id,
-            amount: data.amountPaid,
+            amount: amountPaid,
             paymentType: PaymentEntryType.PAYMENT,
-            paymentMethod: data.paymentMethod || null,
+            paymentMethod: visitPaymentMethod,
             notes: "Initial payment at registration",
+            ...(backdatedAt ? { createdAt: backdatedAt } : {}),
           },
         });
       }
@@ -372,7 +430,13 @@ export async function POST(req: NextRequest) {
         visitNumber: result.visit.visitNumber,
         tests: tests.map((t) => t.name),
         totalAmount,
+        amountPaid,
+        paymentMethod: visitPaymentMethod,
+        ...(backdatedAt ? { backdatedTo: backdatedAt.toISOString() } : {}),
       },
+      ...(backdatedAt
+        ? { notes: `Registered as a backdated visit for ${data.visitDate}` }
+        : {}),
     });
 
     return NextResponse.json(
@@ -386,6 +450,9 @@ export async function POST(req: NextRequest) {
           visitNumber: result.visit.visitNumber,
           testOrderIds: result.testOrders.map((o) => o.id),
           totalAmount,
+          amountPaid,
+          visitDate: (backdatedAt ?? result.visit.registeredAt).toISOString(),
+          backdated: Boolean(backdatedAt),
           routing,
           routingWarning,
         },
