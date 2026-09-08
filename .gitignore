@@ -38,3 +38,7 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Data dumps and exports - contain patient data and password hashes
+/CSV/
+/*.sql

@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { getDashboardPath } from "@/lib/utils";
 import { Role } from "@prisma/client";
 
-const publicRoutes = new Set(["/", "/login", "/register", "/offline"]);
+const publicRoutes = new Set(["/", "/login", "/register", "/offline", "/logout"]);
 const AUTH_SECRET =
   process.env.AUTH_SECRET ||
   process.env.NEXTAUTH_SECRET ||
@@ -24,14 +24,12 @@ export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
 
-  const token = await getToken({
-    req,
-    secret: AUTH_SECRET,
-    cookieName:
-      process.env.NODE_ENV === "production"
-        ? "__Secure-authjs.session-token"
-        : "authjs.session-token",
-  });
+  // Auth.js picks the cookie prefix from the auth URL, not from NODE_ENV, so an
+  // https NEXTAUTH_URL yields __Secure- cookies even in dev. Check both names
+  // rather than guessing, or a local run never sees the session it just set.
+  const token =
+    (await getToken({ req, secret: AUTH_SECRET, cookieName: "__Secure-authjs.session-token" })) ??
+    (await getToken({ req, secret: AUTH_SECRET, cookieName: "authjs.session-token" }));
 
   const isPublicRoute =
     publicRoutes.has(pathname) ||
