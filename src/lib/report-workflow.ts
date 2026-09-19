@@ -218,6 +218,7 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     extraFields: { ...(commonExtraFields ?? {}), ...(perTestCustom.get(order.id) ?? {}) },
   }));
   const imagingFiles = task.imagingFiles.map((file) => ({
+    id: file.id,
     url: file.fileUrl,
     name: file.fileName,
     fileType: file.fileType,
@@ -950,6 +951,58 @@ export async function renderReportForPreview(
     activeVersion,
     html,
   };
+}
+
+// Renders the radiographer's *draft* report, so the layout editor can show the
+// real A4 page (letterhead, patient meta, findings) behind the imaging region.
+// renderRadiologyReportForPreview is not usable here: it requires an APPROVED
+// review, which by definition has not happened while the report is being typed.
+export async function renderRadiologyTaskDraftPreview(
+  actor: ReportActor,
+  taskId: string,
+  options?: { layoutEditor?: boolean; baseUrl?: string }
+) {
+  await assertReportCoreAccess(actor);
+
+  const task = await prisma.routingTask.findFirst({
+    where: { id: taskId, organizationId: actor.organizationId, department: Department.RADIOLOGY },
+    select: { id: true },
+  });
+  if (!task) throw new Error("TASK_NOT_FOUND");
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: actor.organizationId },
+  });
+  if (!organization) throw new Error("ORGANIZATION_NOT_FOUND");
+
+  const built = await buildReportContentFromTask(taskId, actor.organizationId);
+  const allowLetterhead = canUseCustomLetterhead(organization);
+
+  const html = renderReportHtml({
+    organization: {
+      name: organization.name,
+      address: organization.address,
+      phone: organization.phone,
+      email: organization.email,
+      logo: organization.logo,
+      website: organization.website,
+      letterheadUrl: organization.letterheadUrl,
+    },
+    department: Department.RADIOLOGY,
+    content: built.content as any,
+    comments: null,
+    prescription: null,
+    mdName: null,
+    watermarkUrl: shouldShowWatermark(organization) ? "/diagsync-watermark.png" : undefined,
+    includeLetterhead: allowLetterhead,
+    letterheadMode: "auto",
+    showPrintButton: false,
+    autoPrint: false,
+    baseUrl: options?.baseUrl,
+    imagingLayoutEditor: options?.layoutEditor === true,
+  });
+
+  return { html };
 }
 
 export async function renderLabTaskReportForPreview(

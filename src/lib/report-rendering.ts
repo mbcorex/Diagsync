@@ -560,46 +560,130 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
 }
 
-function renderImagingSection(imagingFiles: any[], reportDepartment: Department, imagingLayout?: any[]) {
-  if (imagingFiles.length === 0) return "";
-  
-  // Filter only images (PDFs handled separately)
-  const images = imagingFiles.filter(f => f.fileType?.startsWith("image/"));
-  if (images.length === 0) return "";
-  
-  // If imagingLayout is provided, render a positioned canvas using percent coordinates
-  if (Array.isArray(imagingLayout) && imagingLayout.length > 0) {
-    const layoutHtml = imagingLayout
-      .map((item: any, idx: number) => {
-        const found = images.find((i) => i.fileUrl?.includes(item.id) || i.name === item.name || i.fileUrl?.includes(item.name));
-        const src = escapeHtml(found?.url || item.url || item.fileUrl || "");
-        const left = Number(item.x ?? 0);
-        const top = Number(item.y ?? 0);
-        const width = Number(item.w ?? 40);
-        const height = item.h ? Number(item.h) : null;
-        const style = `position:absolute; left:${left}%; top:${top}%; width:${width}%; ${height ? `height:${height}%;` : ""} border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; background:#fff;`;
-        return `
-          <div class="imaging-card" style="${style}">
-            <img src="${src}" style="width:100%; height:100%; object-fit:contain; display:block;" loading="lazy" />
-          </div>
-        `;
-      })
-      .join("");
+// --- Positioned imaging layout -------------------------------------------
+// Every coordinate in an imaging layout item (x / y / w / h) is a percentage
+// of the imaging REGION'S WIDTH. Using one axis for all four keeps the region
+// resolution-independent: its height is simply a fixed ratio of its width, so
+// the editor canvas and the printed page agree no matter how either is scaled.
+// The region is a reserved block in the normal document flow, which is why
+// findings text can never end up underneath an image.
+const IMAGING_MIN_REGION_RATIO = 10;
+const IMAGING_DEFAULT_ASPECT = 0.75;
 
-    return `
-      <section class="imaging-section" style="page-break-before: auto; position: relative;">
-        <h3>Imaging Studies</h3>
-        <div style="position:relative; width:100%; height:600px; border:1px solid transparent;">
-          ${layoutHtml}
-        </div>
-      </section>
-    `;
+function imagingPct(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 1000) / 1000;
+}
+
+function findLayoutImage(images: any[], item: any) {
+  const id = String(item?.id ?? "").trim();
+  if (id) {
+    const byId = images.find((image) => String(image?.id ?? "").trim() === id);
+    if (byId) return byId;
+  }
+  const name = String(item?.name ?? "").trim();
+  if (name) {
+    const byName = images.find(
+      (image) => String(image?.name ?? image?.fileName ?? "").trim() === name
+    );
+    if (byName) return byName;
+  }
+  const url = String(item?.url ?? item?.fileUrl ?? "").trim();
+  if (url) {
+    const byUrl = images.find(
+      (image) => String(image?.url ?? image?.fileUrl ?? "").trim() === url
+    );
+    if (byUrl) return byUrl;
+  }
+  return null;
+}
+
+function normalizeImagingLayout(imagingLayout: any[], images: any[]) {
+  const items: Array<{ x: number; y: number; w: number; h: number; image: any }> = [];
+  for (const raw of imagingLayout) {
+    if (!raw || typeof raw !== "object") continue;
+    const image = findLayoutImage(images, raw);
+    if (!image) continue;
+    const w = Math.min(100, Math.max(5, Number(raw.w) || 40));
+    const rawH = Number(raw.h);
+    items.push({
+      x: Math.min(100, Math.max(0, Number(raw.x) || 0)),
+      y: Math.max(0, Number(raw.y) || 0),
+      w,
+      h: Number.isFinite(rawH) && rawH > 0 ? rawH : w * IMAGING_DEFAULT_ASPECT,
+      image,
+    });
+  }
+  return items;
+}
+
+function renderImagingSection(
+  imagingFiles: any[],
+  reportDepartment: Department,
+  imagingLayout?: any[],
+  options?: { placeholderOnly?: boolean }
+) {
+  if (imagingFiles.length === 0) return "";
+
+  // Filter only images (PDFs handled separately)
+  const images = imagingFiles.filter((f) => typeof f?.fileType === "string" && f.fileType.startsWith("image/"));
+  if (images.length === 0) return "";
+
+  if (Array.isArray(imagingLayout) && imagingLayout.length > 0) {
+    const items = normalizeImagingLayout(imagingLayout, images);
+    if (items.length > 0) {
+      const regionRatio = Math.max(
+        IMAGING_MIN_REGION_RATIO,
+        items.reduce((max, item) => Math.max(max, item.y + item.h), 0)
+      );
+
+      const tiles = items
+        .map((item) => {
+          const frame = [
+            "position:absolute",
+            `left:${imagingPct(item.x)}%`,
+            `top:${imagingPct((item.y / regionRatio) * 100)}%`,
+            `width:${imagingPct(item.w)}%`,
+            `height:${imagingPct((item.h / regionRatio) * 100)}%`,
+            "overflow:hidden",
+            "border-radius:6px",
+          ].join("; ");
+
+          if (options?.placeholderOnly) {
+            return `<div class="imaging-card imaging-card--placeholder" style="${frame}; border:1px dashed #cbd5f5; background:rgba(219,234,254,0.35);"></div>`;
+          }
+
+          const src = escapeHtml(String(item.image.url ?? item.image.fileUrl ?? ""));
+          const alt = escapeHtml(String(item.image.name ?? item.image.fileName ?? "Radiology image"));
+          return `
+            <div class="imaging-card" style="${frame}; border:1px solid #e5e7eb; background:#ffffff;">
+              <img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:contain; display:block;" />
+            </div>
+          `;
+        })
+        .join("");
+
+      return `
+        <section class="imaging-section imaging-section--positioned">
+          <h3>Imaging Studies</h3>
+          <div
+            class="imaging-region"
+            id="imaging-region"
+            data-imaging-region="1"
+            data-region-ratio="${imagingPct(regionRatio)}"
+            style="position:relative; width:100%; height:0; padding-bottom:${imagingPct(regionRatio)}%;"
+          >
+            ${tiles}
+          </div>
+        </section>
+      `;
+    }
   }
 
   return `
     <section class="imaging-section" style="page-break-before: auto;">
       <h3>Imaging Studies</h3>
-      <div class="imaging-grid" style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="imaging-grid" id="imaging-region" data-imaging-region="1" style="display: flex; flex-direction: column; gap: 20px;">
         ${images.map((img, idx) => `
           <div class="imaging-card" style="page-break-inside: avoid; break-inside: avoid-page;">
             <p class="imaging-label" style="font-size: 11px; color: #6b7280; margin-bottom: 6px;">
@@ -724,6 +808,9 @@ type RenderArgs = {
   showPrintButton?: boolean;
   autoPrint?: boolean;
   baseUrl?: string;
+  // Renders the positioned imaging region as empty reserved space. Used by the
+  // radiographer's layout editor, which draws its own draggable tiles on top.
+  imagingLayoutEditor?: boolean;
 };
 
 function formatWebsiteForLetterhead(url: string) {
@@ -901,7 +988,9 @@ export function renderReportHtml(args: RenderArgs) {
 
   // Add imaging section for radiology reports
   const imagingHtml = args.department === Department.RADIOLOGY && imagingFiles.length > 0
-    ? renderImagingSection(imagingFiles, args.department, (args.content as any)?.imagingLayout)
+    ? renderImagingSection(imagingFiles, args.department, (args.content as any)?.imagingLayout, {
+        placeholderOnly: args.imagingLayoutEditor === true,
+      })
     : "";
 
   // Add pagination-friendly CSS for images
@@ -1180,6 +1269,11 @@ export function renderReportHtml(args: RenderArgs) {
     }
     .muted { color: #6b7280; }
     .imaging-section { margin-bottom: 16px; }
+    .imaging-region {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin: 6px 0 14px;
+    }
     .imaging-grid { display: flex; flex-direction: column; gap: 20px; }
     .imaging-card { 
       border: 1px solid #d1d5db; 

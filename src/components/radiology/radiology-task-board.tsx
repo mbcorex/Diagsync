@@ -25,6 +25,11 @@ import {
   type RadiologyPerTestSection,
 } from "@/lib/radiology-report-sections";
 import { BulletListEditor } from "@/components/radiology/bullet-list-editor";
+import {
+  ImagingLayoutEditor,
+  createImagingLayoutItem,
+  normalizeImagingLayout,
+} from "@/components/radiology/imaging-layout-editor";
 import { ImagePlus, X, Download, Plus } from "lucide-react";
 import React from "react";
 
@@ -153,6 +158,8 @@ function formatExtraFieldLabel(key: string): string {
     .join(" ");
 }
 
+const IMAGING_LAYOUT_KEY = "imagingLayout";
+
 const priorityStyle: Record<string, string> = {
   EMERGENCY: "bg-red-50 text-red-600", URGENT: "bg-amber-50 text-amber-700", ROUTINE: "bg-slate-100 text-slate-600",
 };
@@ -187,116 +194,6 @@ class ErrorBoundary extends React.Component<{
     }
     return this.props.children as any;
   }
-}
-
-function LayoutEditor({ taskId, imagingFiles, getLayout, onChange }: { taskId: string; imagingFiles: ImagingFile[]; getLayout: () => any[]; onChange: (layout: any[]) => void }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [layout, setLayout] = useState<any[]>(() => getLayout() ?? []);
-  const layoutRef = useRef<any[]>(layout);
-  const dragRef = useRef<any>(null);
-  const fileSignature = imagingFiles.map((f) => f.id).join(",");
-
-  useEffect(() => { layoutRef.current = layout; }, [layout]);
-
-  // Re-sync from the draft when the task or the set of files changes.
-  // Never call onChange() here: that writes parent state on mount and,
-  // combined with a remount, loops forever (React #185).
-  useEffect(() => {
-    setLayout(getLayout() ?? []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskId, fileSignature]);
-
-  function clientToPct(clientX: number, clientY: number) {
-    const el = containerRef.current; if (!el) return { x: 0, y: 0 };
-    const rect = el.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * 100;
-    const y = ((clientY - rect.top) / rect.height) * 100;
-    return { x, y };
-  }
-
-  function startDrag(e: React.PointerEvent, idx: number) {
-    const el = containerRef.current; if (!el) return;
-    (e.target as Element).setPointerCapture(e.pointerId);
-    const start = clientToPct(e.clientX, e.clientY);
-    dragRef.current = { idx, mode: "move", start, orig: { ...layout[idx] } };
-  }
-
-  function startResize(e: React.PointerEvent, idx: number) {
-    const el = containerRef.current; if (!el) return;
-    (e.target as Element).setPointerCapture(e.pointerId);
-    const start = clientToPct(e.clientX, e.clientY);
-    dragRef.current = { idx, mode: "resize", start, orig: { ...layout[idx] } };
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragRef.current) return;
-    const { idx, mode, start, orig } = dragRef.current;
-    const cur = clientToPct(e.clientX, e.clientY);
-    const dx = cur.x - start.x;
-    const dy = cur.y - start.y;
-    setLayout((prev) => {
-      const copy = prev.map((r) => ({ ...r }));
-      if (!copy[idx]) return prev;
-      if (mode === "move") {
-        copy[idx].x = Math.max(0, Math.min(100 - (copy[idx].w ?? 20), (orig.x ?? 0) + dx));
-        copy[idx].y = Math.max(0, Math.min(100 - (copy[idx].h ?? 20), (orig.y ?? 0) + dy));
-      } else if (mode === "resize") {
-        copy[idx].w = Math.max(5, Math.min(100 - (orig.x ?? 0), (orig.w ?? 20) + dx));
-        // allow height auto by percentage or keep aspect ratio; user can set h explicitly
-        if (orig.h !== null && orig.h !== undefined) {
-          copy[idx].h = Math.max(5, Math.min(100 - (orig.y ?? 0), (orig.h ?? 20) + dy));
-        } else {
-          copy[idx].h = null;
-        }
-      }
-      return copy;
-    });
-  }
-
-  function onPointerUp(e: React.PointerEvent) {
-    if (dragRef.current) {
-      try { (e.target as Element).releasePointerCapture(e.pointerId); } catch {}
-      dragRef.current = null;
-      // notify parent of final layout on pointer up (throttles continuous updates)
-      onChange(layoutRef.current ?? layout);
-    }
-  }
-
-  function removeItem(idx: number) {
-    setLayout((prev) => {
-      const next = prev.filter((_, i) => i !== idx);
-      // persist removal immediately
-      onChange(next);
-      return next;
-    });
-  }
-
-  return (
-    <div>
-      <div className="mb-2 text-[11px] text-slate-500">Drag images on the canvas, resize from the bottom-right corner, and click Save Draft to persist positions.</div>
-      <div ref={containerRef} onPointerMove={onPointerMove} onPointerUp={onPointerUp} className="relative bg-slate-50 border border-slate-200" style={{ width: "100%", height: 420 }}>
-        {layout.map((item, idx) => {
-          const file = imagingFiles.find((f) => f.id === item.id);
-          if (!file) return null;
-          const style: any = { position: "absolute", left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, cursor: "move", border: "1px solid #e5e7eb", borderRadius: 4, overflow: "hidden", background: "white" };
-          if (item.h) style.height = `${item.h}%`;
-          return (
-            <div key={`${item.id}-${idx}`} style={style} onPointerDown={(e) => startDrag(e, idx)}>
-              <img src={file.fileUrl} alt={file.fileName} style={{ width: "100%", height: item.h ? "100%" : "auto", display: "block", objectFit: "contain" }} />
-              <div style={{ position: "absolute", right: 4, bottom: 4 }}>
-                <div onPointerDown={(e) => startResize(e, idx)} style={{ width: 12, height: 12, background: "rgba(0,0,0,0.6)", cursor: "nwse-resize", borderRadius: 2 }} />
-              </div>
-              <button onClick={(ev) => { ev.stopPropagation(); removeItem(idx); }} className="absolute right-1 top-1 rounded bg-white p-0.5 text-xs text-red-600">✕</button>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => { onChange(layout); }} className="rounded border border-blue-200 px-2 py-1 text-[11px] text-blue-700">Save Layout</button>
-        <button type="button" onClick={() => { /* noop, draft saved by Save Draft */ }} className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-600">Apply</button>
-      </div>
-    </div>
-  );
 }
 
 export function RadiologyTaskBoard() {
@@ -337,7 +234,7 @@ export function RadiologyTaskBoard() {
     try {
       const d = drafts[taskId];
       const extra = d?.extraFields ?? {};
-      const raw = (extra as any).imagingLayout;
+      const raw = (extra as any)[IMAGING_LAYOUT_KEY];
       if (Array.isArray(raw)) return raw;
       if (typeof raw === "string") {
         try { return JSON.parse(raw); } catch { return []; }
@@ -351,7 +248,7 @@ export function RadiologyTaskBoard() {
   function updateLayoutForTask(taskId: string, layout: any[]) {
       try {
         const current = drafts[taskId] ?? EMPTY_DRAFT;
-        updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), imagingLayout: JSON.stringify(layout) } });
+        updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), [IMAGING_LAYOUT_KEY]: JSON.stringify(layout) } });
       } catch (err) {
         console.error("Failed to update imaging layout", err);
         setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to update layout"));
@@ -1398,16 +1295,9 @@ export function RadiologyTaskBoard() {
                                               type="button"
                                               onClick={() => {
                                                     try {
-                                                      const layout = getLayoutForTask(task.id);
-                                                      // add new element centered with 40% width
-                                                      const newItem = {
-                                                        id: file.id,
-                                                        x: 30,
-                                                        y: 10 + (Array.isArray(layout) ? layout.length * 5 : 0),
-                                                        w: 40,
-                                                        h: null,
-                                                      };
-                                                      updateLayoutForTask(task.id, [...(Array.isArray(layout) ? layout : []), newItem]);
+                                                      const layout = normalizeImagingLayout(getLayoutForTask(task.id));
+                                                      const newItem = createImagingLayoutItem(file.id, layout.length);
+                                                      updateLayoutForTask(task.id, [...layout, newItem]);
                                                       setShowLayoutEditorByTask((prev) => ({ ...prev, [task.id]: true }));
                                                     } catch (err) {
                                                       console.error("Add to layout failed", err);
@@ -1437,12 +1327,13 @@ export function RadiologyTaskBoard() {
                                     </div>
                                   </div>
                                   <ErrorBoundary onReset={() => setShowLayoutEditorByTask((p) => ({ ...p, [task.id]: false }))}>
-                                    <LayoutEditor
+                                    <ImagingLayoutEditor
                                       key={task.id}
                                       taskId={task.id}
                                       imagingFiles={imagingFiles}
                                       getLayout={() => getLayoutForTask(task.id)}
                                       onChange={(layout) => updateLayoutForTask(task.id, layout)}
+                                      onRequestSave={() => saveReport(task.id)}
                                     />
                                   </ErrorBoundary>
                                 </div>
@@ -1457,7 +1348,8 @@ export function RadiologyTaskBoard() {
                                         ([key]) =>
                                           key !== SIGNOFF_IMAGE_KEY &&
                                           key !== SIGNOFF_NAME_KEY &&
-                                          key !== RADIOLOGY_PER_TEST_KEY
+                                          key !== RADIOLOGY_PER_TEST_KEY &&
+                                          key !== IMAGING_LAYOUT_KEY
                                       )
                                     )
                                   ).length === 0 ? (
@@ -1469,7 +1361,8 @@ export function RadiologyTaskBoard() {
                                           ([key]) =>
                                             key !== SIGNOFF_IMAGE_KEY &&
                                             key !== SIGNOFF_NAME_KEY &&
-                                            key !== RADIOLOGY_PER_TEST_KEY
+                                            key !== RADIOLOGY_PER_TEST_KEY &&
+                                            key !== IMAGING_LAYOUT_KEY
                                         )
                                       )
                                     ).map(([fieldKey, fieldValue]) => (
