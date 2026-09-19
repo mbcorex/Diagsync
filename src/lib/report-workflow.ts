@@ -23,6 +23,7 @@ import { extractSignOffEntriesFromMap, stripSignOffKeys } from "./report-signoff
 import { canUseCustomLetterhead, shouldShowWatermark } from "./billing-access";
 import { parseRadiologyPerTestSections } from "./radiology-report-sections";
 import { mergeReportContent } from "./report-merge-core";
+import { isImagingLayoutKey, readImagingLayout } from "./imaging-layout";
 
 export type ReportActor = {
   id: string;
@@ -195,6 +196,8 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     const stripped = stripSignOffKeys(rawExtraFields as Record<string, unknown>);
     for (const [key, value] of Object.entries(stripped)) {
       if (key === "__perTestReports") continue;
+      // machine-written placement data, not a field anyone typed
+      if (isImagingLayoutKey(key)) continue;
       const m = key.match(/^test_(.+?)__(.+)$/);
       if (m) {
         const testOrderId = m[1];
@@ -223,14 +226,7 @@ async function buildReportContentFromTask(taskId: string, organizationId: string
     name: file.fileName,
     fileType: file.fileType,
   }));
-  let imagingLayout: any = rawExtraFields ? (rawExtraFields as Record<string, any>)["imagingLayout"] ?? null : null;
-  if (typeof imagingLayout === "string") {
-    try {
-      imagingLayout = JSON.parse(imagingLayout as string);
-    } catch {
-      imagingLayout = null;
-    }
-  }
+  const imagingLayout = readImagingLayout(rawExtraFields);
   return {
     department: task.department,
     reportType,

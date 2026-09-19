@@ -5,6 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/index";
 import { formatDateTime } from "@/lib/utils";
 import { toCustomFieldKey } from "@/lib/custom-fields-core";
+import {
+  IMAGING_LAYOUT_KEY,
+  isImagingLayoutKey,
+  readImagingLayout,
+  withoutImagingLayout,
+} from "@/lib/imaging-layout";
 import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, SIGNOFF_ENTRIES_KEY, extractSignOffEntriesFromMap } from "@/lib/report-signoff";
 import { formatPatientAge } from "@/lib/patient-age";
 import {
@@ -158,8 +164,6 @@ function formatExtraFieldLabel(key: string): string {
     .join(" ");
 }
 
-const IMAGING_LAYOUT_KEY = "imagingLayout";
-
 const priorityStyle: Record<string, string> = {
   EMERGENCY: "bg-red-50 text-red-600", URGENT: "bg-amber-50 text-amber-700", ROUTINE: "bg-slate-100 text-slate-600",
 };
@@ -229,26 +233,18 @@ export function RadiologyTaskBoard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLayoutEditorByTask, setShowLayoutEditorByTask] = useState<Record<string, boolean>>({});
 
-  // layout items are stored in drafts[taskId].extraFields.imagingLayout as array of {id:fileId, x, y, w, h}
+  // Layout items live in drafts[taskId].extraFields under IMAGING_LAYOUT_KEY,
+  // as an array of {id: fileId, x, y, w, h} in page-width percentages.
   function getLayoutForTask(taskId: string) {
-    try {
-      const d = drafts[taskId];
-      const extra = d?.extraFields ?? {};
-      const raw = (extra as any)[IMAGING_LAYOUT_KEY];
-      if (Array.isArray(raw)) return raw;
-      if (typeof raw === "string") {
-        try { return JSON.parse(raw); } catch { return []; }
-      }
-      return [];
-    } catch {
-      return [];
-    }
+    return readImagingLayout(drafts[taskId]?.extraFields) ?? [];
   }
 
   function updateLayoutForTask(taskId: string, layout: any[]) {
       try {
         const current = drafts[taskId] ?? EMPTY_DRAFT;
-        updateDraft(taskId, { extraFields: { ...(current.extraFields ?? {}), [IMAGING_LAYOUT_KEY]: JSON.stringify(layout) } });
+        // withoutImagingLayout() clears any legacy key, so a draft never ends
+        // up carrying two competing layouts.
+        updateDraft(taskId, { extraFields: { ...withoutImagingLayout(current.extraFields), [IMAGING_LAYOUT_KEY]: JSON.stringify(layout) } });
       } catch (err) {
         console.error("Failed to update imaging layout", err);
         setError(typeof err === "string" ? err : (err instanceof Error ? err.message : "Failed to update layout"));
@@ -1349,7 +1345,7 @@ export function RadiologyTaskBoard() {
                                           key !== SIGNOFF_IMAGE_KEY &&
                                           key !== SIGNOFF_NAME_KEY &&
                                           key !== RADIOLOGY_PER_TEST_KEY &&
-                                          key !== IMAGING_LAYOUT_KEY
+                                          !isImagingLayoutKey(key)
                                       )
                                     )
                                   ).length === 0 ? (
@@ -1362,7 +1358,7 @@ export function RadiologyTaskBoard() {
                                             key !== SIGNOFF_IMAGE_KEY &&
                                             key !== SIGNOFF_NAME_KEY &&
                                             key !== RADIOLOGY_PER_TEST_KEY &&
-                                            key !== IMAGING_LAYOUT_KEY
+                                            !isImagingLayoutKey(key)
                                         )
                                       )
                                     ).map(([fieldKey, fieldValue]) => (

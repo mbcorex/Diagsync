@@ -2,6 +2,7 @@
 import { Department } from "@prisma/client";
 import { SIGNOFF_IMAGE_KEY, SIGNOFF_NAME_KEY, extractSignOffEntriesFromMap } from "./report-signoff";
 import { formatPatientAge } from "./patient-age";
+import { isImagingLayoutKey } from "./imaging-layout";
 
 function escapeHtml(input: string) {
   return input
@@ -949,6 +950,7 @@ export function renderReportHtml(args: RenderArgs) {
                         .map(([key, value]) => {
                           if (key === SIGNOFF_IMAGE_KEY || key === SIGNOFF_NAME_KEY) return "";
                           if (key === "__perTestReports") return "";
+                          if (isImagingLayoutKey(String(key))) return "";
                           const k = String(key ?? "").trim();
                           const v = value === null || value === undefined ? "" : String(value);
                           if (!k) return "";
