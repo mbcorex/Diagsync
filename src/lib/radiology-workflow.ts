@@ -1046,13 +1046,19 @@ export async function saveRadiologyReport(
 
 
 
-  await prisma.routingTask.update({
-
-    where: { id: task.id },
-
-    data: { status: RoutingTaskStatus.IN_PROGRESS },
-
-  });
+  // A draft save must never pull an already-submitted task back out of MD
+  // review. getMdReviewItems() matches on COMPLETED + isSubmitted, so flipping
+  // the status to IN_PROGRESS here makes a submitted report silently disappear
+  // from the review queue, from HRM and from the admin views.
+  if (
+    task.status !== RoutingTaskStatus.COMPLETED &&
+    task.status !== RoutingTaskStatus.CANCELLED
+  ) {
+    await prisma.routingTask.update({
+      where: { id: task.id },
+      data: { status: RoutingTaskStatus.IN_PROGRESS },
+    });
+  }
 
 
 

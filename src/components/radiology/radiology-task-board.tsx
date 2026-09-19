@@ -792,6 +792,9 @@ export function RadiologyTaskBoard() {
   async function submitTask(taskId: string) {
     setBusyTaskId(taskId); setError("");
     invalidateTaskCache();
+    // Close the layout editor first: it saves the draft on a debounce, and a
+    // save that lands after the submit would be a pointless extra round trip.
+    setShowLayoutEditorByTask((prev) => (prev[taskId] ? { ...prev, [taskId]: false } : prev));
     try {
       const d = drafts[taskId] ?? EMPTY_DRAFT;
       const task = tasks.find((row) => row.id === taskId);
