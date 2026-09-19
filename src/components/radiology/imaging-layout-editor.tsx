@@ -8,13 +8,15 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 const PAGE_WIDTH_PX = 794;
 const PAGE_HEIGHT_PX = 1123;
 
-// Every coordinate below is a percentage of the imaging region's WIDTH - y and
-// h included. One axis for all four means the region's height is a fixed ratio
-// of its width, so this canvas and the printed page agree at any scale.
-// renderImagingSection() in report-rendering.ts reads them the same way.
-const MIN_REGION_RATIO = 10;
+// Every coordinate below is a percentage of the PAGE WIDTH - y and h included.
+// One axis for all four keeps positions stable however tall the report grows
+// and however this canvas is scaled to fit the panel. renderImagingLayers() in
+// report-rendering.ts reads them the same way and pins each image to the sheet.
 const DEFAULT_ASPECT = 0.75;
-const MIN_TILE_WIDTH = 5;
+const MIN_TILE_WIDTH = 2;
+// Images may hang off the sheet a little, but must stay grabbable.
+const MIN_X = -20;
+const MAX_X = 100;
 
 export interface ImagingLayoutFile {
   id: string;
@@ -45,7 +47,9 @@ function clamp(value: number, min: number, max: number) {
 
 export function createImagingLayoutItem(fileId: string, index: number): ImagingLayoutItem {
   const w = 40;
-  return { id: fileId, x: 30, y: 4 + index * 4, w, h: w * DEFAULT_ASPECT, auto: true };
+  // Drop it below the letterhead and patient block, stepped so a second image
+  // does not land exactly on the first.
+  return { id: fileId, x: 30, y: 30 + index * 5, w, h: w * DEFAULT_ASPECT, auto: true };
 }
 
 export function normalizeImagingLayout(raw: unknown): ImagingLayoutItem[] {
@@ -59,7 +63,7 @@ export function normalizeImagingLayout(raw: unknown): ImagingLayoutItem[] {
     const h = toNumber((entry as any).h, 0);
     items.push({
       id,
-      x: clamp(toNumber((entry as any).x, 0), 0, 100),
+      x: clamp(toNumber((entry as any).x, 0), MIN_X, MAX_X),
       y: Math.max(0, toNumber((entry as any).y, 0)),
       w,
       h: h > 0 ? h : w * DEFAULT_ASPECT,
@@ -67,13 +71,6 @@ export function normalizeImagingLayout(raw: unknown): ImagingLayoutItem[] {
     });
   }
   return items;
-}
-
-function regionRatioOf(layout: ImagingLayoutItem[]) {
-  return Math.max(
-    MIN_REGION_RATIO,
-    layout.reduce((max, item) => Math.max(max, item.y + item.h), 0)
-  );
 }
 
 type DragState = {
@@ -177,7 +174,9 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
         PAGE_HEIGHT_PX
       );
       setFrameHeight(docHeight);
-      const node = doc.getElementById("imaging-region");
+      // Anchor to the sheet itself: images are pinned to .page, not to any
+      // block inside the content column.
+      const node = doc.querySelector(".page");
       if (!node) {
         setRegion(null);
         setPreviewState("ready");
@@ -213,11 +212,8 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
     [scheduleRefresh]
   );
 
-  const ratio = regionRatioOf(layout);
-  // Content column inside .page: 794 - (44px page padding * 2) - (18px shell padding * 2).
-  const fallbackWidth = PAGE_WIDTH_PX - 88 - 36;
-  const canvasWidth = (region?.width ?? fallbackWidth) * scale;
-  const canvasHeight = region ? region.height * scale : (canvasWidth * ratio) / 100;
+  const canvasWidth = (region?.width ?? PAGE_WIDTH_PX) * scale;
+  const canvasHeight = (region?.height ?? frameHeight) * scale;
   const canvasTop = (region?.top ?? 0) * scale;
   const canvasLeft = (region?.left ?? 0) * scale;
   const toPx = (value: number) => (value / 100) * canvasWidth;
@@ -264,11 +260,11 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
         if (drag.mode === "move") {
           return {
             ...item,
-            x: clamp(drag.origin.x + dx, 0, 100 - item.w),
+            x: clamp(drag.origin.x + dx, MIN_X, MAX_X),
             y: Math.max(0, drag.origin.y + dy),
           };
         }
-        const width = clamp(drag.origin.w + dx, MIN_TILE_WIDTH, 100 - drag.origin.x);
+        const width = clamp(drag.origin.w + dx, MIN_TILE_WIDTH, MAX_X);
         const originAspect = drag.origin.w > 0 ? drag.origin.h / drag.origin.w : 0;
         const aspect = aspects[item.id] ?? (originAspect > 0 ? originAspect : DEFAULT_ASPECT);
         return { ...item, w: width, h: width * aspect, auto: false };
@@ -314,8 +310,8 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
     <div>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] text-slate-500">
-          Drag to position, resize from the bottom-right corner. The page below is the real report -
-          findings always start beneath the blue region, so text can never be covered.
+          Drag anywhere on the sheet, resize from the bottom-right corner. This is the real report
+          page, so what you see here is what prints.
         </p>
         <button
           type="button"
@@ -328,7 +324,7 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
 
       {previewState === "error" ? (
         <p className="mb-2 text-[11px] text-amber-600">
-          Live page preview unavailable - positioning against a blank region instead.
+          Live page preview unavailable - positioning against a blank sheet instead.
         </p>
       ) : null}
 
@@ -363,7 +359,6 @@ export function ImagingLayoutEditor({ taskId, imagingFiles, getLayout, onChange,
               left: canvasLeft,
               width: canvasWidth,
               height: canvasHeight,
-              outline: "1px dashed #93c5fd",
               background: region ? "transparent" : "rgba(241,245,249,0.9)",
               touchAction: "none",
             }}

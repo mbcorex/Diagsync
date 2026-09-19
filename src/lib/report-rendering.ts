@@ -560,19 +560,19 @@ function renderMicroCultureSensitivitySection(tests: LabRenderTest[]) {
   return `${microscopyTable}${cultureHtml}${sensitivityHtml}`;
 }
 
-// --- Positioned imaging layout -------------------------------------------
-// Every coordinate in an imaging layout item (x / y / w / h) is a percentage
-// of the imaging REGION'S WIDTH. Using one axis for all four keeps the region
-// resolution-independent: its height is simply a fixed ratio of its width, so
-// the editor canvas and the printed page agree no matter how either is scaled.
-// The region is a reserved block in the normal document flow, which is why
-// findings text can never end up underneath an image.
-const IMAGING_MIN_REGION_RATIO = 10;
+// --- Imaging placement ---------------------------------------------------
+// A saved layout takes the images OUT of the document flow and pins them to
+// the A4 sheet, so they can sit anywhere: over the meta block, beside the
+// findings, or on a later page. Coordinates are percentages of the PAGE WIDTH
+// on BOTH axes (y included) - one axis for all four keeps them stable however
+// tall the report grows and however the editor canvas is scaled.
+// imaging-layout-editor.tsx reads them the same way.
+const IMAGING_PAGE_WIDTH_PX = 794;
 const IMAGING_DEFAULT_ASPECT = 0.75;
 
-function imagingPct(value: number) {
+function imagingPx(value: number) {
   if (!Number.isFinite(value)) return 0;
-  return Math.round(value * 1000) / 1000;
+  return Math.round((value / 100) * IMAGING_PAGE_WIDTH_PX * 100) / 100;
 }
 
 function findLayoutImage(images: any[], item: any) {
@@ -604,10 +604,10 @@ function normalizeImagingLayout(imagingLayout: any[], images: any[]) {
     if (!raw || typeof raw !== "object") continue;
     const image = findLayoutImage(images, raw);
     if (!image) continue;
-    const w = Math.min(100, Math.max(5, Number(raw.w) || 40));
+    const w = Math.min(100, Math.max(2, Number(raw.w) || 40));
     const rawH = Number(raw.h);
     items.push({
-      x: Math.min(100, Math.max(0, Number(raw.x) || 0)),
+      x: Math.max(-50, Math.min(150, Number(raw.x) || 0)),
       y: Math.max(0, Number(raw.y) || 0),
       w,
       h: Number.isFinite(rawH) && rawH > 0 ? rawH : w * IMAGING_DEFAULT_ASPECT,
@@ -617,73 +617,53 @@ function normalizeImagingLayout(imagingLayout: any[], images: any[]) {
   return items;
 }
 
-function renderImagingSection(
+function renderImagingLayers(
   imagingFiles: any[],
-  reportDepartment: Department,
   imagingLayout?: any[],
   options?: { placeholderOnly?: boolean }
-) {
-  if (imagingFiles.length === 0) return "";
+): { flowHtml: string; overlayHtml: string } {
+  const empty = { flowHtml: "", overlayHtml: "" };
+  if (imagingFiles.length === 0) return empty;
 
   // Filter only images (PDFs handled separately)
   const images = imagingFiles.filter((f) => typeof f?.fileType === "string" && f.fileType.startsWith("image/"));
-  if (images.length === 0) return "";
+  if (images.length === 0) return empty;
 
   if (Array.isArray(imagingLayout) && imagingLayout.length > 0) {
     const items = normalizeImagingLayout(imagingLayout, images);
     if (items.length > 0) {
-      const regionRatio = Math.max(
-        IMAGING_MIN_REGION_RATIO,
-        items.reduce((max, item) => Math.max(max, item.y + item.h), 0)
-      );
+      // The layout editor draws its own draggable tiles over this page, so it
+      // asks for the layer to come back empty rather than doubled up.
+      const tiles = options?.placeholderOnly
+        ? ""
+        : items
+            .map((item) => {
+              const frame = [
+                "position:absolute",
+                `left:${imagingPx(item.x)}px`,
+                `top:${imagingPx(item.y)}px`,
+                `width:${imagingPx(item.w)}px`,
+                `height:${imagingPx(item.h)}px`,
+                "overflow:hidden",
+              ].join("; ");
+              const src = escapeHtml(String(item.image.url ?? item.image.fileUrl ?? ""));
+              const alt = escapeHtml(String(item.image.name ?? item.image.fileName ?? "Radiology image"));
+              return `<div class="imaging-pinned" style="${frame}"><img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:contain; display:block;" /></div>`;
+            })
+            .join("");
 
-      const tiles = items
-        .map((item) => {
-          const frame = [
-            "position:absolute",
-            `left:${imagingPct(item.x)}%`,
-            `top:${imagingPct((item.y / regionRatio) * 100)}%`,
-            `width:${imagingPct(item.w)}%`,
-            `height:${imagingPct((item.h / regionRatio) * 100)}%`,
-            "overflow:hidden",
-            "border-radius:6px",
-          ].join("; ");
-
-          if (options?.placeholderOnly) {
-            return `<div class="imaging-card imaging-card--placeholder" style="${frame}; border:1px dashed #cbd5f5; background:rgba(219,234,254,0.35);"></div>`;
-          }
-
-          const src = escapeHtml(String(item.image.url ?? item.image.fileUrl ?? ""));
-          const alt = escapeHtml(String(item.image.name ?? item.image.fileName ?? "Radiology image"));
-          return `
-            <div class="imaging-card" style="${frame}; border:1px solid #e5e7eb; background:#ffffff;">
-              <img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:contain; display:block;" />
-            </div>
-          `;
-        })
-        .join("");
-
-      return `
-        <section class="imaging-section imaging-section--positioned">
-          <h3>Imaging Studies</h3>
-          <div
-            class="imaging-region"
-            id="imaging-region"
-            data-imaging-region="1"
-            data-region-ratio="${imagingPct(regionRatio)}"
-            style="position:relative; width:100%; height:0; padding-bottom:${imagingPct(regionRatio)}%;"
-          >
-            ${tiles}
-          </div>
-        </section>
-      `;
+      return {
+        flowHtml: "",
+        overlayHtml: `<div class="imaging-layer" id="imaging-layer" data-imaging-layer="1">${tiles}</div>`,
+      };
     }
   }
 
-  return `
+  return {
+    flowHtml: `
     <section class="imaging-section" style="page-break-before: auto;">
       <h3>Imaging Studies</h3>
-      <div class="imaging-grid" id="imaging-region" data-imaging-region="1" style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="imaging-grid" style="display: flex; flex-direction: column; gap: 20px;">
         ${images.map((img, idx) => `
           <div class="imaging-card" style="page-break-inside: avoid; break-inside: avoid-page;">
             <p class="imaging-label" style="font-size: 11px; color: #6b7280; margin-bottom: 6px;">
@@ -699,7 +679,9 @@ function renderImagingSection(
         `).join("")}
       </div>
     </section>
-  `;
+  `,
+    overlayHtml: "",
+  };
 }
 
 // Improved splitRadiologyNarrative - better bullet detection
@@ -987,11 +969,13 @@ export function renderReportHtml(args: RenderArgs) {
   const effectiveWatermarkUrl = args.watermarkUrl || null;
 
   // Add imaging section for radiology reports
-  const imagingHtml = args.department === Department.RADIOLOGY && imagingFiles.length > 0
-    ? renderImagingSection(imagingFiles, args.department, (args.content as any)?.imagingLayout, {
-        placeholderOnly: args.imagingLayoutEditor === true,
-      })
-    : "";
+  const imagingLayers =
+    args.department === Department.RADIOLOGY && imagingFiles.length > 0
+      ? renderImagingLayers(imagingFiles, (args.content as any)?.imagingLayout, {
+          placeholderOnly: args.imagingLayoutEditor === true,
+        })
+      : { flowHtml: "", overlayHtml: "" };
+  const imagingHtml = imagingLayers.flowHtml;
 
   // Add pagination-friendly CSS for images
   const paginationStyles = `
@@ -1269,11 +1253,16 @@ export function renderReportHtml(args: RenderArgs) {
     }
     .muted { color: #6b7280; }
     .imaging-section { margin-bottom: 16px; }
-    .imaging-region {
-      break-inside: avoid;
-      page-break-inside: avoid;
-      margin: 6px 0 14px;
+    .imaging-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 4;
+      pointer-events: none;
     }
+    .imaging-pinned { position: absolute; }
     .imaging-grid { display: flex; flex-direction: column; gap: 20px; }
     .imaging-card { 
       border: 1px solid #d1d5db; 
@@ -1447,6 +1436,7 @@ export function renderReportHtml(args: RenderArgs) {
         ? `<div class="watermark watermark-top-left"><img src="${escapeHtml(effectiveWatermarkUrl)}" alt="watermark" crossorigin="anonymous" /></div>`
         : ""
     }
+    ${imagingLayers.overlayHtml}
     <div class="content-shell" id="content-shell">
     <div class="content">
       <h2>${args.department === Department.LABORATORY ? "Laboratory Report" : "Radiology Report"}</h2>
